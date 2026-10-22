@@ -112,9 +112,7 @@ export function setBatchData(dataMap) {
 
   db.exec('BEGIN TRANSACTION;');
   try {
-    const stmt = db.prepare(
-      'INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES (?, ?, ?)'
-    );
+    const stmt = db.prepare('INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES (?, ?, ?)');
 
     for (const [key, value] of entries) {
       if (key == null || key === '') continue;

@@ -3,6 +3,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { isArray, isNil, isNumber, isObject, isString } from 'lodash';
 import { storageStore } from '../stores';
+import { getStoredToken } from '../lib/authClient';
 import { withRetry } from '../lib/asyncHelper';
 import { getQueryClient } from '../lib/get-query-client';
 import * as qk from '../lib/query-keys';
@@ -2446,31 +2447,64 @@ export const parseFundTextLocally = (text) => {
 };
 
 export const parseFundTextWithLLM = async (text) => {
-  if (!text) return null;
-  if (!isSupabaseConfigured) return null;
-  if (!supabase?.functions?.invoke) return null;
+  if (!text || !isString(text)) return null;
 
+  // 1. 优先调用本地通用 OpenAPI/OpenAI 大模型服务端接口（官方 openai SDK 支持）
   try {
-    const { data, error } = await withRetry(() =>
-      supabase.functions.invoke('analyze-fund', {
-        body: { text }
-      })
-    );
+    const token = getStoredToken();
+    const customSettings = storageStore?.getState?.()?.customSettings || {};
+    const aiConfig = customSettings.aiConfig || {};
 
-    // 忽略每日限流错误，直接回退本地处理，不中断用户流程
-    if (data?.error === 'DAILY_LIMIT_EXCEEDED') {
+    const res = await fetch('/api/ai/parse', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({
+        text,
+        apiKey: aiConfig.apiKey,
+        baseURL: aiConfig.baseURL,
+        model: aiConfig.model
+      })
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json?.success && isArray(json.data) && json.data.length > 0) {
+        return JSON.stringify(json.data);
+      }
+    }
+  } catch (localErr) {
+    // 若未配置或本地 API 请求失败，继续向下尝试
+  }
+
+  // 2. 兼容旧版 Supabase Edge Function（若用户另行配置了 Supabase）
+  if (isSupabaseConfigured && supabase?.functions?.invoke) {
+    try {
+      const { data, error } = await withRetry(() =>
+        supabase.functions.invoke('analyze-fund', {
+          body: { text }
+        })
+      );
+
+      // 忽略每日限流错误，直接回退本地处理，不中断用户流程
+      if (data?.error === 'DAILY_LIMIT_EXCEEDED') {
+        return null;
+      }
+
+      if (error) return null;
+      if (!data || data.success !== true) return null;
+      if (!isArray(data.data)) return null;
+
+      // 保持与旧实现兼容：返回 JSON 字符串，由调用方 JSON.parse
+      return JSON.stringify(data.data);
+    } catch (e) {
       return null;
     }
-
-    if (error) return null;
-    if (!data || data.success !== true) return null;
-    if (!isArray(data.data)) return null;
-
-    // 保持与旧实现兼容：返回 JSON 字符串，由调用方 JSON.parse
-    return JSON.stringify(data.data);
-  } catch (e) {
-    return null;
   }
+
+  return null;
 };
 
 /**

@@ -1,6 +1,12 @@
 import { isArray, isFunction } from 'lodash';
 import { useState, useRef } from 'react';
-import { parseFundTextWithLLM, parseFundTextLocally, fetchFundData, searchFunds, fetchFundsBestSources } from '../api/fund';
+import {
+  parseFundTextWithLLM,
+  parseFundTextLocally,
+  fetchFundData,
+  searchFunds,
+  fetchFundsBestSources
+} from '../api/fund';
 import { recordValuation } from '../lib/valuationTimeseries';
 import { useFundFuzzyMatcher } from './useFundFuzzyMatcher';
 import { useStorageStore, useUserStore, useModalStore } from '../stores';

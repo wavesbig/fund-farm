@@ -23,6 +23,7 @@ const ScanProgressModal = dynamic(() => import('./ScanProgressModal'), { ssr: fa
 const AddHistoryModal = dynamic(() => import('./AddHistoryModal'), { ssr: false });
 const AllSectorsModal = dynamic(() => import('./AllSectorsModal'), { ssr: false });
 const DividendMethodModal = dynamic(() => import('./DividendMethodModal'), { ssr: false });
+const AiConfigModal = dynamic(() => import('./AiConfigModal'), { ssr: false });
 
 // 高频组件：同步加载
 import ConfirmModal from './ConfirmModal';
@@ -92,6 +93,7 @@ function ModalsLayerContent({ callbacksRef }) {
   const mobileTableSettingModalOpen = useModalStore((s) => s.mobileTableSettingModalOpen);
   const sortSettingOpen = useModalStore((s) => s.sortSettingOpen);
   const allSectorsModalOpen = useModalStore((s) => s.allSectorsModalOpen);
+  const aiConfigModalOpen = useModalStore((s) => s.aiConfigModalOpen);
   const groupModalOpen = useModalStore((s) => s.groupModalOpen);
   const groupManageOpen = useModalStore((s) => s.groupManageOpen);
   const addFundToGroupOpen = useModalStore((s) => s.addFundToGroupOpen);
@@ -145,6 +147,7 @@ function ModalsLayerContent({ callbacksRef }) {
   const setUpdateLogOpen = (v) => _ms({ updateLogOpen: isFunction(v) ? v(_gs().updateLogOpen) : v });
   const setSortSettingOpen = (v) => _ms({ sortSettingOpen: isFunction(v) ? v(_gs().sortSettingOpen) : v });
   const setAllSectorsModalOpen = (v) => _ms({ allSectorsModalOpen: isFunction(v) ? v(_gs().allSectorsModalOpen) : v });
+  const setAiConfigModalOpen = (v) => _ms({ aiConfigModalOpen: isFunction(v) ? v(_gs().aiConfigModalOpen) : v });
   const setGroupModalOpen = (v) => _ms({ groupModalOpen: isFunction(v) ? v(_gs().groupModalOpen) : v });
   const setGroupManageOpen = (v) => _ms({ groupManageOpen: isFunction(v) ? v(_gs().groupManageOpen) : v });
   const setAddFundToGroupOpen = (v) => _ms({ addFundToGroupOpen: isFunction(v) ? v(_gs().addFundToGroupOpen) : v });
@@ -885,6 +888,11 @@ function ModalsLayerContent({ callbacksRef }) {
             isScanning={isScanning}
           />
         )}
+      </AnimatePresence>
+
+      {/* ===== Modal: 通用大模型 OpenAPI 配置 ===== */}
+      <AnimatePresence>
+        {aiConfigModalOpen && <AiConfigModal onClose={() => setAiConfigModalOpen(false)} />}
       </AnimatePresence>
 
       {/* ===== Modal: 扫描识别 - 确认 ===== */}

@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import ConfirmModal from './ConfirmModal';
 import { ResetIcon, SettingsIcon } from './Icons';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { useModalStore } from '../stores';
 
 export default function SettingsModal({
   onClose,
@@ -319,6 +320,22 @@ export default function SettingsModal({
               </div>
             </div>
           </div>
+          <div className="form-group" style={{ marginBottom: 16 }}>
+            <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
+              大模型智能解析 (OpenAPI / DeepSeek)
+            </div>
+            <div className="row" style={{ gap: 8 }}>
+              <button
+                type="button"
+                className="button secondary"
+                onClick={() => useModalStore.setState({ aiConfigModalOpen: true })}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                <span>🤖 配置大模型接口</span>
+              </button>
+            </div>
+          </div>
+
           <div className="form-group" style={{ marginBottom: 16 }}>
             <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
               数据导出

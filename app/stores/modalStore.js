@@ -64,6 +64,7 @@ const getClosedModalState = () => ({
   successModal: { ...DEFAULTS.successModal },
   scanModalOpen: false,
   scanConfirmModalOpen: false,
+  aiConfigModalOpen: false,
   isScanning: false,
   isScanImporting: false,
   scannedFunds: [],
@@ -128,6 +129,7 @@ export const useModalStore = create((set, get) => ({
   // ---- Scan modals (migrated from useScanImport) ----
   scanModalOpen: false,
   scanConfirmModalOpen: false,
+  aiConfigModalOpen: false,
   isScanning: false,
   isScanImporting: false,
   scannedFunds: [],
@@ -148,6 +150,11 @@ export const useModalStore = create((set, get) => ({
       set({ [name]: false });
     }
   },
+
+  setAiConfigModalOpen: (v) =>
+    set((state) => ({
+      aiConfigModalOpen: typeof v === 'function' ? v(state.aiConfigModalOpen) : v
+    })),
 
   /** Close all modal/drawer/dialog state after a render-time crash. */
   closeAllModals: () =>

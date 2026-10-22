@@ -144,9 +144,7 @@ export default function LockScreen() {
             color: 'var(--muted, #94a3b8)'
           }}
         >
-          {isInitialized
-            ? '持仓与资产隐私已加密保护，请输入密码解锁'
-            : '首次使用部署，请为你的基估宝创建私有访问密码'}
+          {isInitialized ? '持仓与资产隐私已加密保护，请输入密码解锁' : '首次使用部署，请为你的基估宝创建私有访问密码'}
         </p>
 
         {/* 错误提示 */}

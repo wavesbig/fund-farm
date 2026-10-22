@@ -2,10 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
-import { fetchOcrDailyRemaining } from '../api/fund';
-import { ocrDailyRemaining } from '../lib/query-keys';
-import { useUserStore } from '../stores';
+import { Sparkles, Settings } from 'lucide-react';
+import { useStorageStore, useModalStore } from '../stores';
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -16,19 +14,9 @@ function getDroppedImageFiles(dataTransfer) {
 
 export default function ScanPickModal({ onClose, onPick, onFilesDrop, isScanning }) {
   const [isDragging, setIsDragging] = useState(false);
-  const user = useUserStore((s) => s.user);
-
-  const { data: ocrUsage } = useQuery({
-    queryKey: ocrDailyRemaining(user?.id),
-    queryFn: () => fetchOcrDailyRemaining(user?.id),
-    enabled: !!user?.id,
-    staleTime: 30_000
-  });
-
-  const remaining = ocrUsage?.remaining ?? null;
-  const max = ocrUsage?.max ?? 10;
-  const isExhausted = remaining !== null && remaining <= 0;
-  const isWarning = remaining !== null && remaining > 0 && remaining <= 3;
+  const customSettings = useStorageStore((s) => s.customSettings) || {};
+  const aiConfig = customSettings.aiConfig || {};
+  const hasAiKey = Boolean(aiConfig.apiKey && aiConfig.apiKey.trim());
 
   const handleDragOver = useCallback(
     (e) => {
@@ -83,18 +71,74 @@ export default function ScanPickModal({ onClose, onPick, onFilesDrop, isScanning
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className="glass card modal scan-pick-modal"
         onClick={(e) => e.stopPropagation()}
-        style={{ width: 420, maxWidth: '90vw' }}
+        style={{ width: 440, maxWidth: '92vw' }}
       >
-        <div className="title" style={{ marginBottom: 12 }}>
+        <div
+          className="title"
+          style={{ marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+        >
           <span>选择持仓截图</span>
-          <span className="ocr-quota-badge" style={{ color: 'var(--success)', borderColor: 'var(--success)' }}>
-            纯净免费版 · 无限制
-          </span>
+          <button
+            type="button"
+            className="button secondary text-xs"
+            onClick={() => useModalStore.setState({ aiConfigModalOpen: true })}
+            style={{
+              padding: '3px 8px',
+              fontSize: 12,
+              height: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4
+            }}
+            title="配置通用大模型 (DeepSeek / Qwen / OpenAI 等兼容接口)"
+          >
+            <Sparkles size={13} style={{ color: hasAiKey ? 'var(--primary)' : 'var(--muted)' }} />
+            <span>{hasAiKey ? '大模型已启用' : 'AI 接口配置'}</span>
+          </button>
         </div>
+
+        {/* 当前解析模式标签 */}
+        <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+          <span className="muted">当前模式:</span>
+          {hasAiKey ? (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '2px 8px',
+                borderRadius: 4,
+                background: 'rgba(59, 130, 246, 0.1)',
+                color: 'var(--primary)',
+                fontSize: 12
+              }}
+            >
+              <Sparkles size={12} />
+              OpenAI 兼容模型 ({aiConfig.model || 'deepseek-chat'})
+            </span>
+          ) : (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '2px 8px',
+                borderRadius: 4,
+                background: 'rgba(34, 197, 94, 0.1)',
+                color: 'var(--success)',
+                fontSize: 12
+              }}
+            >
+              本地规则解析 · 无限制
+            </span>
+          )}
+        </div>
+
         <div className="muted" style={{ fontSize: 13, lineHeight: 1.6, marginBottom: 12 }}>
-          从相册选择一张或多张持仓截图，系统将自动识别其中的
-          <span style={{ color: 'var(--primary)' }}>基金代码（6位数字）</span>，并支持批量导入。
+          从相册选择一张或多张持仓截图，系统将自动识别提取其中的
+          <span style={{ color: 'var(--primary)' }}>基金代码、持仓金额与收益</span>，并支持批量导入。
         </div>
+
         <div
           className={`scan-pick-dropzone muted ${isDragging ? 'dragging' : ''}`}
           style={dropZoneStyle}
@@ -123,7 +167,8 @@ export default function ScanPickModal({ onClose, onPick, onFilesDrop, isScanning
             {isDragging ? '松开即可导入' : '拖拽图片到此处，或点击选择'}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 14 }}>
           <button className="button secondary" onClick={onClose}>
             取消
           </button>
