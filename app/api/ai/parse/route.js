@@ -86,6 +86,22 @@ export async function POST(request) {
       maxRetries: 2
     });
 
+    // 0. 拉取模型列表模式 (调用官方 SDK client.models.list())
+    if (body.action === 'models' || body.fetchModels === true) {
+      const response = await client.models.list();
+      const rawList = isArray(response) ? response : response?.data || [];
+      const modelIds = rawList
+        .map((item) => (isString(item) ? item : item?.id))
+        .filter((id) => isString(id) && id.trim().length > 0);
+
+      const uniqueModels = Array.from(new Set(modelIds)).sort();
+      return NextResponse.json({
+        success: true,
+        models: uniqueModels,
+        count: uniqueModels.length
+      });
+    }
+
     // 1. 连通性测试模式
     if (body.test === true) {
       const ping = await client.chat.completions.create({

@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { isString, isObject, isFunction } from 'lodash';
-import { Eye, EyeOff, CheckCircle2, AlertCircle, Sparkles, RefreshCw } from 'lucide-react';
-import { useStorageStore, useModalStore } from '../stores';
+import { isString, isObject, isFunction, isArray } from 'lodash';
+import { Eye, EyeOff, CheckCircle2, AlertCircle, Sparkles, RefreshCw, ListFilter } from 'lucide-react';
+import { useStorageStore } from '../stores';
 import { getStoredToken } from '../lib/authClient';
 
 const PRESETS = [
@@ -51,6 +51,12 @@ export default function AiConfigModal({ onClose }) {
   const [enabled, setEnabled] = useState(initialAi.enabled !== false);
   const [showKey, setShowKey] = useState(false);
 
+  // 模型列表动态拉取状态
+  const [modelList, setModelList] = useState([]);
+  const [fetchingModels, setFetchingModels] = useState(false);
+  const [modelFetchMsg, setModelFetchMsg] = useState('');
+  const [isManualInput, setIsManualInput] = useState(false);
+
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null); // { success: boolean, message: string }
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -59,6 +65,73 @@ export default function AiConfigModal({ onClose }) {
     setBaseURL(preset.baseURL);
     setModel(preset.model);
     setTestResult(null);
+    setModelFetchMsg('');
+  };
+
+  /**
+   * 通过 API Key 和 Base URL 自动拉取该服务商支持的模型列表 (/v1/models)
+   */
+  const handleFetchModels = async () => {
+    if (!apiKey.trim()) {
+      setTestResult({ success: false, message: '请先填写 API Key 再获取模型列表' });
+      return;
+    }
+
+    setFetchingModels(true);
+    setModelFetchMsg('');
+    setTestResult(null);
+
+    try {
+      const token = getStoredToken();
+      const res = await fetch('/api/ai/parse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          action: 'models',
+          apiKey: apiKey.trim(),
+          baseURL: baseURL.trim()
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success && isArray(data.models)) {
+        if (data.models.length > 0) {
+          setModelList(data.models);
+          setIsManualInput(false);
+          setModelFetchMsg(`已成功拉取 ${data.models.length} 个可用模型`);
+
+          // 如果当前模型不在返回列表中，智能挑选默认推荐或首项
+          if (!data.models.includes(model)) {
+            const preferred =
+              data.models.find(
+                (m) =>
+                  m.toLowerCase().includes('deepseek-chat') ||
+                  m.toLowerCase().includes('deepseek') ||
+                  m.toLowerCase().includes('chat') ||
+                  m.toLowerCase().includes('gpt-4o')
+              ) || data.models[0];
+            setModel(preferred);
+          }
+        } else {
+          setModelFetchMsg('该服务商返回的模型列表为空，可继续手动输入');
+        }
+      } else {
+        setTestResult({
+          success: false,
+          message: data.message || '获取模型列表失败，请检查 Base URL 与 API Key 是否正确'
+        });
+      }
+    } catch (err) {
+      setTestResult({
+        success: false,
+        message: err.message || '网络连接异常'
+      });
+    } finally {
+      setFetchingModels(false);
+    }
   };
 
   const handleTestConnection = async () => {
@@ -265,20 +338,102 @@ export default function AiConfigModal({ onClose }) {
             />
           </div>
 
-          {/* 模型名称 Model */}
+          {/* 模型名称 Model (支持通过 API Key 一键拉取) */}
           <div>
-            <label style={{ display: 'block', fontSize: 13, marginBottom: 6, fontWeight: 500 }}>模型名称 (Model)</label>
-            <input
-              type="text"
-              className="input text-[16PX]"
-              value={model}
-              onChange={(e) => {
-                setModel(e.target.value);
-                setTestResult(null);
-              }}
-              placeholder="deepseek-chat"
-              style={{ width: '100%' }}
-            />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <label style={{ fontSize: 13, fontWeight: 500 }}>
+                模型名称 (Model) <span style={{ color: 'var(--danger)' }}>*</span>
+              </label>
+              <button
+                type="button"
+                className="button secondary text-xs"
+                onClick={handleFetchModels}
+                disabled={fetchingModels || !apiKey.trim()}
+                style={{
+                  padding: '3px 8px',
+                  height: 'auto',
+                  fontSize: 11,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+                title="根据当前 API Key 和 Base URL 自动获取模型列表"
+              >
+                <RefreshCw size={12} className={fetchingModels ? 'animate-spin' : ''} />
+                <span>{fetchingModels ? '拉取中…' : '从 API Key 获取模型'}</span>
+              </button>
+            </div>
+
+            {modelList.length > 0 && !isManualInput ? (
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <select
+                  className="input text-[16PX]"
+                  value={model}
+                  onChange={(e) => {
+                    setModel(e.target.value);
+                    setTestResult(null);
+                  }}
+                  style={{ flex: 1, height: 38 }}
+                >
+                  {modelList.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="button secondary text-xs"
+                  onClick={() => setIsManualInput(true)}
+                  style={{ whiteSpace: 'nowrap', height: 38, padding: '0 8px', fontSize: 12 }}
+                  title="切换为手动自由输入"
+                >
+                  自由输入
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <input
+                  type="text"
+                  className="input text-[16PX]"
+                  value={model}
+                  onChange={(e) => {
+                    setModel(e.target.value);
+                    setTestResult(null);
+                  }}
+                  placeholder="deepseek-chat"
+                  style={{ flex: 1 }}
+                />
+                {modelList.length > 0 && (
+                  <button
+                    type="button"
+                    className="button secondary text-xs"
+                    onClick={() => setIsManualInput(false)}
+                    style={{ whiteSpace: 'nowrap', height: 38, padding: '0 8px', fontSize: 12 }}
+                    title="选择拉取到的模型列表"
+                  >
+                    <ListFilter size={13} style={{ marginRight: 2 }} />
+                    模型列表
+                  </button>
+                )}
+              </div>
+            )}
+
+            {modelFetchMsg && (
+              <div
+                style={{
+                  fontSize: 11,
+                  marginTop: 4,
+                  color: modelList.length > 0 ? 'var(--success)' : 'var(--muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+              >
+                {modelList.length > 0 ? <CheckCircle2 size={12} /> : null}
+                <span>{modelFetchMsg}</span>
+              </div>
+            )}
           </div>
         </div>
 
