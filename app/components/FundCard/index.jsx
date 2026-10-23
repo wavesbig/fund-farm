@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -173,7 +173,7 @@ function MoreSection({
   );
 }
 
-export default function Index({
+const FundCard = memo(function Index({
   fundCode,
   isHoldingLinked = false,
   todayStr,
@@ -216,13 +216,14 @@ export default function Index({
   onAddFund,
   userId
 }) {
-  const { funds, refreshMs } = useStorageStore();
+  const storeFund = useStorageStore(useCallback((s) => s.funds?.find((item) => item.code === fundCode), [fundCode]));
+  const isAdded = useStorageStore(useCallback((s) => s.funds?.some((item) => item.code === fundCode), [fundCode]));
+  const refreshMs = useStorageStore((s) => s.refreshMs);
 
   const [fetchedValuation, setFetchedValuation] = useState(null);
 
   const f = useMemo(() => {
-    const found = funds?.find((item) => item.code === fundCode);
-    if (found) return found;
+    if (storeFund) return storeFund;
 
     let ds = fallbackFund?.dataSource || 1;
     if (typeof window !== 'undefined') {
@@ -236,9 +237,7 @@ export default function Index({
 
     if (fetchedValuation) return { ...fallbackFund, dataSource: ds, ...fetchedValuation };
     return { ...fallbackFund, dataSource: ds };
-  }, [funds, fundCode, fallbackFund, fetchedValuation]);
-
-  const isAdded = useMemo(() => funds?.some((item) => item.code === f?.code), [funds, f?.code]);
+  }, [storeFund, fundCode, fallbackFund, fetchedValuation]);
 
   const [topHoldings, setTopHoldings] = useState({
     holdings: [],
@@ -1128,4 +1127,6 @@ export default function Index({
       )}
     </motion.div>
   );
-}
+});
+
+export default FundCard;

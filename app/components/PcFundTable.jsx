@@ -628,7 +628,7 @@ const PcFundTable = memo(function PcFundTable({
   const portalTopScrollbarRef = useRef(null);
   const [showTopScrollbar, setShowTopScrollbar] = useState(false);
   const [tableScrollWidth, setTableScrollWidth] = useState(0);
-  const enableRowAnimation = data.length <= 40;
+  const enableRowAnimation = false;
 
   const autoScrollRafRef = useRef(null);
 
@@ -2603,7 +2603,7 @@ const PcFundTable = memo(function PcFundTable({
 
   const headerGroup = table.getHeaderGroups()[0];
   const tableRows = table.getRowModel().rows;
-  const enableVirtualization = data.length > 40;
+  const enableVirtualization = data.length > 20;
   const rowVirtualizer = useWindowVirtualizer({
     count: tableRows.length,
     estimateSize: () => 72,

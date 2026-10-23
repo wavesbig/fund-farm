@@ -4,6 +4,7 @@ import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { useEffect, useState, useRef } from 'react';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { createPortal } from 'react-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useStorageStore, DEFAULT_SORT_RULES } from '@/app/stores';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from '@/components/ui/drawer';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -216,14 +217,14 @@ function SortSettingReorderItem({
  */
 export default function SortSettingModal({ open, onClose }) {
   const isMobile = useIsMobile();
-  const {
-    sortRules,
-    setSortRules,
-    pcSortDisplayMode,
-    mobileSortDisplayMode,
-    setPcSortDisplayMode,
-    setMobileSortDisplayMode
-  } = useStorageStore();
+  const { sortRules, pcSortDisplayMode, mobileSortDisplayMode } = useStorageStore(
+    useShallow((s) => ({
+      sortRules: s.sortRules,
+      pcSortDisplayMode: s.pcSortDisplayMode,
+      mobileSortDisplayMode: s.mobileSortDisplayMode
+    }))
+  );
+  const { setSortRules, setPcSortDisplayMode, setMobileSortDisplayMode } = useStorageStore.getState();
 
   const sortDisplayMode = isMobile ? mobileSortDisplayMode : pcSortDisplayMode;
   const onChangeSortDisplayMode = isMobile ? setMobileSortDisplayMode : setPcSortDisplayMode;

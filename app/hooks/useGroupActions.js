@@ -1,4 +1,5 @@
 import { isArray, isObject, isPlainObject } from 'lodash';
+import { useShallow } from 'zustand/react/shallow';
 import { useStorageStore, useModalStore } from '../stores';
 import { migrateDcaPlansToScoped } from '../lib/fundHelpers';
 import { toast as sonnerToast } from 'sonner';
@@ -10,17 +11,21 @@ import { toast as sonnerToast } from 'sonner';
  * @param {Function} deps.setCurrentTab - 激活 Tab 更新方法
  */
 export function useGroupActions({ currentTab, setCurrentTab }) {
+  const { groups, customSettings } = useStorageStore(
+    useShallow((s) => ({
+      groups: s.groups,
+      customSettings: s.customSettings
+    }))
+  );
   const {
-    groups,
     setGroups,
-    customSettings,
     setCustomSettings,
     setGroupHoldings,
     setDcaPlans,
     setPendingTrades,
     setTransactions,
     setFundDailyEarnings
-  } = useStorageStore();
+  } = useStorageStore.getState();
 
   const setGroupModalOpen = (open) => useModalStore.setState({ groupModalOpen: open });
   const setAddFundToGroupOpen = (open) => useModalStore.setState({ addFundToGroupOpen: open });

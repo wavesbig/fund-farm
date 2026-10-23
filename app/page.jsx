@@ -65,6 +65,7 @@ import { useScanImport } from './hooks/useScanImport';
 import { useRefreshManager } from './hooks/useRefreshManager';
 import { useSyncManager, normalizeFundDailyEarningsScoped } from './hooks/useSyncManager';
 import { useIsMobile } from './hooks/useIsMobile';
+import { useShallow } from 'zustand/react/shallow';
 import {
   useUserStore,
   clearAuthUser,
@@ -129,39 +130,71 @@ export default function HomePage() {
 
   const {
     funds,
+    groups,
+    favorites,
+    collapsedCodes,
+    collapsedTrends,
+    collapsedValuationTrends,
+    collapsedEarnings,
+    refreshMs,
+    holdings,
+    groupHoldings,
+    pendingTrades,
+    transactions,
+    dcaPlans,
+    customSettings,
+    fundDailyEarnings,
+    valuationSeries,
+    sortBy,
+    sortOrder,
+    pcSortDisplayMode,
+    mobileSortDisplayMode,
+    sortRules
+  } = useStorageStore(
+    useShallow((s) => ({
+      funds: s.funds,
+      groups: s.groups,
+      favorites: s.favorites,
+      collapsedCodes: s.collapsedCodes,
+      collapsedTrends: s.collapsedTrends,
+      collapsedValuationTrends: s.collapsedValuationTrends,
+      collapsedEarnings: s.collapsedEarnings,
+      refreshMs: s.refreshMs,
+      holdings: s.holdings,
+      groupHoldings: s.groupHoldings,
+      pendingTrades: s.pendingTrades,
+      transactions: s.transactions,
+      dcaPlans: s.dcaPlans,
+      customSettings: s.customSettings,
+      fundDailyEarnings: s.fundDailyEarnings,
+      valuationSeries: s.valuationSeries,
+      sortBy: s.sortBy,
+      sortOrder: s.sortOrder,
+      pcSortDisplayMode: s.pcSortDisplayMode,
+      mobileSortDisplayMode: s.mobileSortDisplayMode,
+      sortRules: s.sortRules
+    }))
+  );
+
+  const {
     setFunds,
     initFunds,
-    groups,
     setGroups,
     initGroups,
-    favorites,
     setFavorites,
     initFavorites,
-    collapsedCodes,
     setCollapsedCodes,
-    collapsedTrends,
     setCollapsedTrends,
-    collapsedValuationTrends,
     setCollapsedValuationTrends,
-    collapsedEarnings,
     setCollapsedEarnings,
-    refreshMs,
     setRefreshMs,
-    holdings,
     setHoldings,
-    groupHoldings,
     setGroupHoldings,
-    pendingTrades,
     setPendingTrades,
-    transactions,
     setTransactions,
-    dcaPlans,
     setDcaPlans,
-    customSettings,
     setCustomSettings,
-    fundDailyEarnings,
     setFundDailyEarnings,
-    valuationSeries,
     setValuationSeries,
     initCollapsed,
     initRefreshMs,
@@ -173,18 +206,13 @@ export default function HomePage() {
     initCustomSettings,
     initFundDailyEarnings,
     initFundDividends,
-    sortBy,
     setSortBy,
-    sortOrder,
     setSortOrder,
-    pcSortDisplayMode,
     setPcSortDisplayMode,
-    mobileSortDisplayMode,
     setMobileSortDisplayMode,
-    sortRules,
     setSortRules,
     initSort
-  } = useStorageStore();
+  } = useStorageStore.getState();
   /** 基金标签（独立 localStorage 键 `tags`）：{ id, name, theme, fundCodes: string[] }[] */
   const [fundTagRecords, setFundTagRecords] = useState([]);
   /**

@@ -2,6 +2,7 @@
 
 import { useMemo, useEffect } from 'react';
 import { isArray, isNumber, isPlainObject } from 'lodash';
+import { useShallow } from 'zustand/react/shallow';
 import { useStorageStore } from '../stores';
 import { SUMMARY_TAB_ID, SUMMARY_SOURCE_GLOBAL } from '@/app/constants';
 import { aggregatePortfolioDailyEarnings, mergeAllScopedDailyEarnings } from '../lib/dailyEarnings';
@@ -15,7 +16,15 @@ import { aggregatePortfolioDailyEarnings, mergeAllScopedDailyEarnings } from '..
  * @param {Function} deps.getHoldingProfit - 获取基金持仓收益的函数方法
  */
 export function useSummaryCalculations({ currentTab, setCurrentTab, getHoldingProfit }) {
-  const { funds, holdings, groupHoldings, groups, fundDailyEarnings } = useStorageStore();
+  const { funds, holdings, groupHoldings, groups, fundDailyEarnings } = useStorageStore(
+    useShallow((s) => ({
+      funds: s.funds,
+      holdings: s.holdings,
+      groupHoldings: s.groupHoldings,
+      groups: s.groups,
+      fundDailyEarnings: s.fundDailyEarnings
+    }))
+  );
 
   // 1. 过滤出当前含有持仓的自定义分组
   const groupsWithHoldings = useMemo(() => {

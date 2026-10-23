@@ -340,61 +340,61 @@ export const useStorageStore = create((set, get) => ({
   setFunds: (nextFunds) => {
     const next = isFunction(nextFunds) ? nextFunds(get().funds) : nextFunds;
     set({ funds: next });
-    get().setItem('funds', JSON.stringify(next));
+    get().setItem('funds', JSON.stringify(next), { skipZustandUpdate: true });
   },
 
   setGroups: (nextGroups) => {
     const raw = isFunction(nextGroups) ? nextGroups(get().groups) : nextGroups;
     const next = ensurePresetGroups(raw);
     set({ groups: next });
-    get().setItem('groups', JSON.stringify(next));
+    get().setItem('groups', JSON.stringify(next), { skipZustandUpdate: true });
   },
 
   setFavorites: (nextFavs) => {
     const next = isFunction(nextFavs) ? nextFavs(get().favorites) : nextFavs;
     set({ favorites: next });
-    get().setItem('favorites', JSON.stringify(Array.from(next)));
+    get().setItem('favorites', JSON.stringify(Array.from(next)), { skipZustandUpdate: true });
   },
 
   setCollapsedCodes: (nextVal) => {
     const next = isFunction(nextVal) ? nextVal(get().collapsedCodes) : nextVal;
     set({ collapsedCodes: next });
-    get().setItem('collapsedCodes', JSON.stringify(Array.from(next)));
+    get().setItem('collapsedCodes', JSON.stringify(Array.from(next)), { skipZustandUpdate: true });
   },
 
   setCollapsedTrends: (nextVal) => {
     const next = isFunction(nextVal) ? nextVal(get().collapsedTrends) : nextVal;
     set({ collapsedTrends: next });
-    get().setItem('collapsedTrends', JSON.stringify(Array.from(next)));
+    get().setItem('collapsedTrends', JSON.stringify(Array.from(next)), { skipZustandUpdate: true });
   },
 
   setCollapsedValuationTrends: (nextVal) => {
     const next = isFunction(nextVal) ? nextVal(get().collapsedValuationTrends) : nextVal;
     set({ collapsedValuationTrends: next });
-    get().setItem('collapsedValuationTrends', JSON.stringify(Array.from(next)));
+    get().setItem('collapsedValuationTrends', JSON.stringify(Array.from(next)), { skipZustandUpdate: true });
   },
 
   setCollapsedEarnings: (nextVal) => {
     const next = isFunction(nextVal) ? nextVal(get().collapsedEarnings) : nextVal;
     set({ collapsedEarnings: next });
-    get().setItem('collapsedEarnings', JSON.stringify(Array.from(next)));
+    get().setItem('collapsedEarnings', JSON.stringify(Array.from(next)), { skipZustandUpdate: true });
   },
 
   setRefreshMs: (ms) => {
     set({ refreshMs: ms });
-    get().setItem('refreshMs', String(ms));
+    get().setItem('refreshMs', String(ms), { skipZustandUpdate: true });
   },
 
   setHoldings: (nextHoldings) => {
     const next = isFunction(nextHoldings) ? nextHoldings(get().holdings) : nextHoldings;
     set({ holdings: next });
-    get().setItem('holdings', JSON.stringify(next));
+    get().setItem('holdings', JSON.stringify(next), { skipZustandUpdate: true });
   },
 
   setGroupHoldings: (nextGroupHoldings) => {
     const next = isFunction(nextGroupHoldings) ? nextGroupHoldings(get().groupHoldings) : nextGroupHoldings;
     set({ groupHoldings: next });
-    get().setItem('groupHoldings', JSON.stringify(next));
+    get().setItem('groupHoldings', JSON.stringify(next), { skipZustandUpdate: true });
   },
 
   setPendingTrades: (nextPendingTrades) => {
@@ -402,37 +402,37 @@ export const useStorageStore = create((set, get) => ({
       isFunction(nextPendingTrades) ? nextPendingTrades(get().pendingTrades) : nextPendingTrades
     );
     set({ pendingTrades: next });
-    get().setItem('pendingTrades', JSON.stringify(next));
+    get().setItem('pendingTrades', JSON.stringify(next), { skipZustandUpdate: true });
   },
 
   setTransactions: (nextTransactions) => {
     const next = isFunction(nextTransactions) ? nextTransactions(get().transactions) : nextTransactions;
     set({ transactions: next });
-    get().setItem('transactions', JSON.stringify(next));
+    get().setItem('transactions', JSON.stringify(next), { skipZustandUpdate: true });
   },
 
   setDcaPlans: (nextDcaPlans) => {
     const next = isFunction(nextDcaPlans) ? nextDcaPlans(get().dcaPlans) : nextDcaPlans;
     set({ dcaPlans: next });
-    get().setItem('dcaPlans', JSON.stringify(next));
+    get().setItem('dcaPlans', JSON.stringify(next), { skipZustandUpdate: true });
   },
 
   setCustomSettings: (nextCustomSettings) => {
     const next = isFunction(nextCustomSettings) ? nextCustomSettings(get().customSettings) : nextCustomSettings;
     set({ customSettings: next });
-    get().setItem('customSettings', JSON.stringify(next));
+    get().setItem('customSettings', JSON.stringify(next), { skipZustandUpdate: true });
   },
 
   setSortBy: (nextSortBy) => {
     const val = isFunction(nextSortBy) ? nextSortBy(get().sortBy) : nextSortBy;
     set({ sortBy: val });
-    get().setItem('localSortBy', val);
+    get().setItem('localSortBy', val, { skipZustandUpdate: true });
   },
 
   setSortOrder: (nextSortOrder) => {
     const val = isFunction(nextSortOrder) ? nextSortOrder(get().sortOrder) : nextSortOrder;
     set({ sortOrder: val });
-    get().setItem('localSortOrder', val);
+    get().setItem('localSortOrder', val, { skipZustandUpdate: true });
   },
 
   setPcSortDisplayMode: (nextMode) => {
@@ -471,7 +471,7 @@ export const useStorageStore = create((set, get) => ({
       // 删除旧字段兼容历史数据
       delete next.localSortDisplayMode;
       set({ customSettings: next });
-      get().setItem('customSettings', JSON.stringify(next));
+      get().setItem('customSettings', JSON.stringify(next), { skipZustandUpdate: true });
     } catch {
       // ignore
     }
@@ -482,13 +482,13 @@ export const useStorageStore = create((set, get) => ({
       ? nextFundDailyEarnings(get().fundDailyEarnings)
       : nextFundDailyEarnings;
     set({ fundDailyEarnings: next });
-    get().setItem('fundDailyEarnings', JSON.stringify(next));
+    get().setItem('fundDailyEarnings', JSON.stringify(next), { skipZustandUpdate: true });
   },
 
   setFundDividends: (nextFundDividends) => {
     const next = isFunction(nextFundDividends) ? nextFundDividends(get().fundDividends) : nextFundDividends;
     set({ fundDividends: next });
-    get().setItem('fundDividends', JSON.stringify(next));
+    get().setItem('fundDividends', JSON.stringify(next), { skipZustandUpdate: true });
   },
 
   setValuationSeries: (nextValuationSeries) => {
@@ -500,21 +500,26 @@ export const useStorageStore = create((set, get) => ({
    * 核心写入方法：同步更新 localStorage 和 Store 状态，并触发同步
    * @param {string} key
    * @param {string} value JSON 字符串或普通字符串
+   * @param {object} [options]
+   * @param {boolean} [options.skipZustandUpdate=false] 是否跳过 Zustand 状态更新（用于内部 setter 已调用 set() 的场景）
    */
-  setItem: (key, value) => {
+  setItem: (key, value, options = {}) => {
     const normalizedValue = normalizeStorageValue(key, value);
     const prevValue = typeof window !== 'undefined' ? window.localStorage.getItem(key) : null;
     let skipStorageWrite = false;
 
-    // 检查内容是否真的发生了变化 (使用 lodash isEqual 进行深对比)
+    // 检查内容是否真的发生了变化 (优先使用字符串快速对比，避免大对象的 JSON.parse + isEqual 开销)
     if (prevValue !== null) {
-      try {
-        const parsedNew = JSON.parse(normalizedValue);
-        const parsedOld = JSON.parse(prevValue);
-        if (isEqual(parsedNew, parsedOld)) skipStorageWrite = true;
-      } catch (e) {
-        // 非 JSON 或解析失败时使用字符串直接对比
-        if (prevValue === normalizedValue) skipStorageWrite = true;
+      if (prevValue === normalizedValue) {
+        skipStorageWrite = true;
+      } else {
+        try {
+          const parsedNew = JSON.parse(normalizedValue);
+          const parsedOld = JSON.parse(prevValue);
+          if (isEqual(parsedNew, parsedOld)) skipStorageWrite = true;
+        } catch (e) {
+          if (prevValue === normalizedValue) skipStorageWrite = true;
+        }
       }
     }
 
@@ -523,32 +528,34 @@ export const useStorageStore = create((set, get) => ({
       window.localStorage.setItem(key, normalizedValue);
     }
 
-    // 同步更新 Store 状态，确保 UI 响应
-    try {
-      const parsed = JSON.parse(normalizedValue);
-      if (key === 'funds') set({ funds: parsed });
-      else if (key === 'groups') set({ groups: ensurePresetGroups(parsed) });
-      else if (key === 'favorites') set({ favorites: new Set(parsed) });
-      else if (key === 'collapsedCodes') set({ collapsedCodes: new Set(parsed) });
-      else if (key === 'collapsedTrends') set({ collapsedTrends: new Set(parsed) });
-      else if (key === 'collapsedValuationTrends') set({ collapsedValuationTrends: new Set(parsed) });
-      else if (key === 'collapsedEarnings') set({ collapsedEarnings: new Set(parsed) });
-      else if (key === 'refreshMs') set({ refreshMs: Number(parsed) });
-      else if (key === 'holdings') set({ holdings: parsed });
-      else if (key === 'groupHoldings') set({ groupHoldings: parsed });
-      else if (key === 'pendingTrades') set({ pendingTrades: parsed });
-      else if (key === 'transactions') set({ transactions: parsed });
-      else if (key === 'dcaPlans') set({ dcaPlans: parsed });
-      else if (key === 'customSettings') set({ customSettings: parsed });
-      else if (key === 'fundDailyEarnings') set({ fundDailyEarnings: parsed });
-      else if (key === 'fundDividends') set({ fundDividends: parsed });
-      else if (key === 'localSortBy') set({ sortBy: parsed });
-      else if (key === 'localSortOrder') set({ sortOrder: parsed });
-    } catch (e) {
-      // 如果不是 JSON，或者是 refreshMs 这种数字字符串
-      if (key === 'refreshMs') set({ refreshMs: Number(normalizedValue) });
-      else if (key === 'localSortBy') set({ sortBy: normalizedValue });
-      else if (key === 'localSortOrder') set({ sortOrder: normalizedValue });
+    // 仅在非 setter 触发且存储真正变动时才同步更新 Store 状态，避免双重派发或无意义的重渲染
+    if (!options?.skipZustandUpdate && !skipStorageWrite) {
+      try {
+        const parsed = JSON.parse(normalizedValue);
+        if (key === 'funds') set({ funds: parsed });
+        else if (key === 'groups') set({ groups: ensurePresetGroups(parsed) });
+        else if (key === 'favorites') set({ favorites: new Set(parsed) });
+        else if (key === 'collapsedCodes') set({ collapsedCodes: new Set(parsed) });
+        else if (key === 'collapsedTrends') set({ collapsedTrends: new Set(parsed) });
+        else if (key === 'collapsedValuationTrends') set({ collapsedValuationTrends: new Set(parsed) });
+        else if (key === 'collapsedEarnings') set({ collapsedEarnings: new Set(parsed) });
+        else if (key === 'refreshMs') set({ refreshMs: Number(parsed) });
+        else if (key === 'holdings') set({ holdings: parsed });
+        else if (key === 'groupHoldings') set({ groupHoldings: parsed });
+        else if (key === 'pendingTrades') set({ pendingTrades: parsed });
+        else if (key === 'transactions') set({ transactions: parsed });
+        else if (key === 'dcaPlans') set({ dcaPlans: parsed });
+        else if (key === 'customSettings') set({ customSettings: parsed });
+        else if (key === 'fundDailyEarnings') set({ fundDailyEarnings: parsed });
+        else if (key === 'fundDividends') set({ fundDividends: parsed });
+        else if (key === 'localSortBy') set({ sortBy: parsed });
+        else if (key === 'localSortOrder') set({ sortOrder: parsed });
+      } catch (e) {
+        // 如果不是 JSON，或者是 refreshMs 这种数字字符串
+        if (key === 'refreshMs') set({ refreshMs: Number(normalizedValue) });
+        else if (key === 'localSortBy') set({ sortBy: normalizedValue });
+        else if (key === 'localSortOrder') set({ sortOrder: normalizedValue });
+      }
     }
 
     if (skipStorageWrite) return;
@@ -614,7 +621,7 @@ export const useStorageStore = create((set, get) => ({
 
 /** 非 React 代码中使用的快捷方式 */
 export const storageStore = {
-  setItem: (key, val) => useStorageStore.getState().setItem(key, val),
+  setItem: (key, val, options) => useStorageStore.getState().setItem(key, val, options),
   getItem: (key, def) => useStorageStore.getState().getItem(key, def),
   removeItem: (key) => useStorageStore.getState().removeItem(key),
   clear: () => useStorageStore.getState().clear()

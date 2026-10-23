@@ -1364,6 +1364,11 @@ input[type='number'] {
   grid-column: span 12;
 }
 
+.table-container.glass {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 /* PC 列表：左右分块，左侧可横向滚动，右侧操作列固定不参与滚动 */
 .table-pc-wrap {
   display: flex;
@@ -2129,11 +2134,12 @@ html::-webkit-scrollbar-thumb:active,
 }
 
 .filter-bar {
-  transition: all 0.3s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   position: sticky;
   z-index: 40;
   background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(12px);
+  transform: translateZ(0);
   padding: 8px 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -2251,9 +2257,7 @@ html::-webkit-scrollbar-thumb:active,
   align-items: center;
   justify-content: center;
   z-index: 60;
-  transition:
-    background 0.2s ease,
-    backdrop-filter 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .modal-overlay-translucent {

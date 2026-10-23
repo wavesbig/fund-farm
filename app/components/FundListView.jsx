@@ -172,13 +172,12 @@ const FundListView = React.memo(function FundListView({
             {viewMode === 'card' &&
               displayFunds.map((f) => (
                 <motion.div
-                  layout="position"
                   key={f.code}
                   className="col-6"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
                   style={{ position: 'relative', overflow: 'hidden' }}
                 >
                   <FundCard

@@ -851,7 +851,7 @@ export function useSyncManager({ showToast, refreshAllRef, setTempSeconds, setFu
   }, [syncUserConfig]);
 
   // --- storageHelper ---
-  const { setOnSync } = useStorageStore();
+  const setOnSync = useStorageStore((s) => s.setOnSync);
 
   const storageHelper = useMemo(() => storageStore, []);
 
