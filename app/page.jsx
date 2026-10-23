@@ -39,6 +39,7 @@ import { getAllValuationSeries, clearFund } from './lib/valuationTimeseries';
 import { aggregatePortfolioDailyEarnings } from './lib/dailyEarnings';
 import { loadHolidaysForYears, isTradingDay as isDateTradingDay } from './lib/tradingCalendar';
 import { asyncPool } from './lib/asyncHelper';
+import { saveSqliteKey } from './lib/sqliteClient';
 import {
   fetchSmartFundNetValue,
   fetchSmartFundNetValueBackward,
@@ -3702,7 +3703,8 @@ export default function HomePage() {
     isMobileOverride,
     dynamicStyleOverride,
     containerWidthOverride,
-    showGroupDropdownOverride
+    showGroupDropdownOverride,
+    aiConfigOverride
   ) => {
     e?.preventDefault?.();
     const seconds = secondsOverride ?? tempSeconds;
@@ -3752,25 +3754,34 @@ export default function HomePage() {
 
     try {
       const parsed = useStorageStore.getState().customSettings || {};
+      const nextAiConfig = aiConfigOverride !== undefined ? aiConfigOverride : parsed.aiConfig;
+      let nextCustomSettings = {
+        ...parsed,
+        ...(nextAiConfig ? { aiConfig: nextAiConfig } : {})
+      };
+
       if (targetIsMobile) {
         // 仅更新当前运行端对应的开关键，不覆盖 PC 端宽度
-        setCustomSettings({
-          ...parsed,
+        nextCustomSettings = {
+          ...nextCustomSettings,
           showMarketIndexMobile: nextShowMarketIndex,
           showGroupFundSearchMobile: nextShowGroupFundSearch,
           dynamicStyleMobile: nextDynamicStyle,
           showGroupDropdownMobile: nextShowGroupDropdown
-        });
+        };
       } else {
-        setCustomSettings({
-          ...parsed,
+        nextCustomSettings = {
+          ...nextCustomSettings,
           pcContainerWidth: w,
           showMarketIndexPc: nextShowMarketIndex,
           showGroupFundSearchPc: nextShowGroupFundSearch,
           dynamicStylePc: nextDynamicStyle,
           showGroupDropdownPc: nextShowGroupDropdown
-        });
+        };
       }
+      setCustomSettings(nextCustomSettings);
+      // 立即持久化落盘至本地 SQLite 数据库，避免防抖遗漏
+      saveSqliteKey('customSettings', nextCustomSettings);
     } catch {}
     setSettingsOpen(false);
   };

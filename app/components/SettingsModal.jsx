@@ -9,6 +9,7 @@ import ConfirmModal from './ConfirmModal';
 import { ResetIcon, SettingsIcon } from './Icons';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useModalStore } from '../stores';
+import AiConfigSection from './AiConfigSection';
 
 export default function SettingsModal({
   onClose,
@@ -32,6 +33,7 @@ export default function SettingsModal({
   showGroupDropdownMobile = false
 }) {
   const isMobile = useIsMobile();
+  const aiConfigRef = useRef(null);
   const [sliderDragging, setSliderDragging] = useState(false);
   const sliderDraggingRef = useRef(false);
   const [resetWidthConfirmOpen, setResetWidthConfirmOpen] = useState(false);
@@ -138,7 +140,7 @@ export default function SettingsModal({
         className="!p-0 z-[10000]"
         showCloseButton={false}
       >
-        <div className="glass card modal">
+        <div className="glass card modal" style={{ maxHeight: '85vh', overflowY: 'auto' }}>
           <div className="title" style={{ marginBottom: 12 }}>
             <SettingsIcon width="20" height="20" />
             <DialogTitle asChild>
@@ -320,21 +322,12 @@ export default function SettingsModal({
               </div>
             </div>
           </div>
-          <div className="form-group" style={{ marginBottom: 16 }}>
-            <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
-              大模型智能解析 (OpenAPI / DeepSeek)
-            </div>
-            <div className="row" style={{ gap: 8 }}>
-              <button
-                type="button"
-                className="button secondary"
-                onClick={() => useModalStore.setState({ aiConfigModalOpen: true })}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <span>🤖 配置大模型接口</span>
-              </button>
-            </div>
-          </div>
+          <AiConfigSection
+            onAiConfigChange={(cfg) => {
+              aiConfigRef.current = cfg;
+            }}
+            showImmediateSaveButton={true}
+          />
 
           <div className="form-group" style={{ marginBottom: 16 }}>
             <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
@@ -379,7 +372,8 @@ export default function SettingsModal({
                   isMobile,
                   isMobile ? localDynamicStyleMobile : localDynamicStylePc,
                   localContainerWidth,
-                  isMobile ? localShowGroupDropdownMobile : localShowGroupDropdownPc
+                  isMobile ? localShowGroupDropdownMobile : localShowGroupDropdownPc,
+                  aiConfigRef.current
                 )
               }
               disabled={localSeconds < 30}
