@@ -1,19 +1,27 @@
 'use client';
 
+import * as React from 'react';
 import { useRef, useState } from 'react';
 import { AnimatePresence, Reorder, useDragControls } from 'framer-motion';
-import { Folder } from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle } from '../../components/ui/dialog';
+import { Folder, GripVertical, Plus, Settings2, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import ConfirmModal from './ConfirmModal';
-import { DragIcon, PlusIcon, SettingsIcon, TrashIcon } from './Icons';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import type { FundGroup } from '@/types';
 
 const MAX_GROUP_NAME_LENGTH = 8;
-const truncateGroupName = (value) => [...(value || '')].slice(0, MAX_GROUP_NAME_LENGTH).join('');
+const truncateGroupName = (value: string) => [...(value || '')].slice(0, MAX_GROUP_NAME_LENGTH).join('');
 
-function GroupManageReorderItem({ item, onRename, onDeleteClick }) {
+interface GroupManageReorderItemProps {
+  item: FundGroup;
+  onRename: (id: string, newName: string, isComposing?: boolean) => void;
+  onDeleteClick: (id: string, name: string) => void;
+}
+
+function GroupManageReorderItem({ item, onRename, onDeleteClick }: GroupManageReorderItemProps) {
   const dragControls = useDragControls();
   const isComposingRef = useRef(false);
   const isPreset = Boolean(item.isPreset || item.id === 'fav');
@@ -23,7 +31,7 @@ function GroupManageReorderItem({ item, onRename, onDeleteClick }) {
       key={item.id}
       value={item}
       className={cn(
-        'group-manage-item glass transition-colors duration-200',
+        'group-manage-item glass transition-colors duration-200 flex items-center gap-2 rounded-xl p-2 bg-[var(--card)] border border-[var(--border)]',
         isPreset &&
           'border-primary/40 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent dark:from-primary/15 dark:via-primary/5 dark:to-transparent shadow-[0_2px_12px_rgba(34,211,238,0.06)] dark:shadow-[0_0_15px_rgba(34,211,238,0.08)]'
       )}
@@ -43,14 +51,7 @@ function GroupManageReorderItem({ item, onRename, onDeleteClick }) {
       }}
     >
       <div
-        className="drag-handle"
-        style={{
-          cursor: 'grab',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 8px',
-          touchAction: 'none'
-        }}
+        className="drag-handle flex items-center px-2 cursor-grab text-[var(--muted)] hover:text-foreground touch-none select-none"
         onPointerDown={(e) => {
           dragControls.start(e);
         }}
@@ -58,23 +59,28 @@ function GroupManageReorderItem({ item, onRename, onDeleteClick }) {
         tabIndex={0}
         aria-label="拖拽排序"
       >
-        <DragIcon width="18" height="18" className="muted" />
+        <GripVertical className="w-4 h-4" />
       </div>
       {isPreset ? (
-        <div className="flex flex-1 items-center gap-2.5 px-[14px] h-[36px] select-none">
+        <div className="flex flex-1 items-center gap-2.5 px-3 h-9 select-none">
           <span className="text-[14PX] font-medium text-foreground tracking-wide">{item.name || '自选'}</span>
           <Badge
             variant="outline"
-            className="font-medium text-[11PX] px-2 py-0.5 min-h-0 h-5 leading-none shrink-0 shadow-xs pointer-events-none border border-primary/30 bg-primary/15 text-primary backdrop-blur-md transition-colors"
+            className="font-medium text-[11PX] px-2 py-0.5 min-h-0 h-5 leading-none shrink-0 shadow-xs pointer-events-none border border-primary/30 bg-primary/15 text-primary backdrop-blur-md"
           >
             预置
           </Badge>
         </div>
       ) : (
         <input
-          className={`input group-rename-input text-[16PX] md:text-sm ${!item.name.trim() ? 'error' : ''}`}
+          className={cn(
+            'input flex-1 h-9 rounded-lg px-3 bg-black/20 text-[16PX] md:text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary border border-transparent transition-colors',
+            !item.name.trim() && 'border-[var(--danger)] focus:ring-[var(--danger)]'
+          )}
           value={item.name}
-          onChange={(e) => onRename(item.id, e.target.value, e.nativeEvent.isComposing || isComposingRef.current)}
+          onChange={(e) =>
+            onRename(item.id, e.target.value, (e.nativeEvent as any).isComposing || isComposingRef.current)
+          }
           onCompositionStart={() => {
             isComposingRef.current = true;
           }}
@@ -86,26 +92,21 @@ function GroupManageReorderItem({ item, onRename, onDeleteClick }) {
             if (!isComposingRef.current) onRename(item.id, e.currentTarget.value);
           }}
           placeholder="请输入分组名称..."
-          style={{
-            flex: 1,
-            height: '36px',
-            background: 'rgba(0,0,0,0.2)',
-            border: !item.name.trim() ? '1px solid var(--danger)' : 'none'
-          }}
         />
       )}
       {isPreset ? (
-        <div style={{ width: '36px', height: '36px', flexShrink: 0 }} />
+        <div className="w-9 h-9 shrink-0" />
       ) : (
         <Tooltip>
           <TooltipTrigger asChild>
-            <button
-              className="icon-button danger"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-9 h-9 shrink-0 text-[var(--danger)] hover:bg-[var(--danger)]/10 hover:text-[var(--danger)]"
               onClick={() => onDeleteClick(item.id, item.name)}
-              style={{ width: '36px', height: '36px', flexShrink: 0 }}
             >
-              <TrashIcon width="16" height="16" />
-            </button>
+              <Trash2 className="w-4 h-4" />
+            </Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>删除分组</p>
@@ -116,20 +117,26 @@ function GroupManageReorderItem({ item, onRename, onDeleteClick }) {
   );
 }
 
-export default function GroupManageModal({ groups, onClose, onSave }) {
-  const [items, setItems] = useState(groups);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+export interface GroupManageModalProps {
+  groups: FundGroup[];
+  onClose: () => void;
+  onSave: (groups: FundGroup[]) => void;
+}
 
-  const handleReorder = (newOrder) => {
+export default function GroupManageModal({ groups, onClose, onSave }: GroupManageModalProps) {
+  const [items, setItems] = useState<FundGroup[]>(groups);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+
+  const handleReorder = (newOrder: FundGroup[]) => {
     setItems(newOrder);
   };
 
-  const handleRename = (id, newName, isComposing = false) => {
+  const handleRename = (id: string, newName: string, isComposing = false) => {
     const nextName = isComposing ? newName || '' : truncateGroupName(newName);
     setItems((prev) => prev.map((item) => (item.id === id ? { ...item, name: nextName } : item)));
   };
 
-  const handleDeleteClick = (id, name) => {
+  const handleDeleteClick = (id: string, name: string) => {
     const itemToDelete = items.find((it) => it.id === id);
     if (itemToDelete?.isPreset || id === 'fav') return;
     const isNew = !groups.find((g) => g.id === id);
@@ -150,7 +157,7 @@ export default function GroupManageModal({ groups, onClose, onSave }) {
   };
 
   const handleAddRow = () => {
-    const newGroup = {
+    const newGroup: FundGroup = {
       id: `group_${Date.now()}`,
       name: '',
       codes: []
@@ -182,13 +189,10 @@ export default function GroupManageModal({ groups, onClose, onSave }) {
         }}
       >
         <DialogContent
-          className="glass card modal"
+          className="glass card modal max-w-[500px] w-[90vw] z-[99]"
           overlayClassName="modal-overlay"
-          style={{ maxWidth: '500px', width: '90vw', zIndex: 99 }}
           onOpenAutoFocus={(event) => event.preventDefault()}
           onPointerDownOutside={(event) => {
-            // 二次确认弹框是单独的 Dialog（portal 到 body）。
-            // 当它打开时，在确认弹框内的点击会被外层 Dialog 视作“点到外部”，从而触发外层关闭。
             if (deleteConfirm) event.preventDefault();
           }}
           onInteractOutside={(event) => {
@@ -196,20 +200,17 @@ export default function GroupManageModal({ groups, onClose, onSave }) {
           }}
         >
           <DialogTitle asChild>
-            <div className="title" style={{ marginBottom: 20, justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <SettingsIcon width="20" height="20" />
+            <div className="title flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2.5 font-semibold text-lg text-foreground">
+                <Settings2 className="w-5 h-5 text-primary" />
                 <span>管理分组</span>
               </div>
             </div>
           </DialogTitle>
 
-          <div
-            className="group-manage-list-container scrollbar-y-styled"
-            style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '4px' }}
-          >
+          <div className="group-manage-list-container scrollbar-y-styled max-h-[60vh] overflow-y-auto pr-1">
             {items.length === 0 ? (
-              <div className="empty-state muted" style={{ textAlign: 'center', padding: '40px 0' }}>
+              <div className="empty-state text-[var(--muted)] text-center py-10">
                 <Folder className="w-10 h-10 mx-auto mb-3 opacity-40 text-muted-foreground" />
                 <p>暂无自定义分组</p>
               </div>
@@ -218,7 +219,7 @@ export default function GroupManageModal({ groups, onClose, onSave }) {
                 axis="y"
                 values={items}
                 onReorder={handleReorder}
-                className="group-manage-list"
+                className="group-manage-list flex flex-col gap-2"
                 layoutScroll
                 style={{ touchAction: 'pan-y' }}
               >
@@ -234,45 +235,21 @@ export default function GroupManageModal({ groups, onClose, onSave }) {
                 </AnimatePresence>
               </Reorder.Group>
             )}
-            <button
-              className="add-group-row-btn"
+            <Button
+              variant="outline"
               onClick={handleAddRow}
-              style={{
-                width: '100%',
-                marginTop: 12,
-                padding: '10px',
-                borderRadius: '12px',
-                border: '1px dashed var(--border)',
-                background: 'rgba(255,255,255,0.02)',
-                color: 'var(--muted)',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
+              className="w-full mt-3 h-10 rounded-xl border-dashed border-[var(--border)] bg-background/20 text-[var(--muted)] hover:text-foreground hover:bg-background/40 flex items-center justify-center gap-2 text-sm transition-all"
             >
-              <PlusIcon width="16" height="16" />
+              <Plus className="w-4 h-4" />
               <span>新增分组</span>
-            </button>
+            </Button>
           </div>
 
-          <div style={{ marginTop: 24 }}>
-            {!isAllValid && (
-              <div className="error-text" style={{ marginBottom: 12, textAlign: 'center' }}>
-                所有分组名称均不能为空
-              </div>
-            )}
-            <button
-              className="button"
-              onClick={handleConfirm}
-              disabled={!isAllValid}
-              style={{ width: '100%', opacity: isAllValid ? 1 : 0.6 }}
-            >
+          <div className="mt-6">
+            {!isAllValid && <div className="text-[var(--danger)] text-sm mb-3 text-center">所有分组名称均不能为空</div>}
+            <Button className="w-full h-10 font-medium" onClick={handleConfirm} disabled={!isAllValid}>
               完成
-            </button>
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

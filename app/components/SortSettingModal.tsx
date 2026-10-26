@@ -1,15 +1,44 @@
 'use client';
-import { useIsMobile } from '@/app/hooks/useIsMobile';
 
+import * as React from 'react';
 import { useEffect, useState, useRef } from 'react';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { useShallow } from 'zustand/react/shallow';
+import { Settings2, RotateCcw, X, GripVertical, ArrowUpToLine } from 'lucide-react';
 import { useStorageStore, DEFAULT_SORT_RULES } from '@/app/stores';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from '@/components/ui/drawer';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CloseIcon, DragIcon, ResetIcon, SettingsIcon, ArrowUpToLineIcon } from './Icons';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import ConfirmModal from './ConfirmModal';
+import { cn } from '@/lib/utils';
+
+export interface SortRule {
+  id: string;
+  label: string;
+  alias?: string;
+  enabled?: boolean;
+  order?: 'asc' | 'desc';
+  [key: string]: any;
+}
+
+interface SortSettingReorderItemProps {
+  item: SortRule;
+  editingId: string | null;
+  editingAlias: string;
+  setEditingAlias: (val: string) => void;
+  startEditAlias: (item: SortRule) => void;
+  commitAlias: () => void;
+  cancelAlias: () => void;
+  handleToggle: (id: string) => void;
+  setIsReordering?: (val: boolean) => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+  onMoveToTop?: (id: string) => void;
+}
 
 function SortSettingReorderItem({
   item,
@@ -24,7 +53,7 @@ function SortSettingReorderItem({
   onDragStart,
   onDragEnd,
   onMoveToTop
-}) {
+}: SortSettingReorderItemProps) {
   const isMobile = useIsMobile();
   const dragControls = useDragControls();
 
@@ -32,7 +61,10 @@ function SortSettingReorderItem({
     <Reorder.Item
       key={item.id}
       value={item}
-      className={(isMobile ? 'mobile-setting-item' : 'pc-table-setting-item') + ' glass'}
+      className={cn(
+        'glass flex items-center gap-2 p-2.5 rounded-xl border border-[var(--border)] bg-[var(--card)]',
+        isMobile ? 'mobile-setting-item' : 'pc-table-setting-item'
+      )}
       layout
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -57,15 +89,7 @@ function SortSettingReorderItem({
       }}
     >
       <div
-        className="drag-handle"
-        style={{
-          cursor: 'grab',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 8px',
-          color: 'var(--muted)',
-          touchAction: 'none'
-        }}
+        className="drag-handle flex items-center px-2 cursor-grab text-[var(--muted)] hover:text-foreground touch-none select-none"
         onPointerDown={(e) => {
           dragControls.start(e);
         }}
@@ -73,38 +97,24 @@ function SortSettingReorderItem({
         tabIndex={0}
         aria-label="拖拽排序"
       >
-        <DragIcon width="18" height="18" />
+        <GripVertical className="w-4 h-4" />
       </div>
       {onMoveToTop && (
-        <button
+        <Button
           type="button"
-          className="icon-button"
+          variant="ghost"
+          size="icon"
           onClick={() => onMoveToTop(item.id)}
           title="置顶"
-          style={{
-            border: 'none',
-            background: 'transparent',
-            padding: '0 8px 0 0',
-            color: 'var(--muted)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center'
-          }}
+          className="w-7 h-7 p-0 text-[var(--muted)] hover:text-foreground shrink-0"
         >
-          <ArrowUpToLineIcon width="16" height="16" />
-        </button>
+          <ArrowUpToLine className="w-3.5 h-3.5" />
+        </Button>
       )}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2
-        }}
-      >
+      <div className="flex-1 flex flex-col gap-0.5 select-none">
         {editingId === item.id ? (
-          <div style={{ display: 'flex', gap: 6 }}>
-            <input
+          <div className="flex gap-1.5">
+            <Input
               autoFocus
               value={editingAlias}
               onChange={(e) => setEditingAlias(e.target.value)}
@@ -119,17 +129,7 @@ function SortSettingReorderItem({
                 }
               }}
               placeholder="输入别名，如涨跌幅"
-              style={{
-                flex: 1,
-                // 使用 >=16px 的字号，避免移动端聚焦时页面放大
-                fontSize: 16,
-                padding: '4px 8px',
-                borderRadius: 6,
-                border: '1px solid var(--border)',
-                background: 'transparent',
-                color: 'var(--text)',
-                outline: 'none'
-              }}
+              className="h-8 text-[16PX] md:text-sm bg-black/20"
             />
           </div>
         ) : (
@@ -138,84 +138,31 @@ function SortSettingReorderItem({
               type="button"
               title="点击修改别名"
               onClick={() => startEditAlias(item)}
-              style={{
-                padding: 0,
-                margin: 0,
-                border: 'none',
-                background: 'transparent',
-                textAlign: 'left',
-                fontSize: 14,
-                color: 'inherit',
-                cursor: 'pointer'
-              }}
+              className="text-left text-sm font-medium text-foreground hover:text-primary transition-colors cursor-pointer p-0 border-none bg-transparent"
             >
               {item.label}
             </button>
-            {item.alias && (
-              <span
-                className="muted"
-                style={{
-                  fontSize: 12,
-                  color: 'var(--muted-foreground)'
-                }}
-              >
-                {item.alias}
-              </span>
-            )}
+            {item.alias && <span className="text-xs text-[var(--muted)]">{item.alias}</span>}
           </>
         )}
       </div>
       {item.id !== 'default' && (
-        <button
-          type="button"
-          className={isMobile ? 'icon-button' : 'icon-button pc-table-column-switch'}
+        <Switch
+          checked={Boolean(item.enabled)}
+          onCheckedChange={() => handleToggle(item.id)}
           title={item.enabled ? '关闭' : '开启'}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleToggle(item.id);
-          }}
-          style={
-            isMobile
-              ? {
-                  border: 'none',
-                  backgroundColor: 'transparent',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  display: 'flex',
-                  alignItems: 'center'
-                }
-              : {
-                  border: 'none',
-                  padding: '0 4px',
-                  backgroundColor: 'transparent',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  display: 'flex',
-                  alignItems: 'center'
-                }
-          }
-        >
-          <span className={`dca-toggle-track ${item.enabled ? 'enabled' : ''}`}>
-            <span className="dca-toggle-thumb" style={{ left: item.enabled ? 16 : 2 }} />
-          </span>
-        </button>
+        />
       )}
     </Reorder.Item>
   );
 }
 
-/**
- * 排序个性化设置弹框
- *
- * - 移动端：使用 Drawer（自底向上抽屉，参考市场指数设置）
- * - PC 端：使用右侧侧弹框（样式参考 PcTableSettingModal）
- *
- * @param {Object} props
- * @param {boolean} props.open - 是否打开
- * @param {() => void} props.onClose - 关闭回调
- * @param {boolean} props.isMobile - 是否为移动端（由上层传入）
- */
-export default function SortSettingModal({ open, onClose }) {
+export interface SortSettingModalProps {
+  open: boolean;
+  onClose?: () => void;
+}
+
+export default function SortSettingModal({ open, onClose }: SortSettingModalProps) {
   const isMobile = useIsMobile();
   const { sortRules, pcSortDisplayMode, mobileSortDisplayMode } = useStorageStore(
     useShallow((s) => ({
@@ -229,16 +176,16 @@ export default function SortSettingModal({ open, onClose }) {
   const sortDisplayMode = isMobile ? mobileSortDisplayMode : pcSortDisplayMode;
   const onChangeSortDisplayMode = isMobile ? setMobileSortDisplayMode : setPcSortDisplayMode;
 
-  const [localRules, setLocalRules] = useState(sortRules);
-  const [editingId, setEditingId] = useState(null);
+  const [localRules, setLocalRules] = useState<SortRule[]>(sortRules || []);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editingAlias, setEditingAlias] = useState('');
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
 
   const isDraggingRef = useRef(false);
-  const timerRef = useRef(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const localRulesRef = useRef(localRules);
-  const scrollRef = useRef(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     localRulesRef.current = localRules;
@@ -274,15 +221,15 @@ export default function SortSettingModal({ open, onClose }) {
       timerRef.current = null;
       setSortRules(localRulesRef.current);
     }
-  }, [open]);
+  }, [open, setSortRules]);
 
-  const handleReorder = (nextItems) => {
+  const handleReorder = (nextItems: SortRule[]) => {
     const defaultRule = (localRules || []).find((item) => item.id === 'default');
     const combined = defaultRule ? [defaultRule, ...nextItems] : nextItems;
     setLocalRules(combined);
   };
 
-  const handleToggle = (id) => {
+  const handleToggle = (id: string) => {
     const next = (localRules || []).map((item) => (item.id === id ? { ...item, enabled: !item.enabled } : item));
     setLocalRules(next);
     if (timerRef.current) {
@@ -292,7 +239,7 @@ export default function SortSettingModal({ open, onClose }) {
     setSortRules(next);
   };
 
-  const handleMoveToTop = (itemId) => {
+  const handleMoveToTop = (itemId: string) => {
     const defaultRule = (localRules || []).find((item) => item.id === 'default');
     const otherRules = (localRules || []).filter((item) => item.id !== 'default');
 
@@ -316,7 +263,7 @@ export default function SortSettingModal({ open, onClose }) {
     }, 1000);
   };
 
-  const startEditAlias = (item) => {
+  const startEditAlias = (item: SortRule) => {
     if (!item || item.id === 'default') return;
     setEditingId(item.id);
     setEditingAlias(item.alias || '');
@@ -324,7 +271,7 @@ export default function SortSettingModal({ open, onClose }) {
 
   const commitAlias = () => {
     if (!editingId) return;
-    let nextRules = null;
+    let nextRules: SortRule[] | null = null;
     setLocalRules((prev) => {
       const next = prev.map((item) =>
         item.id === editingId ? { ...item, alias: editingAlias.trim() || undefined } : item
@@ -338,7 +285,7 @@ export default function SortSettingModal({ open, onClose }) {
         timerRef.current = null;
       }
       queueMicrotask(() => {
-        setSortRules(nextRules);
+        if (nextRules) setSortRules(nextRules);
       });
     }
     setEditingId(null);
@@ -355,50 +302,29 @@ export default function SortSettingModal({ open, onClose }) {
   const body = (
     <div
       ref={scrollRef}
-      className={isMobile ? 'mobile-setting-body flex flex-1 flex-col overflow-y-auto' : 'pc-table-setting-body'}
+      className={cn(
+        'flex flex-col overflow-y-auto p-4 scrollbar-y-styled',
+        isMobile ? 'mobile-setting-body flex-1' : 'pc-table-setting-body flex-1'
+      )}
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-          marginBottom: 16
-        }}
-      >
-        <h3 className="pc-table-setting-subtitle" style={{ margin: 0, fontSize: 14 }}>
-          排序形式
-        </h3>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: 'auto' }}>
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h3 className="text-sm font-semibold text-foreground m-0">排序形式</h3>
+        <div className="flex justify-end ml-auto">
           <RadioGroup
             value={sortDisplayMode}
-            onValueChange={(value) => onChangeSortDisplayMode?.(value)}
+            onValueChange={(value) => onChangeSortDisplayMode?.(value as any)}
             className="flex flex-row items-center gap-4"
           >
             <label
               htmlFor="sort-display-mode-buttons"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                fontSize: 13,
-                color: 'var(--text)',
-                cursor: 'pointer'
-              }}
+              className="inline-flex items-center gap-1.5 text-xs text-foreground cursor-pointer select-none"
             >
               <RadioGroupItem id="sort-display-mode-buttons" value="buttons" />
               <span>按钮</span>
             </label>
             <label
               htmlFor="sort-display-mode-dropdown"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                fontSize: 13,
-                color: 'var(--text)',
-                cursor: 'pointer'
-              }}
+              className="inline-flex items-center gap-1.5 text-xs text-foreground cursor-pointer select-none"
             >
               <RadioGroupItem id="sort-display-mode-dropdown" value="dropdown" />
               <span>下拉单选</span>
@@ -407,91 +333,40 @@ export default function SortSettingModal({ open, onClose }) {
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
-          marginBottom: 16
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 8
-          }}
-        >
-          <h3 className="pc-table-setting-subtitle" style={{ margin: 0, fontSize: 14 }}>
-            排序规则
-          </h3>
-          <button
+      <div className="flex flex-col gap-1 mb-4">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold text-foreground m-0">排序规则</h3>
+          <Button
             type="button"
-            className="icon-button"
+            variant="ghost"
+            size="icon"
             title="重置排序规则"
             onClick={() => setResetConfirmOpen(true)}
-            style={{
-              border: 'none',
-              width: 28,
-              height: 28,
-              backgroundColor: 'transparent',
-              color: 'var(--muted-foreground)',
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
+            className="w-7 h-7 p-0 text-[var(--muted)] hover:text-foreground"
           >
-            <ResetIcon width="16" height="16" />
-          </button>
+            <RotateCcw className="w-3.5 h-3.5" />
+          </Button>
         </div>
-        <p className="muted" style={{ fontSize: 12, margin: 0, color: 'var(--muted-foreground)' }}>
+        <p className="text-xs text-[var(--muted)] m-0 leading-relaxed">
           可拖拽调整优先级，右侧开关控制是否启用该排序规则。点击规则名称可编辑别名（例如“估算涨幅”的别名为“涨跌幅”）。
         </p>
       </div>
 
       {localRules.length === 0 ? (
-        <div
-          className="muted"
-          style={{
-            textAlign: 'center',
-            padding: '24px 0',
-            fontSize: 14
-          }}
-        >
-          暂无可配置的排序规则。
-        </div>
+        <div className="text-center py-6 text-sm text-[var(--muted)]">暂无可配置的排序规则。</div>
       ) : (
-        <>
+        <div className="flex flex-col gap-2">
           {/* 默认排序固定在顶部，且不可排序、不可关闭 */}
           {localRules.find((item) => item.id === 'default') && (
             <div
-              className={(isMobile ? 'mobile-setting-item' : 'pc-table-setting-item') + ' glass'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginBottom: 8,
-                marginRight: 4,
-                marginLeft: 4
-              }}
+              className={cn(
+                'glass flex items-center p-2.5 rounded-xl border border-[var(--border)] bg-[var(--card)]',
+                isMobile ? 'mobile-setting-item' : 'pc-table-setting-item'
+              )}
             >
-              <div
-                style={{
-                  width: 18,
-                  height: 18,
-                  marginLeft: 4
-                }}
-              />
-              <div
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2
-                }}
-              >
-                <span style={{ fontSize: 14 }}>
+              <div className="w-4 h-4 ml-1 mr-2" />
+              <div className="flex-1 flex flex-col gap-0.5 select-none">
+                <span className="text-sm font-medium text-foreground">
                   {localRules.find((item) => item.id === 'default')?.label || '默认'}
                 </span>
               </div>
@@ -503,7 +378,7 @@ export default function SortSettingModal({ open, onClose }) {
             axis="y"
             values={localRules.filter((item) => item.id !== 'default')}
             onReorder={handleReorder}
-            className={isMobile ? 'mobile-setting-list' : 'pc-table-setting-list'}
+            className={cn('flex flex-col gap-2', isMobile ? 'mobile-setting-list' : 'pc-table-setting-list')}
             layoutScroll={isMobile}
             style={isMobile ? { touchAction: 'pan-y' } : undefined}
           >
@@ -544,7 +419,7 @@ export default function SortSettingModal({ open, onClose }) {
                 ))}
             </AnimatePresence>
           </Reorder.Group>
-        </>
+        </div>
       )}
     </div>
   );
@@ -556,7 +431,7 @@ export default function SortSettingModal({ open, onClose }) {
           key="reset-sort-rules-confirm"
           title="重置排序规则"
           message="是否将排序规则恢复为默认配置？这会重置顺序、开关状态以及别名设置。"
-          icon={<ResetIcon width="20" height="20" className="shrink-0 text-[var(--primary)]" />}
+          icon={<RotateCcw className="w-5 h-5 shrink-0 text-primary" />}
           confirmVariant="primary"
           confirmText="恢复默认"
           onConfirm={() => {
@@ -586,20 +461,16 @@ export default function SortSettingModal({ open, onClose }) {
         handleOnly={isReordering}
       >
         <DrawerContent className="glass" defaultHeight="70vh" minHeight="40vh" maxHeight="90vh">
-          <DrawerHeader className="flex flex-row items-center justify-between gap-2 py-4">
-            <DrawerTitle className="flex items-center gap-2.5 text-left">
-              <SettingsIcon width="20" height="20" />
+          <DrawerHeader className="flex flex-row items-center justify-between gap-2 py-4 px-4 border-b border-[var(--border)]">
+            <DrawerTitle className="flex items-center gap-2 text-left font-semibold text-base text-foreground">
+              <Settings2 className="w-5 h-5 text-primary" />
               <span>排序个性化设置</span>
             </DrawerTitle>
             <DrawerClose
-              className="icon-button border-none bg-transparent p-1"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:text-foreground transition-colors"
               title="关闭"
-              style={{
-                borderColor: 'transparent',
-                backgroundColor: 'transparent'
-              }}
             >
-              <CloseIcon width="20" height="20" />
+              <X className="w-4 h-4" />
             </DrawerClose>
           </DrawerHeader>
           {body}
@@ -616,7 +487,7 @@ export default function SortSettingModal({ open, onClose }) {
       {open && (
         <motion.div
           key="sort-setting-overlay"
-          className="pc-table-setting-overlay"
+          className="pc-table-setting-overlay fixed inset-0 bg-black/50 backdrop-blur-xs flex justify-end z-[10001]"
           role="dialog"
           aria-modal="true"
           aria-label="排序个性化设置"
@@ -625,34 +496,29 @@ export default function SortSettingModal({ open, onClose }) {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           onClick={onClose}
-          style={{ zIndex: 10001, alignItems: 'stretch' }}
         >
           <motion.aside
-            className="pc-table-setting-drawer glass"
+            className="pc-table-setting-drawer glass w-[420px] max-w-[90vw] h-full flex flex-col bg-[var(--background)]/95 border-l border-[var(--border)] shadow-2xl"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
-            style={{
-              width: 420,
-              maxWidth: 480
-            }}
           >
-            <div className="pc-table-setting-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <SettingsIcon width="20" height="20" />
-                <span>排序个性化设置</span>
+            <div className="pc-table-setting-header flex items-center justify-between p-4 border-b border-[var(--border)]">
+              <div className="flex items-center gap-2.5">
+                <Settings2 className="w-5 h-5 text-primary" />
+                <span className="font-semibold text-base text-foreground">排序个性化设置</span>
               </div>
-              <button
-                type="button"
-                className="icon-button"
+              <Button
+                variant="ghost"
+                size="icon"
                 title="关闭"
                 onClick={onClose}
-                style={{ border: 'none', background: 'transparent' }}
+                className="w-8 h-8 rounded-full text-[var(--muted)] hover:text-foreground"
               >
-                <CloseIcon width="20" height="20" />
-              </button>
+                <X className="w-4 h-4" />
+              </Button>
             </div>
 
             {body}

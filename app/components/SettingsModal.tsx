@@ -1,20 +1,54 @@
 'use client';
-import { useIsMobile } from '@/app/hooks/useIsMobile';
 
+import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { Settings, RotateCcw } from 'lucide-react';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
-import ConfirmModal from './ConfirmModal';
-import { ResetIcon, SettingsIcon } from './Icons';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { useModalStore } from '../stores';
+import ConfirmModal from './ConfirmModal';
 import AiConfigSection from './AiConfigSection';
+import { cn } from '@/lib/utils';
+
+export interface SettingsModalProps {
+  onClose: () => void;
+  tempSeconds: number;
+  setTempSeconds?: (sec: number) => void;
+  saveSettings: (
+    e: React.MouseEvent | React.FormEvent,
+    seconds: number,
+    showMarketIndex: boolean,
+    showGroupFundSearch: boolean,
+    isMobile: boolean,
+    dynamicStyle: boolean,
+    containerWidth: number,
+    showGroupDropdown: boolean,
+    aiConfig?: any
+  ) => void;
+  exportLocalData: () => void;
+  importFileRef: React.RefObject<HTMLInputElement | null>;
+  handleImportFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  importMsg?: string;
+  containerWidth?: number;
+  setContainerWidth?: (width: number) => void;
+  onResetContainerWidth?: () => void;
+  showMarketIndexPc?: boolean;
+  showMarketIndexMobile?: boolean;
+  showGroupFundSearchPc?: boolean;
+  showGroupFundSearchMobile?: boolean;
+  dynamicStylePc?: boolean;
+  dynamicStyleMobile?: boolean;
+  showGroupDropdownPc?: boolean;
+  showGroupDropdownMobile?: boolean;
+}
 
 export default function SettingsModal({
   onClose,
   tempSeconds,
-  setTempSeconds,
   saveSettings,
   exportLocalData,
   importFileRef,
@@ -31,9 +65,9 @@ export default function SettingsModal({
   dynamicStyleMobile = true,
   showGroupDropdownPc = false,
   showGroupDropdownMobile = false
-}) {
+}: SettingsModalProps) {
   const isMobile = useIsMobile();
-  const aiConfigRef = useRef(null);
+  const aiConfigRef = useRef<any>(null);
   const [sliderDragging, setSliderDragging] = useState(false);
   const sliderDraggingRef = useRef(false);
   const [resetWidthConfirmOpen, setResetWidthConfirmOpen] = useState(false);
@@ -47,7 +81,7 @@ export default function SettingsModal({
   const [localShowGroupDropdownPc, setLocalShowGroupDropdownPc] = useState(showGroupDropdownPc);
   const [localShowGroupDropdownMobile, setLocalShowGroupDropdownMobile] = useState(showGroupDropdownMobile);
   const [localContainerWidth, setLocalContainerWidth] = useState(containerWidth);
-  const pageWidthTrackRef = useRef(null);
+  const pageWidthTrackRef = useRef<HTMLDivElement>(null);
   const [viewWidth, setViewWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   const maxWidth = Math.max(viewWidth, 2000);
 
@@ -61,7 +95,7 @@ export default function SettingsModal({
   const widthRange = Math.max(1, maxWidth - 600);
   const pageWidthPercent = ((clampedWidth - 600) / widthRange) * 100;
 
-  const updateWidthByClientX = (clientX) => {
+  const updateWidthByClientX = (clientX: number) => {
     if (!pageWidthTrackRef.current || !setContainerWidth) return;
     const rect = pageWidthTrackRef.current.getBoundingClientRect();
     if (!rect.width) return;
@@ -87,7 +121,6 @@ export default function SettingsModal({
     };
   }, [sliderDragging]);
 
-  // 外部的 tempSeconds 变更时，同步到本地显示，但不立即生效
   useEffect(() => {
     setLocalSeconds(tempSeconds);
   }, [tempSeconds]);
@@ -136,76 +169,71 @@ export default function SettingsModal({
       }}
     >
       <DialogContent
-        overlayClassName={`modal-overlay ${sliderDragging ? 'modal-overlay-translucent' : ''} z-[9999]`}
-        className="!p-0 z-[10000]"
+        overlayClassName={cn('modal-overlay z-[9999]', sliderDragging && 'modal-overlay-translucent')}
+        className="!p-0 z-[10000] max-w-[540px] w-[94vw]"
         showCloseButton={false}
       >
-        <div className="glass card modal" style={{ maxHeight: '85vh', overflowY: 'auto' }}>
-          <div className="title" style={{ marginBottom: 12 }}>
-            <SettingsIcon width="20" height="20" />
-            <DialogTitle asChild>
-              <span>设置</span>
-            </DialogTitle>
+        <div className="glass card modal max-h-[85vh] overflow-y-auto p-5 scrollbar-y-styled">
+          <div className="title flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5 font-semibold text-lg text-foreground">
+              <Settings className="w-5 h-5 text-primary" />
+              <DialogTitle asChild>
+                <span>设置</span>
+              </DialogTitle>
+            </div>
           </div>
 
-          <div className="form-group" style={{ marginBottom: 16 }}>
-            <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
-              刷新频率
+          {/* 刷新频率 */}
+          <div className="form-group mb-4">
+            <div className="text-xs text-[var(--muted)] mb-2 font-medium">刷新频率</div>
+            <div className="flex flex-wrap gap-2 mb-2.5">
+              {[30, 60, 120, 300].map((s) => {
+                const isActive = localSeconds === s;
+                return (
+                  <Button
+                    key={s}
+                    type="button"
+                    variant={isActive ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-8 px-3 text-xs tabular-nums"
+                    onClick={() => setLocalSeconds(s)}
+                    aria-pressed={isActive}
+                  >
+                    {s} 秒
+                  </Button>
+                );
+              })}
             </div>
-            <div className="chips" style={{ marginBottom: 12 }}>
-              {[30, 60, 120, 300].map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={`chip ${localSeconds === s ? 'active' : ''}`}
-                  onClick={() => setLocalSeconds(s)}
-                  aria-pressed={localSeconds === s}
-                >
-                  {s} 秒
-                </button>
-              ))}
-            </div>
-            <input
-              className="input"
+            <Input
               type="number"
               inputMode="numeric"
               min="30"
               step="5"
-              value={localSeconds}
+              value={localSeconds || ''}
               onChange={(e) => setLocalSeconds(Number(e.target.value))}
               placeholder="自定义秒数"
+              className="h-9 text-[16PX] md:text-sm bg-black/20"
             />
-            {localSeconds < 30 && (
-              <div className="error-text" style={{ marginTop: 8 }}>
-                最小 30 秒
-              </div>
-            )}
+            {localSeconds < 30 && <div className="text-[var(--danger)] text-xs mt-1.5">最小 30 秒</div>}
           </div>
 
+          {/* 页面宽度 (PC端) */}
           {!isMobile && setContainerWidth && (
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <div className="muted" style={{ fontSize: '0.8rem' }}>
-                  页面宽度
-                </div>
+            <div className="form-group mb-4">
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="text-xs text-[var(--muted)] font-medium">页面宽度</div>
                 {onResetContainerWidth && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button
+                      <Button
                         type="button"
-                        className="icon-button"
+                        variant="ghost"
+                        size="icon"
+                        className="w-6 h-6 p-0 text-[var(--muted)] hover:text-foreground"
                         onClick={() => setResetWidthConfirmOpen(true)}
-                        style={{
-                          border: 'none',
-                          width: '24px',
-                          height: '24px',
-                          padding: 0,
-                          backgroundColor: 'transparent',
-                          color: 'var(--muted)'
-                        }}
                       >
-                        <ResetIcon width="14" height="14" />
-                      </button>
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>重置页面宽度</p>
@@ -213,11 +241,10 @@ export default function SettingsModal({
                   </Tooltip>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div className="flex items-center gap-3">
                 <div
                   ref={pageWidthTrackRef}
-                  className="group relative"
-                  style={{ flex: 1, height: 14, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  className="group relative flex-1 h-3.5 cursor-pointer flex items-center"
                   onPointerDown={(e) => {
                     sliderDraggingRef.current = true;
                     setSliderDragging(true);
@@ -240,22 +267,20 @@ export default function SettingsModal({
                     <div className="h-3 w-3 rounded-full bg-primary shadow-md shadow-primary/40" />
                   </div>
                 </div>
-                <span className="muted" style={{ fontSize: '0.8rem', minWidth: 48 }}>
+                <span className="text-xs text-[var(--muted)] min-w-[48px] text-right tabular-nums">
                   {clampedWidth}px
                 </span>
               </div>
             </div>
           )}
 
-          <div className="row" style={{ gap: 16, marginBottom: 16 }}>
-            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-              <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
-                显示大盘指数
-              </div>
-              <div className="row" style={{ justifyContent: 'flex-start', alignItems: 'center' }}>
+          {/* 切换选项 */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="form-group mb-0">
+              <div className="text-xs text-[var(--muted)] mb-2 font-medium">显示大盘指数</div>
+              <div className="flex items-center">
                 <Switch
                   checked={isMobile ? localShowMarketIndexMobile : localShowMarketIndexPc}
-                  className="ml-2 scale-125"
                   onCheckedChange={(checked) => {
                     const nextValue = Boolean(checked);
                     if (isMobile) setLocalShowMarketIndexMobile(nextValue);
@@ -266,14 +291,11 @@ export default function SettingsModal({
               </div>
             </div>
 
-            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-              <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
-                显示分组内基金搜索
-              </div>
-              <div className="row" style={{ justifyContent: 'flex-start', alignItems: 'center' }}>
+            <div className="form-group mb-0">
+              <div className="text-xs text-[var(--muted)] mb-2 font-medium">显示分组内基金搜索</div>
+              <div className="flex items-center">
                 <Switch
                   checked={isMobile ? localShowGroupFundSearchMobile : localShowGroupFundSearchPc}
-                  className="ml-2 scale-125"
                   onCheckedChange={(checked) => {
                     const nextValue = Boolean(checked);
                     if (isMobile) setLocalShowGroupFundSearchMobile(nextValue);
@@ -285,15 +307,12 @@ export default function SettingsModal({
             </div>
           </div>
 
-          <div className="row" style={{ gap: 16, marginBottom: 16 }}>
-            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-              <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
-                减少动态样式效果
-              </div>
-              <div className="row" style={{ justifyContent: 'flex-start', alignItems: 'center' }}>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="form-group mb-0">
+              <div className="text-xs text-[var(--muted)] mb-2 font-medium">减少动态样式效果</div>
+              <div className="flex items-center">
                 <Switch
                   checked={isMobile ? !localDynamicStyleMobile : !localDynamicStylePc}
-                  className="ml-2 scale-125"
                   onCheckedChange={(checked) => {
                     const nextValue = !checked;
                     if (isMobile) setLocalDynamicStyleMobile(nextValue);
@@ -304,14 +323,11 @@ export default function SettingsModal({
               </div>
             </div>
 
-            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-              <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
-                下拉形式展示分组
-              </div>
-              <div className="row" style={{ justifyContent: 'flex-start', alignItems: 'center' }}>
+            <div className="form-group mb-0">
+              <div className="text-xs text-[var(--muted)] mb-2 font-medium">下拉形式展示分组</div>
+              <div className="flex items-center">
                 <Switch
                   checked={isMobile ? localShowGroupDropdownMobile : localShowGroupDropdownPc}
-                  className="ml-2 scale-125"
                   onCheckedChange={(checked) => {
                     const nextValue = Boolean(checked);
                     if (isMobile) setLocalShowGroupDropdownMobile(nextValue);
@@ -322,6 +338,8 @@ export default function SettingsModal({
               </div>
             </div>
           </div>
+
+          {/* AI 配置区域 */}
           <AiConfigSection
             onAiConfigChange={(cfg) => {
               aiConfigRef.current = cfg;
@@ -329,22 +347,21 @@ export default function SettingsModal({
             showImmediateSaveButton={true}
           />
 
-          <div className="form-group" style={{ marginBottom: 16 }}>
-            <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
-              数据导出
-            </div>
-            <div className="row" style={{ gap: 8 }}>
-              <button type="button" className="button" onClick={exportLocalData}>
-                导出配置
-              </button>
-            </div>
-            <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem', marginTop: 26 }}>
-              数据导入
-            </div>
-            <div className="row" style={{ gap: 8, marginTop: 8 }}>
-              <button type="button" className="button" onClick={() => importFileRef.current?.click?.()}>
-                导入配置
-              </button>
+          {/* 数据导入导出 */}
+          <div className="form-group mb-4">
+            <div className="text-xs text-[var(--muted)] mb-2 font-medium">数据备份与迁移</div>
+            <div className="flex gap-2.5">
+              <Button type="button" variant="outline" className="flex-1 h-9 text-xs" onClick={exportLocalData}>
+                导出本地配置
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 h-9 text-xs"
+                onClick={() => importFileRef.current?.click?.()}
+              >
+                导入本地配置
+              </Button>
             </div>
             <input
               ref={importFileRef}
@@ -353,16 +370,13 @@ export default function SettingsModal({
               style={{ display: 'none' }}
               onChange={handleImportFileChange}
             />
-            {importMsg && (
-              <div className="muted" style={{ marginTop: 8 }}>
-                {importMsg}
-              </div>
-            )}
+            {importMsg && <div className="text-xs text-[var(--muted)] mt-2">{importMsg}</div>}
           </div>
 
-          <div className="row" style={{ justifyContent: 'flex-end', marginTop: 24 }}>
-            <button
-              className="button"
+          {/* 底部保存按钮 */}
+          <div className="flex justify-end mt-5 pt-3 border-t border-[var(--border)]">
+            <Button
+              className="w-full h-10 font-medium"
               onClick={(e) =>
                 saveSettings(
                   e,
@@ -379,14 +393,15 @@ export default function SettingsModal({
               disabled={localSeconds < 30}
             >
               保存并关闭
-            </button>
+            </Button>
           </div>
         </div>
+
         {resetWidthConfirmOpen && onResetContainerWidth && (
           <ConfirmModal
             title="重置页面宽度"
             message="是否重置页面宽度为默认值 1200px？"
-            icon={<ResetIcon width="20" height="20" className="shrink-0 text-[var(--primary)]" />}
+            icon={<RotateCcw className="w-5 h-5 shrink-0 text-primary" />}
             confirmVariant="primary"
             onConfirm={() => {
               onResetContainerWidth();
