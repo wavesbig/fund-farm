@@ -30,8 +30,8 @@ export interface FundListViewProps {
   handleMoveFunds: (payload: any) => Promise<any> | void;
   pcBatchClearSelectionRef?: React.MutableRefObject<any>;
   handleToggleFavoriteRow: (code: string) => void;
-  handleHoldingAmountClickRow: (row: any) => void;
-  handleHoldingProfitClickRow: (row: any) => void;
+  handleHoldingAmountClickRow: (row: any, meta?: any) => void;
+  handleHoldingProfitClickRow: (row: any, meta?: any) => void;
   triggerCustomSettingsSync: () => void;
   fundDetailDialogCloseRef?: React.MutableRefObject<any>;
   maskAmounts?: boolean;
@@ -58,7 +58,7 @@ export interface FundListViewProps {
   transactionsForTab: any[];
   theme: string;
   isTradingDay: boolean;
-  getHoldingProfitForTab: (fund: any) => any;
+  getHoldingProfitForTab: (fund: any, holding?: any) => any;
   toggleFavorite: (code: string) => void;
   openHoldingModal: (fund: any) => void;
   openActionModal: (fund: any) => void;

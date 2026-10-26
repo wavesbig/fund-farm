@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
  * - 监听 resize 事件（rAF 节流），deps 变化时重新测量
  * - 额外提供 marketIndexAccordionHeight 状态供粘性定位计算使用
  *
- * @param {{ groups: any[], currentTab: string, shouldShowMarketIndex: boolean }} deps
+ * @param {{ groups: any[], currentTab: string, shouldShowMarketIndex?: boolean }} [deps]
  * @returns {{
  *   navbarRef: React.RefObject,
  *   filterBarRef: React.RefObject,

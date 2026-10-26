@@ -226,15 +226,16 @@ export default function HomePage() {
    * 形状保持为 { [code]: {id,name,theme}[] }，便于复用现有组件接口。
    */
   const fundTagListsByCode = useMemo(() => {
-    const out = {};
+    const out: Record<string, any[]> = {};
     const codeSet = new Set((isArray(funds) ? funds : []).map((f) => String(f?.code ?? '').trim()).filter(Boolean));
     for (const r of fundTagRecords || []) {
       if (!r || !isObject(r)) continue;
-      const id = String(r.id ?? '').trim();
-      const name = String(r.name ?? '').trim();
+      const record = r as Record<string, any>;
+      const id = String(record.id ?? '').trim();
+      const name = String(record.name ?? '').trim();
       if (!id || !name) continue;
-      const theme = normalizeFundTagTheme(r.theme);
-      for (const c of getFundCodesFromTagRecord(r)) {
+      const theme = normalizeFundTagTheme(record.theme);
+      for (const c of getFundCodesFromTagRecord(record)) {
         if (!codeSet.has(c)) continue;
         if (!out[c]) out[c] = [];
         out[c].push({ id, name, theme });
@@ -348,7 +349,7 @@ export default function HomePage() {
   const containerRef = useRef(null);
   const { navbarRef, filterBarRef, navbarHeight, filterBarHeight } = useNavHeights({ groups, currentTab });
 
-  const handleMobileSearchClick = (e) => {
+  const handleMobileSearchClick = (e?: any) => {
     e?.preventDefault();
     e?.stopPropagation();
     setIsSearchFocused(true);
@@ -505,11 +506,11 @@ export default function HomePage() {
    */
   const linkedHoldingsForAllFav = useMemo(() => {
     const enabled = (currentTab === 'all' || currentTab === 'fav') && !activeGroupId;
-    if (!enabled) return { derived: {}, linked: new Set(), groupIdsByCode: {} };
+    if (!enabled) return { derived: {}, linked: new Set<string>(), groupIdsByCode: {} };
 
-    const derived = {};
-    const linked = new Set();
-    const groupIdsByCode = {};
+    const derived: Record<string, any> = {};
+    const linked = new Set<string>();
+    const groupIdsByCode: Record<string, any> = {};
 
     const hasGlobalHolding = (h) => !isNil(h) && isNumber(h.share) && Number(h.share) >= 0;
 
@@ -788,7 +789,7 @@ export default function HomePage() {
   const activeGroupCodeSet = useMemo(() => {
     if (currentTab === SUMMARY_TAB_ID) {
       const fundByCode = new Map((isArray(funds) ? funds : []).map((f) => [f.code, f]));
-      const set = new Set();
+      const set = new Set<string>();
       Object.entries(holdings || {}).forEach(([code, h]) => {
         const fund = fundByCode.get(code);
         if (!fund || !h) return;
@@ -803,7 +804,7 @@ export default function HomePage() {
     if (currentTab === 'all' || currentTab === 'fav') return null;
     const group = groupById.get(currentTab);
     if (!group || !isArray(group.codes)) return null;
-    return new Set(group.codes);
+    return new Set<string>(group.codes);
   }, [currentTab, groupById, groupsWithHoldings, funds, holdings, getHoldingProfit]);
 
   const { scopedFunds, displayFundsRaw, displayFunds, fundExtraDataByCode } = useFundFilterSort({
@@ -882,7 +883,7 @@ export default function HomePage() {
           : '—';
 
       const yesterdayChangePercent =
-        f.zzl != null && f.zzl !== '' ? `${f.zzl > 0 ? '+' : ''}${Number(f.zzl).toFixed(2)}%` : '—';
+        f.zzl != null && f.zzl !== '' ? `${Number(f.zzl) > 0 ? '+' : ''}${Number(f.zzl).toFixed(2)}%` : '—';
       const yesterdayChangeValue = f.zzl != null && f.zzl !== '' ? Number(f.zzl) : null;
       const yesterdayDate = f.jzrq || '-';
 
@@ -1020,7 +1021,7 @@ export default function HomePage() {
           ? ''
           : `${estimateProfitPercentValue > 0 ? '+' : ''}${estimateProfitPercentValue.toFixed(2)}%`;
 
-      const addBaseNavRaw = f.addBaseNav != null && f.addBaseNav !== '' ? Number(f.addBaseNav) : null;
+      const addBaseNavRaw = f.addBaseNav != null && (f.addBaseNav as any) !== '' ? Number(f.addBaseNav) : null;
       const addBaseNav =
         addBaseNavRaw != null && Number.isFinite(addBaseNavRaw) && addBaseNavRaw > 0 ? addBaseNavRaw : null;
       const sinceAddedCurrentNav = (() => {
@@ -1322,7 +1323,8 @@ export default function HomePage() {
         }
       };
 
-      for (const trade of currentPending) {
+      for (const rawTrade of currentPending) {
+        const trade = rawTrade as Record<string, any>;
         if (trade?.id && handledIds.has(trade.id)) continue;
         if (trade?.id) handledIds.add(trade.id);
 
@@ -1404,11 +1406,11 @@ export default function HomePage() {
         // 构建最终的 transactions 状态
         const prevTransactions = useStorageStore.getState().transactions;
         const nextTransactions = { ...prevTransactions };
-        newTransactions.forEach((tx) => {
+        newTransactions.forEach((tx: any) => {
           const current = nextTransactions[tx.fundCode] || [];
           // 避免重复添加 (虽然 id 应该唯一)
           if (!current.some((t) => t.id === tx.id)) {
-            const row = {
+            const row: Record<string, any> = {
               id: tx.id,
               type: tx.type,
               share: tx.share,
@@ -1426,7 +1428,7 @@ export default function HomePage() {
 
         // 构建最终的 pendingTrades 状态
         const prevPending = normalizePendingTrades(useStorageStore.getState().pendingTrades);
-        const nextPending = prevPending.filter((t) => !processedIds.has(t.id));
+        const nextPending = prevPending.filter((t: any) => !processedIds.has(t.id));
 
         // 通过 storageStore.setItem 更新（内部会同步更新 state + localStorage + 触发云端同步）
         // 由于在同一同步代码块中，React 18 会自动批量处理，只触发一次 re-render
@@ -1871,7 +1873,9 @@ export default function HomePage() {
       const normalized = normalizeFundTagInstanceListFromInput(rows);
 
       setFundTagRecords((prev) => {
-        const selectedById = new Map(normalized.map((x) => [String(x.id).trim(), x]).filter(([id]) => id));
+        const selectedById = new Map<string, any>(
+          normalized.map((x) => [String(x.id).trim(), x] as [string, any]).filter(([id]) => id)
+        );
 
         const byId = new Map();
         for (const r of prev) {
@@ -2140,7 +2144,8 @@ export default function HomePage() {
         const tradeGid = scopeKey === DCA_SCOPE_GLOBAL ? null : scopeKey;
         if (tradeGid && !groupIdSet.has(tradeGid)) return;
 
-        Object.entries(bucket).forEach(([code, plan]) => {
+        Object.entries(bucket as Record<string, any>).forEach(([code, planRaw]) => {
+          const plan = planRaw as Record<string, any>;
           if (!plan || !plan.enabled) return;
           if (!codesSet.has(code)) return;
 
@@ -2235,7 +2240,7 @@ export default function HomePage() {
 
       // 计算去重后的新 pending 列表
       const prevPending = normalizePendingTrades(useStorageStore.getState().pendingTrades);
-      const existingIds = new Set(prevPending.map((t) => t.id));
+      const existingIds = new Set(prevPending.map((t: any) => t.id));
       const unique = newPending.filter((t) => !existingIds.has(t.id));
 
       // 批量更新 dcaPlans 和 pendingTrades
@@ -2429,10 +2434,6 @@ export default function HomePage() {
         const migratedDca = migrateDcaPlansToScoped(isPlainObject(dcaPlans) ? dcaPlans : {});
         if (JSON.stringify(migratedDca) !== JSON.stringify(dcaPlans)) {
           setDcaPlans(migratedDca);
-        }
-        const savedTheme = storageStore.getItem('theme');
-        if (savedTheme === 'light' || savedTheme === 'dark') {
-          setTheme(savedTheme);
         }
       } catch {}
       if (!cancelled) {
@@ -2691,21 +2692,21 @@ export default function HomePage() {
   };
 
   /** @returns {boolean|void} false 表示已弹出二次确认，由确认成功回调再清空选中；true 表示已立即执行，调用方可清空多选 */
-  const requestRemoveFundsFromCurrentGroup = (codes) => {
+  const requestRemoveFundsFromCurrentGroup = (codes?: string[] | any) => {
     const gid =
       currentTab !== 'all' && currentTab !== 'fav' && groups.some((g) => g.id === currentTab) ? currentTab : null;
-    const list = Array.from(new Set((codes || []).filter(Boolean)));
+    const list: string[] = Array.from(new Set<string>((codes || []).filter(Boolean)));
     if (list.length === 0) return true;
 
     if (gid) {
-      const scoped = migrateDcaPlansToScoped(dcaPlans);
+      const scoped = migrateDcaPlansToScoped(dcaPlans) as Record<string, any>;
       const needsConfirm = list.some((code) => {
-        const gh = groupHoldings[gid]?.[code];
+        const gh = (groupHoldings as Record<string, any>)?.[gid]?.[code];
         const hasGroupHolding = !isNil(gh) && isNumber(gh.share) && gh.share >= 0;
-        const hasGroupPending = pendingTrades.some((t) => t.fundCode === code && t.groupId === gid);
+        const hasGroupPending = pendingTrades.some((t: any) => t.fundCode === code && t.groupId === gid);
         const hasGroupDca = !!scoped[gid]?.[code];
-        const txList = transactions[code] || [];
-        const hasGroupTx = txList.some((t) => t.groupId === gid);
+        const txList = (transactions as Record<string, any>)?.[code] || [];
+        const hasGroupTx = txList.some((t: any) => t.groupId === gid);
         return hasGroupHolding || hasGroupPending || hasGroupDca || hasGroupTx;
       });
 
@@ -2735,10 +2736,10 @@ export default function HomePage() {
       }
     }
     const needsGlobalConfirm = list.some((code) => {
-      const h = holdings[code];
+      const h = (holdings as Record<string, any>)?.[code];
       const hasGlobalHolding = !isNil(h) && isNumber(h.share) && h.share >= 0;
       const hasGroupHolding = Object.values(groupHoldings || {}).some(
-        (b) => !isNil(b) && !isNil(b[code]) && isNumber(b[code].share) && b[code].share >= 0
+        (b: any) => !isNil(b) && !isNil(b[code]) && isNumber(b[code].share) && b[code].share >= 0
       );
       return hasGlobalHolding || hasGroupHolding;
     });
@@ -2766,8 +2767,20 @@ export default function HomePage() {
    * - dryRun: 仅检测目标是否存在持仓数据冲突
    * - overwrite: 冲突时是否覆盖目标持仓数据
    */
-  const handleMoveFunds = async ({ codes, fromTab, targetId, dryRun = false, overwrite = false } = {}) => {
-    const list = Array.from(new Set((codes || []).filter(Boolean)));
+  const handleMoveFunds = async ({
+    codes,
+    fromTab,
+    targetId,
+    dryRun = false,
+    overwrite = false
+  }: {
+    codes?: string[];
+    fromTab?: string;
+    targetId?: string;
+    dryRun?: boolean;
+    overwrite?: boolean;
+  } = {}) => {
+    const list: string[] = Array.from(new Set<string>((codes || []).filter(Boolean)));
     if (list.length === 0) return { conflicts: [] };
 
     const isCustomTab = (tab) => tab && tab !== 'all' && tab !== 'fav' && groups.some((g) => g?.id === tab);
@@ -2838,12 +2851,13 @@ export default function HomePage() {
     });
 
     setGroupHoldings((prev) => {
-      const next = { ...(prev || {}) };
-      const getBucket = (gid) => (next[gid] && isObject(next[gid]) ? { ...next[gid] } : {});
+      const next: Record<string, any> = { ...(prev || {}) };
+      const getBucket = (gid: string): Record<string, any> =>
+        next[gid] && isObject(next[gid]) ? { ...(next[gid] as any) } : {};
 
       // 读取源持仓
-      const sourceBucket = fromGid ? getBucket(fromGid) : null;
-      const targetBucket = toGid ? getBucket(toGid) : null;
+      const sourceBucket: Record<string, any> | null = fromGid ? getBucket(fromGid) : null;
+      const targetBucket: Record<string, any> | null = toGid ? getBucket(toGid) : null;
 
       if (toGid) next[toGid] = targetBucket;
       if (fromGid) next[fromGid] = sourceBucket;
@@ -2910,11 +2924,12 @@ export default function HomePage() {
 
     // 5) dcaPlans：迁移定投计划（按 scope 分桶）
     setDcaPlans((prev) => {
-      const scoped = migrateDcaPlansToScoped(prev);
+      const scoped = migrateDcaPlansToScoped(prev) as Record<string, any>;
       const fromKey = fromGid || DCA_SCOPE_GLOBAL;
       const toKey = toGid || DCA_SCOPE_GLOBAL;
-      const fromBucket = scoped[fromKey] && isObject(scoped[fromKey]) ? { ...scoped[fromKey] } : {};
-      const toBucket = scoped[toKey] && isObject(scoped[toKey]) ? { ...scoped[toKey] } : {};
+      const fromBucket: Record<string, any> =
+        scoped[fromKey] && isObject(scoped[fromKey]) ? { ...scoped[fromKey] } : {};
+      const toBucket: Record<string, any> = scoped[toKey] && isObject(scoped[toKey]) ? { ...scoped[toKey] } : {};
       let changed = false;
       for (const code of list) {
         if (fromBucket[code] === undefined) continue;
@@ -2931,9 +2946,9 @@ export default function HomePage() {
     setFundDailyEarnings((prev) => {
       const fromKey = fromGid || DAILY_EARNINGS_SCOPE_ALL;
       const toKey = toGid || DAILY_EARNINGS_SCOPE_ALL;
-      const base = isPlainObject(prev) ? prev : {};
-      const fromBucket = isPlainObject(base[fromKey]) ? { ...base[fromKey] } : {};
-      const toBucket = isPlainObject(base[toKey]) ? { ...base[toKey] } : {};
+      const base: Record<string, any> = isPlainObject(prev) ? (prev as Record<string, any>) : {};
+      const fromBucket: Record<string, any> = isPlainObject(base[fromKey]) ? { ...base[fromKey] } : {};
+      const toBucket: Record<string, any> = isPlainObject(base[toKey]) ? { ...base[toKey] } : {};
       let changed = false;
       for (const code of list) {
         if (!(code in fromBucket)) continue;
@@ -3120,7 +3135,7 @@ export default function HomePage() {
       let changed = false;
       for (const [scope, bucket] of Object.entries(scoped)) {
         if (!isPlainObject(bucket)) continue;
-        const nb = { ...bucket };
+        const nb: Record<string, any> = { ...(bucket as Record<string, any>) };
         if (nb[removeCode]) {
           delete nb[removeCode];
           changed = true;
@@ -3145,8 +3160,8 @@ export default function HomePage() {
   };
 
   /** 批量从「全部」逻辑删除多支基金（单次合并更新） */
-  const removeFundsBulk = (codes) => {
-    const set = new Set((codes || []).filter(Boolean));
+  const removeFundsBulk = (codes?: string[] | any) => {
+    const set = new Set<string>((codes || []).filter(Boolean));
     if (set.size === 0) return;
 
     setFunds((prev) => prev.filter((f) => !set.has(f.code)));
@@ -3335,7 +3350,7 @@ export default function HomePage() {
       const nextScoped = {};
       for (const [scope, bucket] of Object.entries(scoped)) {
         if (!isPlainObject(bucket)) continue;
-        const nb = { ...bucket };
+        const nb: Record<string, any> = { ...(bucket as Record<string, any>) };
         for (const c of set) {
           if (nb[c]) {
             delete nb[c];
@@ -3485,8 +3500,8 @@ export default function HomePage() {
         exportedAt: nowInTz().toISOString()
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      if (window.showSaveFilePicker) {
-        const handle = await window.showSaveFilePicker({
+      if ((window as any).showSaveFilePicker) {
+        const handle = await (window as any).showSaveFilePicker({
           suggestedName: `realtime-fund-config-${Date.now()}.json`,
           types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
         });
@@ -3562,8 +3577,9 @@ export default function HomePage() {
           const currentTags = storageStore.getItem('tags', []);
           const fundCodeSet = new Set(mergedFunds.map((f) => f?.code).filter(Boolean));
           const byId = new Map((isArray(currentTags) ? currentTags : []).map((r) => [String(r.id), r]));
-          for (const r of data.tags) {
-            if (!r || !isObject(r)) continue;
+          for (const item of data.tags) {
+            if (!item || !isObject(item)) continue;
+            const r = item as Record<string, any>;
             const codes = getFundCodesFromTagRecord(r).filter((c) => fundCodeSet.has(c));
             const name = String(r.name ?? '').trim();
             if (!name) continue;
@@ -3639,7 +3655,7 @@ export default function HomePage() {
           const mergedGH = { ...(isPlainObject(currentGroupHoldings) ? currentGroupHoldings : {}) };
           Object.entries(data.groupHoldings).forEach(([gid, bucket]) => {
             if (!isPlainObject(bucket)) return;
-            mergedGH[gid] = { ...(mergedGH[gid] || {}), ...bucket };
+            mergedGH[gid] = { ...(mergedGH[gid] || {}), ...(bucket as Record<string, any>) };
           });
           setGroupHoldings(mergedGH);
         }
@@ -3819,12 +3835,9 @@ export default function HomePage() {
 
   const settingsOpenRef = useRef(false);
   useEffect(() => {
-    const unsub = useModalStore.subscribe(
-      (s) => s.settingsOpen,
-      (open) => {
-        settingsOpenRef.current = open;
-      }
-    );
+    const unsub = useModalStore.subscribe((state) => {
+      settingsOpenRef.current = state.settingsOpen;
+    });
     settingsOpenRef.current = useModalStore.getState().settingsOpen;
     return unsub;
   }, []);
@@ -4117,12 +4130,12 @@ export default function HomePage() {
       applyCloudConfig(data);
     },
     syncUserConfig,
-    fetchCloudConfig: (userId, isInitialSync, remoteData, isPartial, opts) =>
-      fetchCloudConfig?.(userId, isInitialSync, remoteData, isPartial, opts),
+    fetchCloudConfig: (userId: any, isInitialSync?: any, remoteData?: any, isPartial?: any, opts?: any) =>
+      (fetchCloudConfig as any)?.(userId, isInitialSync, remoteData, isPartial, opts),
     refreshAll: (codes) => refreshAll?.(codes),
     showToast,
     cancelScan,
-    handleScanPick: (e) => handleScanPick?.(e),
+    handleScanPick: () => handleScanPick?.(),
     handleRetryOcr: () => handleRetryOcr?.(),
     handleFilesDrop: (e) => handleFilesDrop?.(e),
     toggleScannedCode: (code) => toggleScannedCode?.(code),

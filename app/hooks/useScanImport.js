@@ -19,6 +19,8 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
  *   setCurrentTab: Function,
  *   setValuationSeries: Function,
  *   showToast: Function,
+ *   normalizeCode?: Function,
+ *   dedupeByCode?: Function,
  *   setFundTagRecords: Function
  * }} deps
  */
