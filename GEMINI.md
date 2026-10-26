@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is a **Next.js (App Router)** based real-time mutual fund valuation and portfolio tracking application. It utilizes a **Glassmorphism** UI design and is fully responsive for both mobile and PC. The project is written in **pure JavaScript (JSX)** without TypeScript.
+This is a **Next.js (App Router)** based real-time mutual fund valuation and portfolio tracking application. It utilizes a **Glassmorphism** UI design and is fully responsive for both mobile and PC. The project is built with **TypeScript (TSX)** and **shadcn/ui** components.
 
 ### Key Features & Architecture
 - **Offline-First & Persistence**: Uses `localStorage` as the primary database for tracking user portfolios, watchlists, transaction histories, and DCA (Dollar-Cost Averaging) plans.
@@ -54,12 +54,12 @@ The project includes a `Dockerfile` for containerized deployments using Nginx.
 
 ## Development Conventions
 
-- **Language**: Pure JavaScript (`.js`, `.jsx`). Do not introduce TypeScript.
+- **Language**: TypeScript (`.ts`, `.tsx`) for all UI and page components, with strict type-checking.
 - **Formatting & Linting**: 
-  - Code is linted via ESLint. Use `npm run lint` and `npm run lint:fix`.
+  - Code is verified via `npm run type-check` and linted via ESLint. Use `npm run lint` and `npm run lint:fix`.
   - The project uses `husky` and `lint-staged` to enforce linting on commits.
 - **State Management**:
-  - `localStorage` is tightly coupled with React state via a custom `storageHelper` (in `app/page.jsx`) which manages local persistence and orchestrates Supabase cloud syncing.
+  - `localStorage` is tightly coupled with React state via a custom `storageHelper` (in `app/page.tsx`) which manages local persistence and orchestrates Supabase cloud syncing.
   - Complex state, such as real-time pricing and query caching, is handled by **React Query** (`app/api/fund.js`).
 - **Styling**: Relies heavily on native CSS variables (e.g., `globals.css`) alongside Tailwind CSS utilities for layout and layout components.
-- **Data Integrity**: When working with the synchronization engine (`app/page.jsx`), be extremely careful with merges. Complex structures (like `holdings`, `transactions`, `fundDailyEarnings`) require precise deep-merges or latest-write-wins strategies using unique IDs or timestamps rather than shallow overwrites.
+- **Data Integrity**: When working with the synchronization engine (`app/page.tsx`), be extremely careful with merges. Complex structures (like `holdings`, `transactions`, `fundDailyEarnings`) require precise deep-merges or latest-write-wins strategies using unique IDs or timestamps rather than shallow overwrites.
