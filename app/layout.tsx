@@ -1,3 +1,5 @@
+import React from 'react';
+import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 import AnalyticsGate from './components/AnalyticsGate';
@@ -10,12 +12,12 @@ import { QueryClientProviderWrapper } from './providers/query-client-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import packageJson from '../package.json';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: `基估宝 V${packageJson.version}`,
   description: '输入基金编号添加基金，实时显示估值与前10重仓'
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
   return (

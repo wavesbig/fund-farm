@@ -1,7 +1,7 @@
 'use client';
 
+import React, { useEffect } from 'react';
 import * as Sentry from '@sentry/nextjs';
-import { useEffect } from 'react';
 import { toast as sonnerToast } from 'sonner';
 import { AlertTriangleIcon } from 'lucide-react';
 import { isString } from 'lodash';
@@ -9,13 +9,19 @@ import { isString } from 'lodash';
 import { Toaster } from '@/components/ui/sonner';
 import { shouldSilenceClientError } from './components/ClientErrorBoundary';
 
-function getErrorMessage(error) {
+function getErrorMessage(error: any): string {
   if (isString(error?.message) && error.message.trim()) return error.message;
   if (isString(error) && error.trim()) return error;
   return '未知运行错误';
 }
 
-export default function GlobalError({ error }) {
+export default function GlobalError({
+  error,
+  reset: _reset
+}: {
+  error: Error & { digest?: string };
+  reset?: () => void;
+}) {
   useEffect(() => {
     Sentry.captureException(error);
     if (shouldSilenceClientError(error)) return;
