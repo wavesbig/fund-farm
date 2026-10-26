@@ -1,7 +1,12 @@
 'use client';
+
 import Script from 'next/script';
 
-export default function AnalyticsGate({ GA_ID }) {
+export interface AnalyticsGateProps {
+  GA_ID?: string | null;
+}
+
+export default function AnalyticsGate({ GA_ID }: AnalyticsGateProps) {
   if (!GA_ID) return null;
 
   return (

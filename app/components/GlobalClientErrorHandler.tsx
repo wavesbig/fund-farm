@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-
 import { notifyClientError } from './ClientErrorBoundary';
 
 export default function GlobalClientErrorHandler() {
   useEffect(() => {
-    const handleError = (event) => {
+    const handleError = (event: ErrorEvent) => {
       const errorMsg = event.error?.message || event.message || '';
       if (
         typeof errorMsg === 'string' &&
@@ -26,7 +25,7 @@ export default function GlobalClientErrorHandler() {
       });
     };
 
-    const handleUnhandledRejection = (event) => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       notifyClientError(event.reason || event, {
         title: '异步任务异常',
         toastId: 'window-promise-error',

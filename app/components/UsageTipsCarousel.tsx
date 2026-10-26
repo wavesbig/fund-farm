@@ -1,15 +1,21 @@
 'use client';
 
+import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isArray, shuffle } from 'lodash';
 import { SCAN_LOADING_TIPS_MOBILE, SCAN_LOADING_TIPS_PC } from '@/app/constants';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 
-export default function UsageTipsCarousel({ interval = 10000, style = {} }) {
+export interface UsageTipsCarouselProps {
+  interval?: number;
+  style?: React.CSSProperties;
+}
+
+export default function UsageTipsCarousel({ interval = 10000, style = {} }: UsageTipsCarouselProps) {
   const isMobile = useIsMobile();
-  const tips = isMobile ? SCAN_LOADING_TIPS_MOBILE : SCAN_LOADING_TIPS_PC;
-  const [shuffledTips, setShuffledTips] = useState([]);
+  const tips = isMobile ? (SCAN_LOADING_TIPS_MOBILE as string[]) : (SCAN_LOADING_TIPS_PC as string[]);
+  const [shuffledTips, setShuffledTips] = useState<string[]>([]);
   const [tipIndex, setTipIndex] = useState(0);
 
   useEffect(() => {
@@ -38,20 +44,8 @@ export default function UsageTipsCarousel({ interval = 10000, style = {} }) {
 
   return (
     <div
-      style={{
-        marginBottom: 20,
-        padding: '12px 14px',
-        borderRadius: '10px',
-        backgroundColor: 'rgba(128, 128, 128, 0.08)',
-        border: '1px solid var(--border)',
-        minHeight: '68px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        position: 'relative',
-        ...style
-      }}
+      className="mb-5 p-3 rounded-xl bg-white/[0.04] border border-[var(--border)] min-h-[68px] flex items-center justify-center overflow-hidden relative"
+      style={style}
     >
       <AnimatePresence mode="wait">
         <motion.div
@@ -60,14 +54,7 @@ export default function UsageTipsCarousel({ interval = 10000, style = {} }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.35, ease: 'easeInOut' }}
-          className="muted"
-          style={{
-            fontSize: '13px',
-            lineHeight: '1.5',
-            textAlign: 'left',
-            width: '100%',
-            overflowWrap: 'break-word'
-          }}
+          className="text-xs leading-relaxed text-left w-full text-[var(--muted)] break-words"
         >
           {shuffledTips[tipIndex]}
         </motion.div>
