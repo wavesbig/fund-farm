@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -8,29 +8,37 @@ import timezone from 'dayjs/plugin/timezone';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import zhifubaoImg from '../assets/zhifubao.jpg';
 import weixinImg from '../assets/weixin.jpg';
 import { CalendarIcon, MinusIcon, PlusIcon, TrendUpIcon, TrendDownIcon } from './Icons';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-
 import { DEFAULT_TZ } from '@/app/constants';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-const getBrowserTimeZone = () => {
+
+const getBrowserTimeZone = (): string => {
   if (typeof Intl !== 'undefined' && Intl.DateTimeFormat) {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     return tz || DEFAULT_TZ;
   }
   return DEFAULT_TZ;
 };
+
 const TZ = getBrowserTimeZone();
 dayjs.tz.setDefault(TZ);
 const nowInTz = () => dayjs().tz(TZ);
-const toTz = (input) => (input ? dayjs.tz(input, TZ) : nowInTz());
-const formatDate = (input) => toTz(input).format('YYYY-MM-DD');
+const toTz = (input?: string | Date) => (input ? dayjs.tz(input, TZ) : nowInTz());
+const formatDate = (input?: dayjs.Dayjs) => (input ? input.format('YYYY-MM-DD') : toTz().format('YYYY-MM-DD'));
 
-export function ConsecutiveTrendBadge({ trend }) {
+export interface ConsecutiveTrendBadgeProps {
+  trend?: {
+    type?: 'up' | 'down' | string;
+    days?: number;
+  } | null;
+}
+
+export function ConsecutiveTrendBadge({ trend }: ConsecutiveTrendBadgeProps) {
   if (!trend || !trend.type || !trend.days || trend.days < 3) return null;
 
   const isUp = trend.type === 'up';
@@ -68,7 +76,14 @@ export function ConsecutiveTrendBadge({ trend }) {
   );
 }
 
-export function DatePicker({ value, onChange, position = 'bottom', minDate = undefined }) {
+export interface DatePickerProps {
+  value?: string;
+  onChange: (dateStr: string) => void;
+  position?: 'top' | 'bottom';
+  minDate?: string;
+}
+
+export function DatePicker({ value, onChange, position = 'bottom', minDate = undefined }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const today = nowInTz().startOf('day');
   const selected = value ? toTz(value).toDate() : undefined;
@@ -118,12 +133,13 @@ export function DatePicker({ value, onChange, position = 'bottom', minDate = und
 }
 
 export function DonateTabs() {
-  const [method, setMethod] = useState('wechat');
+  const [method, setMethod] = useState<'alipay' | 'wechat'>('wechat');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
       <div className="tabs glass" style={{ padding: 4, borderRadius: 12, width: '100%', display: 'flex' }}>
         <button
+          type="button"
           onClick={() => setMethod('alipay')}
           style={{
             flex: 1,
@@ -141,6 +157,7 @@ export function DonateTabs() {
           支付宝
         </button>
         <button
+          type="button"
           onClick={() => setMethod('wechat')}
           style={{
             flex: 1,
@@ -183,17 +200,25 @@ export function DonateTabs() {
   );
 }
 
-export function NumericInput({ value, onChange, step = 1, min = 0, placeholder }) {
+export interface NumericInputProps {
+  value: string | number;
+  onChange: (value: string) => void;
+  step?: number;
+  min?: number;
+  placeholder?: string;
+}
+
+export function NumericInput({ value, onChange, step = 1, min = 0, placeholder }: NumericInputProps) {
   const decimals = String(step).includes('.') ? String(step).split('.')[1].length : 0;
-  const fmt = (n) => Number(n).toFixed(decimals);
+  const fmt = (n: number) => Number(n).toFixed(decimals);
   const inc = () => {
-    const v = parseFloat(value);
+    const v = parseFloat(String(value));
     const base = isNaN(v) ? 0 : v;
     const next = base + step;
     onChange(fmt(next));
   };
   const dec = () => {
-    const v = parseFloat(value);
+    const v = parseFloat(String(value));
     const base = isNaN(v) ? 0 : v;
     const next = Math.max(min, base - step);
     onChange(fmt(next));
@@ -231,8 +256,14 @@ export function NumericInput({ value, onChange, step = 1, min = 0, placeholder }
   );
 }
 
-export function Stat({ label, value, delta }) {
-  const dir = delta > 0 ? 'up' : delta < 0 ? 'down' : '';
+export interface StatProps {
+  label: React.ReactNode;
+  value: React.ReactNode;
+  delta?: number;
+}
+
+export function Stat({ label, value, delta }: StatProps) {
+  const dir = delta !== undefined ? (delta > 0 ? 'up' : delta < 0 ? 'down' : '') : '';
   return (
     <div className="stat" style={{ flexDirection: 'column', gap: 4, minWidth: 0 }}>
       <span

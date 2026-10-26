@@ -1,6 +1,10 @@
 'use client';
 
-export function TrendUpIcon(props) {
+import React from 'react';
+
+export type IconProps = React.SVGProps<SVGSVGElement>;
+
+export function TrendUpIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -18,7 +22,7 @@ export function TrendUpIcon(props) {
   );
 }
 
-export function TrendDownIcon(props) {
+export function TrendDownIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -36,7 +40,7 @@ export function TrendDownIcon(props) {
   );
 }
 
-export function PlusIcon(props) {
+export function PlusIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -44,7 +48,7 @@ export function PlusIcon(props) {
   );
 }
 
-export function PinIcon(props) {
+export function PinIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -62,7 +66,7 @@ export function PinIcon(props) {
   );
 }
 
-export function PinOffIcon(props) {
+export function PinOffIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -83,7 +87,7 @@ export function PinOffIcon(props) {
 }
 
 /** 关联：表示持仓来自其它分组汇总 */
-export function LinkIcon(props) {
+export function LinkIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -101,7 +105,7 @@ export function LinkIcon(props) {
   );
 }
 
-export function UpdateIcon(props) {
+export function UpdateIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path
@@ -132,7 +136,7 @@ export function UpdateIcon(props) {
   );
 }
 
-export function TrashIcon(props) {
+export function TrashIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -149,7 +153,7 @@ export function TrashIcon(props) {
 }
 
 /** 警告 / 数据覆盖等二次确认 */
-export function AlertTriangleIcon(props) {
+export function AlertTriangleIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -168,7 +172,7 @@ export function AlertTriangleIcon(props) {
   );
 }
 
-export function SettingsIcon(props) {
+export function SettingsIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
@@ -183,7 +187,7 @@ export function SettingsIcon(props) {
   );
 }
 
-export function CloudIcon(props) {
+export function CloudIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path
@@ -197,7 +201,7 @@ export function CloudIcon(props) {
   );
 }
 
-export function RefreshIcon(props) {
+export function RefreshIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path d="M4 12a8 8 0 0 1 12.5-6.9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -208,27 +212,24 @@ export function RefreshIcon(props) {
   );
 }
 
-export function ResetIcon(props) {
+export function ResetIcon(props: IconProps) {
   return (
     <svg
-      t="1772152323013"
+      {...props}
       viewBox="0 0 1024 1024"
-      version="1.1"
       xmlns="http://www.w3.org/2000/svg"
-      p-id="4796"
-      width="16"
-      height="16"
+      width={props.width ?? '16'}
+      height={props.height ?? '16'}
     >
       <path
         fill="currentColor"
         d="M864 512a352 352 0 0 0-600.96-248.96c-15.744 15.872-40.704 42.88-63.232 67.648H320a32 32 0 1 1 0 64H128a31.872 31.872 0 0 1-32-32v-192a32 32 0 1 1 64 0v108.672c20.544-22.528 42.688-46.4 57.856-61.504a416 416 0 1 1 0 588.288 32 32 0 1 1 45.248-45.248A352 352 0 0 0 864 512z"
-        p-id="4797"
       ></path>
     </svg>
   );
 }
 
-export function ChevronIcon(props) {
+export function ChevronIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -236,7 +237,7 @@ export function ChevronIcon(props) {
   );
 }
 
-export function SortIcon(props) {
+export function SortIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path d="M3 7h18M6 12h12M9 17h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -244,7 +245,7 @@ export function SortIcon(props) {
   );
 }
 
-export function PencilIcon(props) {
+export function PencilIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -261,7 +262,7 @@ export function PencilIcon(props) {
   );
 }
 
-export function UserIcon(props) {
+export function UserIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
@@ -270,7 +271,7 @@ export function UserIcon(props) {
   );
 }
 
-export function LogoutIcon(props) {
+export function LogoutIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path
@@ -301,7 +302,7 @@ export function LogoutIcon(props) {
   );
 }
 
-export function LoginIcon(props) {
+export function LoginIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path
@@ -332,7 +333,7 @@ export function LoginIcon(props) {
   );
 }
 
-export function MailIcon(props) {
+export function MailIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
@@ -341,7 +342,7 @@ export function MailIcon(props) {
   );
 }
 
-export function EyeIcon(props) {
+export function EyeIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path
@@ -356,7 +357,7 @@ export function EyeIcon(props) {
   );
 }
 
-export function EyeOffIcon(props) {
+export function EyeOffIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path d="M3 3l18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -377,7 +378,7 @@ export function EyeOffIcon(props) {
   );
 }
 
-export function GridIcon(props) {
+export function GridIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
@@ -388,7 +389,7 @@ export function GridIcon(props) {
   );
 }
 
-export function CloseIcon(props) {
+export function CloseIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path
@@ -402,7 +403,7 @@ export function CloseIcon(props) {
   );
 }
 
-export function ExitIcon(props) {
+export function ExitIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path
@@ -416,7 +417,7 @@ export function ExitIcon(props) {
   );
 }
 
-export function ListIcon(props) {
+export function ListIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path
@@ -430,7 +431,7 @@ export function ListIcon(props) {
   );
 }
 
-export function DragIcon(props) {
+export function DragIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path d="M4 8h16M4 12h16M4 16h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -438,7 +439,7 @@ export function DragIcon(props) {
   );
 }
 
-export function ArrowUpToLineIcon(props) {
+export function ArrowUpToLineIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -457,7 +458,7 @@ export function ArrowUpToLineIcon(props) {
   );
 }
 
-export function FolderPlusIcon(props) {
+export function FolderPlusIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="currentColor">
       <path d="M409.088 267.264L328.192 179.2h-194.56v656.384h754.688v-568.32H409.088z m417.792 506.88H195.584V240.64h105.984l80.384 88.064h444.928v445.44z" />
@@ -466,7 +467,11 @@ export function FolderPlusIcon(props) {
   );
 }
 
-export function StarIcon({ filled, ...props }) {
+export interface StarIconProps extends IconProps {
+  filled?: boolean;
+}
+
+export function StarIcon({ filled, ...props }: StarIconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={filled ? 'var(--accent)' : 'none'}>
       <path
@@ -480,7 +485,7 @@ export function StarIcon({ filled, ...props }) {
   );
 }
 
-export function CalendarIcon(props) {
+export function CalendarIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -500,7 +505,7 @@ export function CalendarIcon(props) {
   );
 }
 
-export function MinusIcon(props) {
+export function MinusIcon(props: IconProps) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path d="M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -508,7 +513,7 @@ export function MinusIcon(props) {
   );
 }
 
-export function CameraIcon(props) {
+export function CameraIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -526,7 +531,7 @@ export function CameraIcon(props) {
   );
 }
 
-export function SunIcon(props) {
+export function SunIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -544,7 +549,7 @@ export function SunIcon(props) {
   );
 }
 
-export function MoonIcon(props) {
+export function MoonIcon(props: IconProps) {
   return (
     <svg
       {...props}
@@ -561,33 +566,27 @@ export function MoonIcon(props) {
   );
 }
 
-export function SwitchIcon(props) {
+export function SwitchIcon(props: IconProps) {
   return (
     <svg
       {...props}
-      t="1772945896369"
       className="icon"
       viewBox="0 0 1024 1024"
-      version="1.1"
       xmlns="http://www.w3.org/2000/svg"
-      p-id="2524"
-      width="13"
-      height="13"
+      width={props.width ?? '13'}
+      height={props.height ?? '13'}
     >
       <path
         d="M885.247 477.597H132c-17.673 0-32-14.327-32-32s14.327-32 32-32h753.247c17.673 0 32 14.327 32 32s-14.327 32-32 32z"
         fill="currentColor"
-        p-id="2525"
       ></path>
       <path
         d="M893.366 477.392c-8.189 0-16.379-3.124-22.627-9.373L709.954 307.235c-12.497-12.497-12.497-32.758 0-45.255 12.496-12.497 32.758-12.497 45.254 0l160.785 160.785c12.497 12.497 12.497 32.758 0 45.255-6.248 6.248-14.437 9.372-22.627 9.372zM893.366 609.607H140.119c-17.673 0-32-14.327-32-32s14.327-32 32-32h753.248c17.673 0 32 14.327 32 32s-14.328 32-32.001 32z"
         fill="currentColor"
-        p-id="2526"
       ></path>
       <path
         d="M292.784 770.597c-8.189 0-16.379-3.124-22.627-9.373L109.373 600.439c-12.497-12.496-12.497-32.758 0-45.254 12.497-12.498 32.758-12.498 45.255 0L315.412 715.97c12.497 12.496 12.497 32.758 0 45.254-6.249 6.249-14.438 9.373-22.628 9.373z"
         fill="currentColor"
-        p-id="2527"
       ></path>
     </svg>
   );

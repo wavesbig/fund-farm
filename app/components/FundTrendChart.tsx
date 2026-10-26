@@ -1,13 +1,9 @@
 'use client';
-import { isArray, isNumber } from 'lodash';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { isArray, isNumber } from 'lodash';
 import { useQuery } from '@tanstack/react-query';
-import { fetchFundHistory } from '../api/fund';
-import * as qk from '../lib/query-keys';
-import { getChartAxisAvoidRects, getChartTooltipPosition } from '../lib/chartTooltipPosition';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronIcon } from './Icons';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -17,14 +13,20 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  type ChartOptions,
+  type Plugin
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { fetchFundHistory } from '../api/fund';
+import * as qk from '../lib/query-keys';
+import { getChartAxisAvoidRects, getChartTooltipPosition } from '../lib/chartTooltipPosition';
+import { ChevronIcon } from './Icons';
 import FundHistoryNetValue from './FundHistoryNetValue';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
-const EMPTY_FUND_HISTORY = [];
+const EMPTY_FUND_HISTORY: any[] = [];
 const TOOLTIP_SIZE = {
   width: 140,
   height: 104
@@ -55,8 +57,30 @@ const CHART_COLORS = {
   }
 };
 
-function getChartThemeColors(theme) {
-  return CHART_COLORS[theme] || CHART_COLORS.dark;
+function getChartThemeColors(theme?: string) {
+  if (theme && theme in CHART_COLORS) {
+    return CHART_COLORS[theme as keyof typeof CHART_COLORS];
+  }
+  return CHART_COLORS.dark;
+}
+
+export interface FundTrendChartProps {
+  code: string;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+  transactions?: any[];
+  theme?: string;
+  hideHeader?: boolean;
+}
+
+interface TooltipInfo {
+  x: number;
+  y: number;
+  date?: string;
+  unitNetValue?: number | null;
+  accumulatedNetValue?: number | null;
+  dailyChange?: number | null;
+  color?: string;
 }
 
 export default function FundTrendChart({
@@ -66,14 +90,14 @@ export default function FundTrendChart({
   transactions = [],
   theme = 'dark',
   hideHeader = false
-}) {
+}: FundTrendChartProps) {
   const [range, setRange] = useState('3m');
-  const chartRef = useRef(null);
-  const hoverTimeoutRef = useRef(null);
-  const clearActiveIndexRef = useRef(null);
-  const [hiddenGrandSeries, setHiddenGrandSeries] = useState(() => new Set());
-  const [activeIndex, setActiveIndex] = useState(null);
-  const [tooltipInfo, setTooltipInfo] = useState(null);
+  const chartRef = useRef<any>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const clearActiveIndexRef = useRef<(() => void) | null>(null);
+  const [hiddenGrandSeries, setHiddenGrandSeries] = useState<Set<string>>(() => new Set());
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
 
   useEffect(() => {
     clearActiveIndexRef.current = () => {
@@ -95,7 +119,7 @@ export default function FundTrendChart({
     staleTime: 10 * 60 * 1000
   });
 
-  const data = historyRaw ?? EMPTY_FUND_HISTORY;
+  const data: any = historyRaw ?? EMPTY_FUND_HISTORY;
 
   const ranges = [
     { label: '近1月', value: '1m' },
@@ -113,7 +137,6 @@ export default function FundTrendChart({
     return ((last - first) / first) * 100;
   }, [data]);
 
-  // Red for up, Green for down (CN market style)，随主题使用 CSS 变量
   const upColor = chartColors.danger;
   const downColor = chartColors.success;
   const lineColor = change >= 0 ? upColor : downColor;
@@ -122,21 +145,17 @@ export default function FundTrendChart({
   const percentageData = useMemo(() => {
     if (!data.length) return [];
     const firstValue = data[0].value ?? 1;
-    return data.map((d) => ((d.value - firstValue) / firstValue) * 100);
+    return data.map((d: any) => ((d.value - firstValue) / firstValue) * 100);
   }, [data]);
 
   const chartData = useMemo(() => {
-    // Data_grandTotal：在 fetchFundHistory 中解析为 data.grandTotalSeries 数组
     const grandTotalSeries = isArray(data.grandTotalSeries) ? data.grandTotalSeries : [];
 
-    // Map transaction dates to chart indices
-    const dateToIndex = new Map(data.map((d, i) => [d.date, i]));
+    const dateToIndex = new Map<string, number>(data.map((d: any, i: number) => [d.date, i]));
     const buyPoints = new Array(data.length).fill(null);
     const sellPoints = new Array(data.length).fill(null);
 
-    transactions.forEach((t) => {
-      // Simple date matching (assuming formats match)
-      // If formats differ, dayjs might be needed
+    transactions.forEach((t: any) => {
       const idx = dateToIndex.get(t.date);
       if (idx !== undefined) {
         const val = percentageData[idx];
@@ -148,20 +167,17 @@ export default function FundTrendChart({
       }
     });
 
-    // 将 Data_grandTotal 的多条曲线按日期对齐到主 labels 上
-    const labels = data.map((d) => d.date);
+    const labels = data.map((d: any) => d.date);
     const grandColors = chartColors.grandLine;
-    // 隐藏第一条对比线（数据与图示）；第二条用原第一条颜色，第三条用原第二条，顺延
-    const visibleGrandSeries = grandTotalSeries.filter((_, idx) => idx > 0);
-    const grandDatasets = visibleGrandSeries.map((series, displayIdx) => {
+    const visibleGrandSeries = grandTotalSeries.filter((_: any, idx: number) => idx > 0);
+    const grandDatasets = visibleGrandSeries.map((series: any, displayIdx: number) => {
       const color = grandColors[displayIdx % grandColors.length];
-      const idx = displayIdx + 1; // 原始索引，用于 hiddenGrandSeries 的 key
+      const idx = displayIdx + 1;
       const key = `${series.name || 'series'}_${idx}`;
       const isHidden = hiddenGrandSeries.has(key);
-      const pointsByDate = new Map(series.points.map((p) => [p.date, p.value]));
+      const pointsByDate = new Map((series.points || []).map((p: any) => [p.date, p.value]));
 
-      // 方案 2：将对比线同样归一到当前区间首日，展示为“相对本区间首日的累计收益率（百分点变化）”
-      let baseValue = null;
+      let baseValue: number | null = null;
       for (const date of labels) {
         const v = pointsByDate.get(date);
         if (isNumber(v) && Number.isFinite(v)) {
@@ -170,16 +186,15 @@ export default function FundTrendChart({
         }
       }
 
-      const seriesData = labels.map((date) => {
+      const seriesData = labels.map((date: string) => {
         if (isHidden || baseValue == null) return null;
         const v = pointsByDate.get(date);
         if (!isNumber(v) || !Number.isFinite(v)) return null;
-        // Data_grandTotal 中的 value 已是百分比，这里按区间首日做“差值”，保持同一坐标含义（相对区间首日的收益率变化）
         return v - baseValue;
       });
 
       return {
-        type: 'line',
+        type: 'line' as const,
         label: series.name || '累计收益率',
         data: seriesData,
         borderColor: color,
@@ -194,18 +209,18 @@ export default function FundTrendChart({
     });
 
     return {
-      labels: data.map((d) => d.date),
+      labels: data.map((d: any) => d.date),
       datasets: [
         {
-          type: 'line',
+          type: 'line' as const,
           label: '本基金',
           data: percentageData,
           borderColor: lineColor,
-          backgroundColor: (context) => {
+          backgroundColor: (context: any) => {
             const ctx = context.chart.ctx;
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-            gradient.addColorStop(0, `${lineColor}33`); // 20% opacity
-            gradient.addColorStop(1, `${lineColor}00`); // 0% opacity
+            gradient.addColorStop(0, `${lineColor}33`);
+            gradient.addColorStop(1, `${lineColor}00`);
             return gradient;
           },
           borderWidth: 2,
@@ -217,7 +232,7 @@ export default function FundTrendChart({
         },
         ...(['1y', '3y', 'all'].includes(range) ? [] : grandDatasets),
         {
-          type: 'line', // Use line type with showLine: false to simulate scatter on Category scale
+          type: 'line' as const,
           label: '买入',
           isTradePoint: true,
           data: buyPoints,
@@ -231,7 +246,7 @@ export default function FundTrendChart({
           order: 1
         },
         {
-          type: 'line',
+          type: 'line' as const,
           label: '卖出',
           isTradePoint: true,
           data: sellPoints,
@@ -246,20 +261,9 @@ export default function FundTrendChart({
         }
       ]
     };
-  }, [
-    data,
-    transactions,
-    lineColor,
-    primaryColor,
-    upColor,
-    chartColors,
-    theme,
-    hiddenGrandSeries,
-    percentageData,
-    range
-  ]);
+  }, [data, transactions, lineColor, primaryColor, upColor, chartColors, hiddenGrandSeries, percentageData, range]);
 
-  const options = useMemo(() => {
+  const options = useMemo<ChartOptions<'line'>>(() => {
     const colors = getChartThemeColors(theme);
     return {
       responsive: true,
@@ -269,7 +273,7 @@ export default function FundTrendChart({
           display: false
         },
         tooltip: {
-          enabled: false, // 禁用默认 Tooltip，使用自定义绘制
+          enabled: false,
           mode: 'index',
           intersect: false,
           external: (context) => {
@@ -290,7 +294,7 @@ export default function FundTrendChart({
                   const x = mainPt.element.x;
                   const y = mainPt.element.y;
                   const percentageValue = chart.data.datasets?.[0]?.data?.[dataIdx];
-                  const yLabel = `${isNumber(percentageValue) ? percentageValue.toFixed(2) : percentageValue}%`;
+                  const yLabel = `${isNumber(percentageValue) ? (percentageValue as number).toFixed(2) : percentageValue}%`;
                   const position = getChartTooltipPosition({
                     anchorX: x,
                     anchorY: y,
@@ -320,7 +324,7 @@ export default function FundTrendChart({
                     unitNetValue: data[dataIdx]?.unitNetValue,
                     accumulatedNetValue: data[dataIdx]?.accumulatedNetValue ?? rawVal,
                     dailyChange,
-                    color: mainPt.dataset.borderColor
+                    color: mainPt.dataset.borderColor as string
                   });
                 }
               }
@@ -332,8 +336,7 @@ export default function FundTrendChart({
         x: {
           display: true,
           grid: {
-            display: false,
-            drawBorder: false
+            display: false
           },
           ticks: {
             color: colors.muted,
@@ -348,14 +351,13 @@ export default function FundTrendChart({
           position: 'left',
           grid: {
             color: colors.border,
-            drawBorder: false,
             tickLength: 0
           },
           ticks: {
             color: colors.muted,
             font: { size: 10 },
             count: 5,
-            callback: (value) => `${value.toFixed(2)}%`
+            callback: (value: any) => `${Number(value).toFixed(2)}%`
           },
           border: { display: false }
         }
@@ -364,7 +366,7 @@ export default function FundTrendChart({
         mode: 'index',
         intersect: false
       },
-      onHover: (event, chartElement, chart) => {
+      onHover: (event: any, chartElement: any[], chart: any) => {
         const target = event?.native?.target;
         const currentChart = chart || chartRef.current;
         if (!currentChart) return;
@@ -380,17 +382,14 @@ export default function FundTrendChart({
           target.style.cursor = hasActive ? 'crosshair' : 'default';
         }
 
-        // 记录当前激活的横轴索引，用于图示下方展示对应百分比
         if (isArray(chartElement) && chartElement.length > 0) {
           const idx = chartElement[0].index;
           setActiveIndex(isNumber(idx) ? idx : null);
         } else {
           setActiveIndex(null);
         }
-
-        // 仅用于桌面端 hover 改变光标，不在这里做 2 秒清除，避免移动端 hover 事件不稳定
       },
-      onClick: (_event, elements) => {
+      onClick: (_event: any, elements: any[]) => {
         if (isArray(elements) && elements.length > 0) {
           const idx = elements[0].index;
           setActiveIndex(isNumber(idx) ? idx : null);
@@ -407,14 +406,14 @@ export default function FundTrendChart({
     };
   }, []);
 
-  const plugins = useMemo(() => {
+  const plugins = useMemo<Plugin<'line'>[]>(() => {
     const colors = getChartThemeColors(theme);
     return [
       {
         id: 'crosshair',
-        afterEvent: (chart, args) => {
+        afterEvent: (chart: any, args: any) => {
           const { event, replay } = args || {};
-          if (!event || replay) return; // 忽略动画重放
+          if (!event || replay) return;
 
           const type = event.type;
           if (type === 'mousemove' || type === 'click') {
@@ -434,13 +433,12 @@ export default function FundTrendChart({
             }, 2000);
           }
         },
-        afterDraw: (chart) => {
+        afterDraw: (chart: any) => {
           const ctx = chart.ctx;
           const datasets = chart.data.datasets;
           const primaryColor = colors.primary;
 
-          // 绘制圆角矩形（兼容无 roundRect 的环境）
-          const drawRoundRect = (left, top, w, h, r) => {
+          const drawRoundRect = (left: number, top: number, w: number, h: number, r: number) => {
             const rad = Math.min(r, w / 2, h / 2);
             ctx.beginPath();
             ctx.moveTo(left + rad, top);
@@ -455,7 +453,14 @@ export default function FundTrendChart({
             ctx.closePath();
           };
 
-          const drawPointLabel = (datasetIndex, index, text, bgColor, textColor = '#ffffff', yOffset = 0) => {
+          const drawPointLabel = (
+            datasetIndex: number,
+            index: number,
+            text: string,
+            bgColor: string,
+            textColor = '#ffffff',
+            yOffset = 0
+          ) => {
             const meta = chart.getDatasetMeta(datasetIndex);
             if (!meta.data[index]) return;
             const element = meta.data[index];
@@ -464,7 +469,6 @@ export default function FundTrendChart({
             const x = element.x;
             const y = element.y + yOffset;
             const paddingH = 10;
-            const paddingV = 6;
             const radius = 8;
 
             ctx.save();
@@ -473,7 +477,6 @@ export default function FundTrendChart({
             const w = textW + paddingH * 2;
             const h = 18;
 
-            // 计算原始 left，并对左右边界做收缩，避免在最右/最左侧被裁剪
             const chartLeft = chart.scales.x.left;
             const chartRight = chart.scales.x.right;
             let left = x - w / 2;
@@ -496,32 +499,29 @@ export default function FundTrendChart({
             ctx.restore();
           };
 
-          // Resolve active elements (hover/focus) first — used to decide whether to show default labels
-          let activeElements = [];
+          let activeElements: any[] = [];
           if (chart.tooltip?._active?.length) {
             activeElements = chart.tooltip._active;
           } else {
             activeElements = chart.getActiveElements();
           }
 
-          const isBuyOrSellDataset = (ds) =>
-            !!ds && (ds.isTradePoint === true || ds.label === '买入' || ds.label === '卖出');
+          const isBuyOrSellDataset = (ds: any) =>
+            Boolean(ds && (ds.isTradePoint === true || ds.label === '买入' || ds.label === '卖出'));
 
-          // 1. Draw default labels for first buy and sell points only when NOT focused/hovering
-          // datasets 顺序是动态的：主线(0) + 对比线(若干) + 买入 + 卖出
           const buyDatasetIndex = datasets.findIndex(
-            (ds) => ds?.label === '买入' || (ds?.isTradePoint === true && ds?.label === '买入')
+            (ds: any) => ds?.label === '买入' || (ds?.isTradePoint === true && ds?.label === '买入')
           );
           const sellDatasetIndex = datasets.findIndex(
-            (ds) => ds?.label === '卖出' || (ds?.isTradePoint === true && ds?.label === '卖出')
+            (ds: any) => ds?.label === '卖出' || (ds?.isTradePoint === true && ds?.label === '卖出')
           );
 
           if (!activeElements?.length && buyDatasetIndex !== -1 && datasets[buyDatasetIndex]?.data) {
-            const firstBuyIndex = datasets[buyDatasetIndex].data.findIndex((v) => v !== null && v !== undefined);
+            const firstBuyIndex = datasets[buyDatasetIndex].data.findIndex((v: any) => v !== null && v !== undefined);
             if (firstBuyIndex !== -1) {
               let sellIndex = -1;
               if (sellDatasetIndex !== -1 && datasets[sellDatasetIndex]?.data) {
-                sellIndex = datasets[sellDatasetIndex].data.findIndex((v) => v !== null && v !== undefined);
+                sellIndex = datasets[sellDatasetIndex].data.findIndex((v: any) => v !== null && v !== undefined);
               }
               const isCollision = firstBuyIndex === sellIndex;
               drawPointLabel(buyDatasetIndex, firstBuyIndex, '买入', primaryColor, '#ffffff', isCollision ? -20 : 0);
@@ -529,14 +529,12 @@ export default function FundTrendChart({
           }
 
           if (!activeElements?.length && sellDatasetIndex !== -1 && datasets[sellDatasetIndex]?.data) {
-            const firstSellIndex = datasets[sellDatasetIndex].data.findIndex((v) => v !== null && v !== undefined);
+            const firstSellIndex = datasets[sellDatasetIndex].data.findIndex((v: any) => v !== null && v !== undefined);
             if (firstSellIndex !== -1) {
               drawPointLabel(sellDatasetIndex, firstSellIndex, '卖出', '#f87171');
             }
           }
 
-          // 2. Handle active elements (hover crosshair)
-          // 始终保留十字线与 X/Y 坐标轴对应标签（坐标参照）
           if (activeElements && activeElements.length) {
             const activePoint = activeElements[0];
             const x = activePoint.element.x;
@@ -552,23 +550,16 @@ export default function FundTrendChart({
             ctx.lineWidth = 1;
             ctx.strokeStyle = colors.muted;
 
-            // Draw vertical line
             ctx.moveTo(x, topY);
             ctx.lineTo(x, bottomY);
-
-            // Draw horizontal line (based on first point - usually the main line)
             ctx.moveTo(leftX, y);
             ctx.lineTo(rightX, y);
-
             ctx.stroke();
 
-            // Draw labels
             ctx.font = '10px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
-            // Draw Axis Labels：始终使用主线（净值涨跌幅，索引 0）作为数值来源，
-            // 避免对比线在悬停时显示自己的数值标签
             const baseIndex = activePoint.index;
             const labels = chart.data.labels;
             const mainDataset = datasets[0];
@@ -578,7 +569,6 @@ export default function FundTrendChart({
               const value = mainDataset.data[baseIndex];
 
               if (dateStr !== undefined && value !== undefined) {
-                // X axis label (date) with boundary clamping
                 const textWidth = ctx.measureText(dateStr).width + 8;
                 const chartLeft = chart.scales.x.left;
                 const chartRight = chart.scales.x.right;
@@ -591,7 +581,6 @@ export default function FundTrendChart({
                 ctx.fillStyle = colors.crosshairText;
                 ctx.fillText(dateStr, labelCenterX, bottomY + 8);
 
-                // Y axis label (value) — 始终基于主线百分比
                 const valueStr = (isNumber(value) ? value.toFixed(2) : value) + '%';
                 const valWidth = ctx.measureText(valueStr).width + 8;
                 ctx.fillStyle = primaryColor;
@@ -602,12 +591,10 @@ export default function FundTrendChart({
               }
             }
 
-            // Check for collision between Buy and Sell in active elements
             const activeBuy = activeElements.find((e) => datasets?.[e.datasetIndex]?.label === '买入');
             const activeSell = activeElements.find((e) => datasets?.[e.datasetIndex]?.label === '卖出');
             const isCollision = activeBuy && activeSell && activeBuy.index === activeSell.index;
 
-            // Iterate through active points，仅为买入/卖出绘制标签
             activeElements.forEach((element) => {
               const dsIndex = element.datasetIndex;
               const ds = datasets?.[dsIndex];
@@ -616,7 +603,6 @@ export default function FundTrendChart({
               const label = ds.label;
               const bgColor = label === '买入' ? primaryColor : colors.danger;
 
-              // 如果买入/卖出在同一天，买入标签上移避免遮挡
               let yOffset = 0;
               if (isCollision && label === '买入') {
                 yOffset = -20;
@@ -630,12 +616,12 @@ export default function FundTrendChart({
         }
       }
     ];
-  }, [theme]); // theme 变化时重算以应用亮色/暗色坐标轴与 crosshair
+  }, [theme]);
 
   const lastIndex = data.length > 0 ? data.length - 1 : null;
   const currentIndex = activeIndex != null && activeIndex < data.length ? activeIndex : lastIndex;
 
-  const renderTrendTooltip = (className) =>
+  const renderTrendTooltip = (className: string) =>
     tooltipInfo ? (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -679,15 +665,15 @@ export default function FundTrendChart({
               fontFamily: 'Menlo, Monaco, monospace',
               fontWeight: '500',
               color:
-                tooltipInfo.dailyChange > 0
+                (tooltipInfo.dailyChange ?? 0) > 0
                   ? 'var(--danger)'
-                  : tooltipInfo.dailyChange < 0
+                  : (tooltipInfo.dailyChange ?? 0) < 0
                     ? 'var(--success)'
                     : 'inherit'
             }}
           >
             {isNumber(tooltipInfo.dailyChange) && Number.isFinite(tooltipInfo.dailyChange)
-              ? `${tooltipInfo.dailyChange > 0 ? '+' : ''}${tooltipInfo.dailyChange.toFixed(2)}%`
+              ? `${(tooltipInfo.dailyChange as number) > 0 ? '+' : ''}${(tooltipInfo.dailyChange as number).toFixed(2)}%`
               : '--'}
           </span>
         </div>
@@ -698,7 +684,6 @@ export default function FundTrendChart({
     <div className="trend-chart-panel" style={{ position: 'relative' }}>
       <AnimatePresence>{renderTrendTooltip('trend-tooltip-mobile')}</AnimatePresence>
 
-      {/* 顶部图示：说明不同颜色/标记代表的含义 */}
       <div className="row" style={{ marginBottom: 8, gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 11 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -728,8 +713,8 @@ export default function FundTrendChart({
         {isArray(data.grandTotalSeries) &&
           !['1y', '3y', 'all'].includes(range) &&
           data.grandTotalSeries
-            .filter((_, idx) => idx > 0)
-            .map((series, displayIdx) => {
+            .filter((_: any, idx: number) => idx > 0)
+            .map((series: any, displayIdx: number) => {
               const idx = displayIdx + 1;
               const legendColors = chartColors.grandLegend;
               const color = legendColors[displayIdx % legendColors.length];
@@ -739,11 +724,10 @@ export default function FundTrendChart({
               if (!isHidden && currentIndex != null && data[currentIndex]) {
                 const targetDate = data[currentIndex].date;
 
-                // 与折线一致：对比线显示“相对当前区间首日”的累计收益率变化
                 const pointsArray = isArray(series.points) ? series.points : [];
-                const pointsByDate = new Map(pointsArray.map((p) => [p.date, p.value]));
+                const pointsByDate = new Map(pointsArray.map((p: any) => [p.date, p.value]));
 
-                let baseValue = null;
+                let baseValue: number | null = null;
                 for (const d of data) {
                   const v = pointsByDate.get(d.date);
                   if (isNumber(v) && Number.isFinite(v)) {
@@ -752,9 +736,6 @@ export default function FundTrendChart({
                   }
                 }
 
-                // 注意：Data_grandTotal 某些对比线可能不包含区间最后一天的点。
-                // 旧逻辑是对 `targetDate` 做严格匹配，缺点就会得到 `--`。
-                // 新逻辑：找不到精确日期时，回退到该对比线在区间内最近的可用日期。
                 let rawPoint = pointsByDate.get(targetDate);
                 if ((rawPoint === undefined || rawPoint === null) && baseValue != null) {
                   for (let i = currentIndex; i >= 0; i--) {
@@ -865,7 +846,7 @@ export default function FundTrendChart({
           </div>
         )}
 
-        {data.length > 0 && <Line ref={chartRef} data={chartData} options={options} plugins={plugins} />}
+        {data.length > 0 && <Line ref={chartRef} data={chartData as any} options={options} plugins={plugins} />}
 
         <AnimatePresence>{renderTrendTooltip('trend-tooltip-desktop')}</AnimatePresence>
       </div>

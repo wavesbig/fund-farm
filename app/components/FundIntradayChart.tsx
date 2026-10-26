@@ -1,7 +1,18 @@
 'use client';
 
 import React, { useMemo, useRef, useEffect, forwardRef } from 'react';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler } from 'chart.js';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Filler,
+  type ChartData,
+  type ChartOptions,
+  type Plugin
+} from 'chart.js';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import { Line } from 'react-chartjs-2';
@@ -35,24 +46,39 @@ const CHART_COLORS = {
   }
 };
 
-function getChartThemeColors(theme) {
-  return CHART_COLORS[theme] || CHART_COLORS.dark;
+function getChartThemeColors(theme?: string) {
+  if (theme && theme in CHART_COLORS) {
+    return CHART_COLORS[theme as keyof typeof CHART_COLORS];
+  }
+  return CHART_COLORS.dark;
 }
 
-/**
- * 分时图：展示当日（或最近一次记录日）的估值序列，纵轴为相对参考净值的涨跌幅百分比。
- * series: Array<{ time: string, value: number, date?: string }>
- * referenceNav: 参考净值（最新单位净值），用于计算涨跌幅；未传则用当日第一个估值作为参考。
- * theme: 'light' | 'dark'，用于亮色主题下坐标轴与 crosshair 样式
- */
+export interface IntradayPoint {
+  time: string;
+  value: number;
+  date?: string;
+}
+
+export interface FundIntradayChartProps {
+  series?: IntradayPoint[];
+  referenceNav?: number | string | null;
+  theme?: string;
+  fundCode: string;
+  valuationSource?: string;
+  gztime?: string;
+  todayStr?: string;
+}
+
 // 空的 forwardRef 包装器，用于故意丢弃 ref，使得 react-photo-view 找不到原图位置，从而触发默认的“中心放大”动画效果
-const CenterOrigin = forwardRef(({ children, ...props }, ref) => {
-  return (
-    <div {...props} style={{ width: '100%', height: '100%' }}>
-      {children}
-    </div>
-  );
-});
+const CenterOrigin = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ children, ...props }, _ref) => {
+    return (
+      <div {...props} style={{ width: '100%', height: '100%' }}>
+        {children}
+      </div>
+    );
+  }
+);
 CenterOrigin.displayName = 'CenterOrigin';
 
 export default function FundIntradayChart({
@@ -63,23 +89,23 @@ export default function FundIntradayChart({
   valuationSource,
   gztime,
   todayStr
-}) {
+}: FundIntradayChartProps) {
   const isMobile = useIsMobile();
-  const chartRef = useRef(null);
-  const hoverTimeoutRef = useRef(null);
+  const chartRef = useRef<any>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const chartColors = useMemo(() => getChartThemeColors(theme), [theme]);
   const funds = useStorageStore((s) => s.funds);
   const setFunds = useStorageStore((s) => s.setFunds);
 
   const currentFund = useMemo(() => funds?.find((f) => f.code === fundCode), [funds, fundCode]);
-  const showImageChartPreference = !!currentFund?.showImageChart;
+  const showImageChartPreference = !!(currentFund as any)?.showImageChart;
 
   const isFundgzToday = valuationSource === 'fundgz' && gztime && todayStr && gztime.includes(todayStr);
 
   const { data: ocrVerified = false } = useQuery({
-    queryKey: ocrFundChart(fundCode, todayStr),
+    queryKey: ocrFundChart(fundCode, todayStr || ''),
     queryFn: async () => {
-      if (!isFundgzToday) return false;
+      if (!isFundgzToday || !todayStr) return false;
       try {
         const { getOcrWorker } = await import('@/app/lib/ocr');
         const worker = await getOcrWorker('chi_sim+eng');
@@ -101,14 +127,14 @@ export default function FundIntradayChart({
         return false;
       }
     },
-    enabled: !!isFundgzToday,
+    enabled: Boolean(isFundgzToday && todayStr),
     staleTime: 5 * 60 * 1000,
     gcTime: 5 * 60 * 1000
   });
 
   const actuallyShowImageChart = showImageChartPreference && isFundgzToday && ocrVerified;
 
-  const chartData = useMemo(() => {
+  const chartData = useMemo<ChartData<'line'>>(() => {
     if (!series.length) return { labels: [], datasets: [] };
     const labels = series.map((d) => d.time);
     const values = series.map((d) => d.value);
@@ -123,11 +149,10 @@ export default function FundIntradayChart({
       labels,
       datasets: [
         {
-          type: 'line',
           label: '涨跌幅',
           data: percentages,
           borderColor: lineColor,
-          backgroundColor: (ctx) => {
+          backgroundColor: (ctx: any) => {
             if (!ctx.chart.ctx) return lineColor + '33';
             const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 120);
             gradient.addColorStop(0, lineColor + '33');
@@ -144,7 +169,7 @@ export default function FundIntradayChart({
     };
   }, [series, referenceNav, chartColors.danger, chartColors.success]);
 
-  const options = useMemo(() => {
+  const options = useMemo<ChartOptions<'line'>>(() => {
     const colors = getChartThemeColors(theme);
     return {
       responsive: true,
@@ -172,19 +197,19 @@ export default function FundIntradayChart({
         y: {
           display: true,
           position: 'left',
-          grid: { color: colors.border, drawBorder: false },
+          grid: { color: colors.border },
           ticks: {
-            color: (context) => {
+            color: (context: any) => {
               if (context.tick.value > 0) return colors.danger;
               if (context.tick.value < 0) return colors.success;
               return colors.muted;
             },
             font: { size: 10 },
-            callback: (v) => (isNumber(v) ? `${v > 0 ? '+' : ''}${v.toFixed(2)}%` : v)
+            callback: (v: any) => (isNumber(v) ? `${v > 0 ? '+' : ''}${v.toFixed(2)}%` : v)
           }
         }
       },
-      onHover: (event, chartElement, chart) => {
+      onHover: (event: any, chartElement: any[], chart: any) => {
         const target = event?.native?.target;
         const currentChart = chart || chartRef.current;
         if (!currentChart) return;
@@ -235,12 +260,12 @@ export default function FundIntradayChart({
     };
   }, []);
 
-  const plugins = useMemo(() => {
+  const plugins = useMemo<Plugin<'line'>[]>(() => {
     const colors = getChartThemeColors(theme);
     return [
       {
         id: 'crosshair',
-        afterDraw: (chart) => {
+        afterDraw: (chart: any) => {
           const ctx = chart.ctx;
           const activeElements = chart.tooltip?._active?.length ? chart.tooltip._active : chart.getActiveElements();
           if (!activeElements?.length) return;
@@ -323,9 +348,10 @@ export default function FundIntradayChart({
           实时估值分时
           {isFundgzToday && ocrVerified && (
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                setFunds((prev) =>
+                setFunds((prev: any[]) =>
                   prev.map((f) => (f.code === fundCode ? { ...f, showImageChart: !showImageChartPreference } : f))
                 );
               }}
@@ -397,7 +423,7 @@ export default function FundIntradayChart({
               height={isMobile ? undefined : 450}
               render={
                 !isMobile
-                  ? ({ attrs }) => {
+                  ? ({ attrs }: any) => {
                       return (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
@@ -422,7 +448,7 @@ export default function FundIntradayChart({
                   src={`https://j4.dfcfw.com/charts/pic6/${fundCode}.png${gztime ? '?v=' + encodeURIComponent(gztime) : ''}`}
                   alt="净值估算图"
                   style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'pointer' }}
-                  onError={(e) => {
+                  onError={(e: any) => {
                     e.target.style.display = 'none';
                   }}
                 />

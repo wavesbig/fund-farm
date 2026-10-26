@@ -1,13 +1,9 @@
 'use client';
-import { isArray, isNumber } from 'lodash';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { isArray, isNumber } from 'lodash';
 import { useQuery } from '@tanstack/react-query';
-import { fetchFundValuationTrend, fetchFundHistory } from '../api/fund';
-import * as qk from '../lib/query-keys';
-import { getChartAxisAvoidRects, getChartTooltipPosition } from '../lib/chartTooltipPosition';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronIcon } from './Icons';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -17,9 +13,15 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  type ChartOptions,
+  type Plugin
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { fetchFundValuationTrend, fetchFundHistory } from '../api/fund';
+import * as qk from '../lib/query-keys';
+import { getChartAxisAvoidRects, getChartTooltipPosition } from '../lib/chartTooltipPosition';
+import { ChevronIcon } from './Icons';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
@@ -54,17 +56,40 @@ const CHART_COLORS = {
   }
 };
 
-function getChartThemeColors(theme) {
-  return CHART_COLORS[theme] || CHART_COLORS.dark;
+function getChartThemeColors(theme?: string) {
+  if (theme && theme in CHART_COLORS) {
+    return CHART_COLORS[theme as keyof typeof CHART_COLORS];
+  }
+  return CHART_COLORS.dark;
 }
 
-const SOURCES = {
+const SOURCES: Record<string, string> = {
   actual: '本基金',
   fundgz: '数据源 1',
   sina_ds2: '数据源 2',
   sina_ds3: '数据源 3',
   supabase_qdii: '数据源 4'
 };
+
+export interface FundValuationTrendChartProps {
+  code: string;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+  theme?: string;
+  hideHeader?: boolean;
+  userId?: string;
+}
+
+interface TooltipInfo {
+  x: number;
+  y: number;
+  actualValue: any;
+  actualColor: any;
+  closestLabel: any;
+  closestColor: any;
+  closestValue: any;
+  diff: number;
+}
 
 export default function FundValuationTrendChart({
   code,
@@ -73,14 +98,14 @@ export default function FundValuationTrendChart({
   theme = 'dark',
   hideHeader = false,
   userId
-}) {
+}: FundValuationTrendChartProps) {
   const [range, setRange] = useState('3m');
-  const chartRef = useRef(null);
-  const hoverTimeoutRef = useRef(null);
-  const clearActiveIndexRef = useRef(null);
-  const [hiddenSources, setHiddenSources] = useState(() => new Set());
-  const [activeIndex, setActiveIndex] = useState(null);
-  const [tooltipInfo, setTooltipInfo] = useState(null);
+  const chartRef = useRef<any>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const clearActiveIndexRef = useRef<(() => void) | null>(null);
+  const [hiddenSources, setHiddenSources] = useState<Set<string>>(() => new Set());
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
 
   useEffect(() => {
     clearActiveIndexRef.current = () => {
@@ -113,16 +138,16 @@ export default function FundValuationTrendChart({
     staleTime: 10 * 60 * 1000
   });
 
-  const rawData = isArray(historyRaw) ? historyRaw : [];
-  const actualData = isArray(actualHistoryRaw) ? actualHistoryRaw : [];
+  const rawData = useMemo(() => (isArray(historyRaw) ? historyRaw : []), [historyRaw]);
+  const actualData = useMemo(() => (isArray(actualHistoryRaw) ? actualHistoryRaw : []), [actualHistoryRaw]);
 
   const loading = loadingValuation || loadingActual;
   const isError = isErrorValuation || isErrorActual;
 
   const change = useMemo(() => {
     if (!actualData.length) return 0;
-    const first = actualData[0].value;
-    const last = actualData[actualData.length - 1].value;
+    const first = (actualData[0] as any).value;
+    const last = (actualData[actualData.length - 1] as any).value;
     return first ? ((last - first) / first) * 100 : 0;
   }, [actualData]);
 
@@ -138,8 +163,8 @@ export default function FundValuationTrendChart({
   const processedData = useMemo(() => {
     if (!rawData.length) return { labels: [], datasets: [] };
 
-    const datesSet = new Set();
-    const sourceData = {
+    const datesSet = new Set<string>();
+    const sourceData: Record<string, Map<string, number>> = {
       actual: new Map(),
       fundgz: new Map(),
       sina_ds2: new Map(),
@@ -147,7 +172,7 @@ export default function FundValuationTrendChart({
       supabase_qdii: new Map()
     };
 
-    rawData.forEach((row) => {
+    rawData.forEach((row: any) => {
       if (!row.gztime || !row.source) return;
 
       let val = Number(row.gszzl);
@@ -163,7 +188,7 @@ export default function FundValuationTrendChart({
       }
     });
 
-    actualData.forEach((row) => {
+    actualData.forEach((row: any) => {
       if (!row.date || row.equityReturn === undefined || row.equityReturn === null) return;
 
       const val = Number(row.equityReturn);
@@ -187,11 +212,10 @@ export default function FundValuationTrendChart({
       .map((sourceKey) => {
         const isHidden = hiddenSources.has(sourceKey);
 
-        let color;
+        let color: string;
         if (sourceKey === 'actual') {
           color = actualLineColor;
         } else {
-          // Map other sources to remaining colors, keeping color consistent
           const otherIndex = Object.keys(SOURCES)
             .filter((k) => k !== 'actual')
             .indexOf(sourceKey);
@@ -204,9 +228,6 @@ export default function FundValuationTrendChart({
           return val !== undefined ? val : null;
         });
 
-        // Special handling for 'actual' data which might be missing on the latest date (trading day)
-        // We don't want the line to drop to 0. It should just not have a point (handled by returning null above).
-
         return {
           sourceKey,
           label: SOURCES[sourceKey],
@@ -218,14 +239,14 @@ export default function FundValuationTrendChart({
           pointHoverRadius: 4,
           fill: false,
           tension: 0.2,
-          zIndex: sourceKey === 'actual' ? 10 : 0 // Ensure 'actual' is drawn on top
+          zIndex: sourceKey === 'actual' ? 10 : 0
         };
       });
 
     return { labels, datasets };
   }, [rawData, actualData, hiddenSources, chartColors, change]);
 
-  const options = useMemo(() => {
+  const options = useMemo<ChartOptions<'line'>>(() => {
     const colors = getChartThemeColors(theme);
     return {
       responsive: true,
@@ -248,24 +269,24 @@ export default function FundValuationTrendChart({
             const dataPoints = tooltip.dataPoints;
             if (!dataPoints || dataPoints.length === 0) return;
 
-            const actualPt = dataPoints.find((p) => p.dataset.sourceKey === 'actual');
+            const actualPt = dataPoints.find((p: any) => p.dataset.sourceKey === 'actual');
             if (!actualPt || actualPt.raw === null || actualPt.raw === undefined) {
               setTooltipInfo(null);
               return;
             }
 
-            const actualVal = actualPt.raw;
-            let closestSource = null;
+            const actualVal = actualPt.raw as number;
+            let closestSource: any = null;
             let minAbsDiff = Infinity;
-            let closestVal = null;
+            let closestVal: any = null;
             let signedDiff = 0;
 
-            dataPoints.forEach((p) => {
+            dataPoints.forEach((p: any) => {
               if (p.dataset.sourceKey !== 'actual' && p.raw !== null && p.raw !== undefined) {
-                const absDiff = Math.abs(p.raw - actualVal);
+                const absDiff = Math.abs((p.raw as number) - actualVal);
                 if (absDiff < minAbsDiff) {
                   minAbsDiff = absDiff;
-                  signedDiff = p.raw - actualVal;
+                  signedDiff = (p.raw as number) - actualVal;
                   closestSource = p.dataset;
                   closestVal = p.raw;
                 }
@@ -275,7 +296,7 @@ export default function FundValuationTrendChart({
             if (closestSource) {
               const x = actualPt.element.x;
               const y = actualPt.element.y;
-              const dateStr = chart.data.labels?.[actualPt.dataIndex];
+              const dateStr = chart.data.labels?.[actualPt.dataIndex] as string;
               const yLabel = `${isNumber(actualVal) ? actualVal.toFixed(2) : actualVal}%`;
               const position = getChartTooltipPosition({
                 anchorX: x,
@@ -319,8 +340,7 @@ export default function FundValuationTrendChart({
         x: {
           display: true,
           grid: {
-            display: false,
-            drawBorder: false
+            display: false
           },
           ticks: {
             color: colors.muted,
@@ -335,14 +355,13 @@ export default function FundValuationTrendChart({
           position: 'left',
           grid: {
             color: colors.border,
-            drawBorder: false,
             tickLength: 0
           },
           ticks: {
             color: colors.muted,
             font: { size: 10 },
             count: 5,
-            callback: (value) => `${value.toFixed(2)}%`
+            callback: (value: any) => `${Number(value).toFixed(2)}%`
           },
           border: { display: false }
         }
@@ -351,7 +370,7 @@ export default function FundValuationTrendChart({
         mode: 'index',
         intersect: false
       },
-      onHover: (event, chartElement, chart) => {
+      onHover: (event: any, chartElement: any[], chart: any) => {
         const target = event?.native?.target;
         const currentChart = chart || chartRef.current;
         if (!currentChart) return;
@@ -374,7 +393,7 @@ export default function FundValuationTrendChart({
           setActiveIndex(null);
         }
       },
-      onClick: (_event, elements) => {
+      onClick: (_event: any, elements: any[]) => {
         if (isArray(elements) && elements.length > 0) {
           const idx = elements[0].index;
           setActiveIndex(isNumber(idx) ? idx : null);
@@ -391,12 +410,12 @@ export default function FundValuationTrendChart({
     };
   }, []);
 
-  const plugins = useMemo(() => {
+  const plugins = useMemo<Plugin<'line'>[]>(() => {
     const colors = getChartThemeColors(theme);
     return [
       {
         id: 'crosshair',
-        afterEvent: (chart, args) => {
+        afterEvent: (chart: any, args: any) => {
           const { event, replay } = args || {};
           if (!event || replay) return;
 
@@ -418,12 +437,12 @@ export default function FundValuationTrendChart({
             }, 2000);
           }
         },
-        afterDraw: (chart) => {
+        afterDraw: (chart: any) => {
           const ctx = chart.ctx;
           const datasets = chart.data.datasets;
           const primaryColor = colors.primary;
 
-          let activeElements = [];
+          let activeElements: any[] = [];
           if (chart.tooltip?._active?.length) {
             activeElements = chart.tooltip._active;
           } else {
@@ -460,9 +479,8 @@ export default function FundValuationTrendChart({
             const baseIndex = activePoint.index;
             const labels = chart.data.labels;
 
-            // Find first visible dataset to use its value for the Y-axis label
             const firstVisibleDs = datasets.find(
-              (ds) => ds.data[baseIndex] !== null && ds.data[baseIndex] !== undefined
+              (ds: any) => ds.data[baseIndex] !== null && ds.data[baseIndex] !== undefined
             );
 
             if (labels && firstVisibleDs) {
@@ -506,7 +524,7 @@ export default function FundValuationTrendChart({
     return null;
   }
 
-  const renderTrendTooltip = (className) =>
+  const renderTrendTooltip = (className: string) =>
     tooltipInfo ? (
       <div
         className={`glass trend-tooltip ${className}`}
@@ -529,7 +547,6 @@ export default function FundValuationTrendChart({
           opacity: 1
         }}
       >
-        {/* Top section: Closest source label */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
           <span style={{ color: 'var(--muted, #888)' }}>最准数据源</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -540,7 +557,6 @@ export default function FundValuationTrendChart({
           </span>
         </div>
 
-        {/* Dashed Divider */}
         <div
           className="tooltip-divider"
           style={{
@@ -550,7 +566,6 @@ export default function FundValuationTrendChart({
           }}
         />
 
-        {/* Bottom section: Diff */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
           <span style={{ color: 'var(--muted, #888)' }}>差值</span>
           <span
@@ -572,7 +587,7 @@ export default function FundValuationTrendChart({
       {renderTrendTooltip('trend-tooltip-mobile')}
 
       <div className="row" style={{ marginBottom: 8, gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 11 }}>
-        {processedData.datasets.map((series, displayIdx) => {
+        {processedData.datasets.map((series) => {
           const color = series.borderColor;
           const isHidden = hiddenSources.has(series.sourceKey);
           let valueText = '--';
