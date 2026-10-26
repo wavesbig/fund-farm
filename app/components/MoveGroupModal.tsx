@@ -1,21 +1,33 @@
 'use client';
-import { isArray } from 'lodash';
 
+import * as React from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import { isArray } from 'lodash';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import ConfirmModal from './ConfirmModal';
 import { AlertTriangleIcon } from './Icons';
+import type { FundGroup } from '@/types';
 
-/**
- * 批量迁移分组弹框
- *
- * 规则：
- * - 当前为 全部：只能迁移到自选或其它自定义分组
- * - 当前为 自选：可迁移到「全部」或其它自定义分组
- * - 当前为 自定义分组：可迁移到其它自定义分组、自选或「全部」
- * - 若目标分组已存在对应基金持仓数据，则二次确认（覆盖目标分组持仓数据）
- */
+export interface MoveFundsParams {
+  codes: string[];
+  fromTab?: string;
+  targetId: string;
+  dryRun: boolean;
+  overwrite: boolean;
+}
+
+export interface MoveGroupModalProps {
+  open: boolean;
+  onClose?: () => void;
+  fromTab?: string;
+  groups?: FundGroup[];
+  selectedCodes?: string[];
+  onMoveFunds?: (params: MoveFundsParams) => Promise<any>;
+  disabled?: boolean;
+}
+
 export default function MoveGroupModal({
   open,
   onClose,
@@ -24,10 +36,10 @@ export default function MoveGroupModal({
   selectedCodes = [],
   onMoveFunds,
   disabled = false
-}) {
+}: MoveGroupModalProps) {
   const [targetId, setTargetId] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [conflicts, setConflicts] = useState([]);
+  const [conflicts, setConflicts] = useState<string[]>([]);
   const [confirmOverwriteOpen, setConfirmOverwriteOpen] = useState(false);
 
   const isFromCustomGroup =
@@ -148,12 +160,24 @@ export default function MoveGroupModal({
             </div>
           </div>
           <div className="flex-shrink-0 px-6 py-4 border-t border-[var(--border)] flex gap-3">
-            <button type="button" className="button secondary flex-1" onClick={onClose} disabled={submitting}>
+            <Button
+              type="button"
+              variant="secondary"
+              className="flex-1 rounded-xl h-11"
+              onClick={onClose}
+              disabled={submitting}
+            >
               取消
-            </button>
-            <button type="button" className="button flex-1" onClick={handleSubmit} disabled={!canSubmit}>
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              className="flex-1 rounded-xl h-11 font-medium"
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+            >
               {submitting ? '处理中...' : '确认迁移'}
-            </button>
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

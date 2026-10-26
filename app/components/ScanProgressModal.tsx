@@ -1,9 +1,23 @@
 'use client';
 
+import * as React from 'react';
 import { motion } from 'framer-motion';
 import UsageTipsCarousel from './UsageTipsCarousel';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 
-export default function ScanProgressModal({ scanProgress, onCancel }) {
+export interface ScanProgress {
+  stage?: string;
+  current?: number;
+  total?: number;
+}
+
+export interface ScanProgressModalProps {
+  scanProgress: ScanProgress;
+  onCancel?: () => void;
+}
+
+export default function ScanProgressModal({ scanProgress, onCancel }: ScanProgressModalProps) {
   return (
     <motion.div
       className="modal-overlay"
@@ -18,37 +32,30 @@ export default function ScanProgressModal({ scanProgress, onCancel }) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="glass card modal"
-        style={{ width: 340, maxWidth: '90vw', textAlign: 'center', padding: '24px' }}
+        className="glass card modal w-[340px] max-w-[90vw] text-center p-6"
       >
-        <div style={{ marginBottom: 16 }}>
-          <div
-            className="loading-spinner"
-            style={{
-              width: 40,
-              height: 40,
-              border: '3px solid var(--muted)',
-              borderTopColor: 'var(--primary)',
-              borderRadius: '50%',
-              margin: '0 auto',
-              animation: 'spin 1s linear infinite'
-            }}
-          />
+        <div className="flex justify-center mb-4">
+          <Spinner className="size-10 text-primary" />
         </div>
-        <div className="title" style={{ justifyContent: 'center', marginBottom: 8 }}>
+        <div className="font-semibold text-base mb-2">
           {scanProgress.stage === 'verify' ? '正在验证基金…' : '正在识别中…'}
         </div>
-        {scanProgress.total > 0 && (
-          <div className="muted" style={{ marginBottom: 20 }}>
+        {Number(scanProgress.total) > 0 && (
+          <div className="text-muted-foreground text-xs mb-5">
             {scanProgress.stage === 'verify'
               ? `已验证 ${scanProgress.current} / ${scanProgress.total} 只基金`
               : `已处理 ${scanProgress.current} / ${scanProgress.total} 张图片`}
           </div>
         )}
         <UsageTipsCarousel />
-        <button className="button danger" onClick={onCancel} style={{ width: '100%' }}>
+        <Button
+          type="button"
+          variant="destructive"
+          onClick={onCancel}
+          className="w-full mt-2 rounded-xl h-10 font-medium"
+        >
           终止识别
-        </button>
+        </Button>
       </motion.div>
     </motion.div>
   );
