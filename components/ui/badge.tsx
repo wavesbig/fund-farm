@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cva } from 'class-variance-authority';
+import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot } from 'radix-ui';
 
 import { cn } from '@/lib/utils';
@@ -24,7 +24,11 @@ const badgeVariants = cva(
   }
 );
 
-function Badge({ className, variant = 'default', asChild = false, ...props }) {
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {
+  asChild?: boolean;
+}
+
+function Badge({ className, variant = 'default', asChild = false, ...props }: BadgeProps) {
   const Comp = asChild ? Slot.Root : 'span';
 
   return (

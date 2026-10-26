@@ -1,8 +1,11 @@
-import { cva } from 'class-variance-authority';
+import * as React from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
-function Empty({ className, ...props }) {
+export interface EmptyProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+function Empty({ className, ...props }: EmptyProps) {
   return (
     <div
       data-slot="empty"
@@ -15,7 +18,9 @@ function Empty({ className, ...props }) {
   );
 }
 
-function EmptyHeader({ className, ...props }) {
+export interface EmptyHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+function EmptyHeader({ className, ...props }: EmptyHeaderProps) {
   return (
     <div
       data-slot="empty-header"
@@ -40,7 +45,10 @@ const emptyMediaVariants = cva(
   }
 );
 
-function EmptyMedia({ className, variant = 'default', ...props }) {
+export interface EmptyMediaProps
+  extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof emptyMediaVariants> {}
+
+function EmptyMedia({ className, variant = 'default', ...props }: EmptyMediaProps) {
   return (
     <div
       data-slot="empty-icon"
@@ -51,11 +59,15 @@ function EmptyMedia({ className, variant = 'default', ...props }) {
   );
 }
 
-function EmptyTitle({ className, ...props }) {
+export interface EmptyTitleProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+function EmptyTitle({ className, ...props }: EmptyTitleProps) {
   return <div data-slot="empty-title" className={cn('text-lg font-medium tracking-tight', className)} {...props} />;
 }
 
-function EmptyDescription({ className, ...props }) {
+export interface EmptyDescriptionProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+function EmptyDescription({ className, ...props }: EmptyDescriptionProps) {
   return (
     <div
       data-slot="empty-description"
@@ -68,7 +80,9 @@ function EmptyDescription({ className, ...props }) {
   );
 }
 
-function EmptyContent({ className, ...props }) {
+export interface EmptyContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+function EmptyContent({ className, ...props }: EmptyContentProps) {
   return (
     <div
       data-slot="empty-content"

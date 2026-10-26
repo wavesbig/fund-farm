@@ -7,8 +7,9 @@ import { isError, isFunction, isString } from 'lodash';
 import { toast as sonnerToast } from 'sonner';
 
 import { useModalStore } from '../stores';
+import { Button } from '@/components/ui/button';
 
-function getErrorMessage(error) {
+function getErrorMessage(error: any): string {
   let msg = '未知运行错误';
   if (isError(error) && error.message) msg = error.message;
   else if (isString(error) && error.trim()) msg = error;
@@ -26,11 +27,18 @@ function getErrorMessage(error) {
   return msg;
 }
 
-export function shouldSilenceClientError(error) {
+export function shouldSilenceClientError(error: any): boolean {
   return getErrorMessage(error).includes('Error attempting to read image');
 }
 
-export function notifyClientError(error, options = {}) {
+export interface NotifyClientErrorOptions {
+  title?: string;
+  silent?: boolean;
+  closeModals?: boolean;
+  toastId?: string;
+}
+
+export function notifyClientError(error: any, options: NotifyClientErrorOptions = {}) {
   const title = options.title || '页面出现异常';
   const message = getErrorMessage(error);
   const silent = options.silent || shouldSilenceClientError(error);
@@ -60,17 +68,32 @@ export function notifyClientError(error, options = {}) {
   });
 }
 
-class ClientErrorBoundaryInner extends React.Component {
-  constructor(props) {
+export interface ClientErrorBoundaryProps {
+  children?: React.ReactNode;
+  fallback?: React.ReactNode | ((props: { error: any; reset: () => void }) => React.ReactNode);
+  toastTitle?: string;
+  toastId?: string;
+  closeModals?: boolean;
+  resetKey?: any;
+  onError?: (error: any, errorInfo: any) => void;
+  onReset?: () => void;
+}
+
+interface State {
+  error: any;
+}
+
+class ClientErrorBoundaryInner extends React.Component<ClientErrorBoundaryProps, State> {
+  constructor(props: ClientErrorBoundaryProps) {
     super(props);
     this.state = { error: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: any) {
     return { error };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: any, errorInfo: any) {
     notifyClientError(error, {
       title: this.props.toastTitle,
       toastId: this.props.toastId,
@@ -82,7 +105,7 @@ class ClientErrorBoundaryInner extends React.Component {
     }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: ClientErrorBoundaryProps) {
     if (this.state.error && this.props.resetKey !== prevProps.resetKey) {
       this.setState({ error: null });
     }
@@ -99,7 +122,7 @@ class ClientErrorBoundaryInner extends React.Component {
     if (fallback === null) return null;
 
     if (isFunction(fallback)) {
-      return fallback({ error: this.state.error, reset: this.handleReset });
+      return (fallback as Function)({ error: this.state.error, reset: this.handleReset });
     }
 
     if (fallback) return fallback;
@@ -114,14 +137,15 @@ class ClientErrorBoundaryInner extends React.Component {
           <p className="m-0 text-sm leading-relaxed text-[var(--muted-foreground)]" style={{ whiteSpace: 'pre-line' }}>
             {getErrorMessage(this.state.error)}
           </p>
-          <button
+          <Button
             type="button"
-            className="button primary flex h-11 items-center gap-2 rounded-xl px-4"
+            variant="default"
+            className="flex h-11 items-center gap-2 rounded-xl px-4 w-fit"
             onClick={this.handleReset}
           >
             <RotateCcwIcon className="h-4 w-4" />
             <span>重新尝试</span>
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -133,6 +157,6 @@ class ClientErrorBoundaryInner extends React.Component {
   }
 }
 
-export default function ClientErrorBoundary(props) {
+export default function ClientErrorBoundary(props: ClientErrorBoundaryProps) {
   return <ClientErrorBoundaryInner {...props} />;
 }

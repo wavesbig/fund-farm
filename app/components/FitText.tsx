@@ -1,19 +1,17 @@
 'use client';
 
+import * as React from 'react';
 import { useCallback, useLayoutEffect, useRef } from 'react';
 
-/**
- * 根据容器宽度动态缩小字体，使内容不溢出。
- * 使用 ResizeObserver 监听容器宽度，内容超出时按比例缩小 fontSize，不低于 minFontSize。
- *
- * @param {Object} props
- * @param {React.ReactNode} props.children - 要显示的文本（会单行、不换行）
- * @param {number} [props.maxFontSize=14] - 最大字号（px）
- * @param {number} [props.minFontSize=10] - 最小字号（px），再窄也不低于此值
- * @param {string} [props.className] - 外层容器 className
- * @param {Object} [props.style] - 外层容器 style（宽度由父级决定，建议父级有明确宽度）
- * @param {string} [props.as='span'] - 外层容器标签 'span' | 'div'
- */
+export interface FitTextProps {
+  children: React.ReactNode;
+  maxFontSize?: number;
+  minFontSize?: number;
+  className?: string;
+  style?: React.CSSProperties;
+  as?: 'span' | 'div';
+}
+
 export default function FitText({
   children,
   maxFontSize = 14,
@@ -21,9 +19,9 @@ export default function FitText({
   className,
   style = {},
   as: Tag = 'span'
-}) {
-  const containerRef = useRef(null);
-  const contentRef = useRef(null);
+}: FitTextProps) {
+  const containerRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLSpanElement>(null);
 
   const adjust = useCallback(() => {
     const container = containerRef.current;
@@ -52,7 +50,7 @@ export default function FitText({
     if (!container) return;
 
     let cancelled = false;
-    let rafId = null;
+    let rafId: number | null = null;
 
     const adjustLater = () => {
       if (rafId != null) return;
@@ -64,8 +62,8 @@ export default function FitText({
 
     adjust();
     adjustLater();
-    if (typeof document !== 'undefined' && document.fonts?.ready) {
-      document.fonts.ready.then(() => {
+    if (typeof document !== 'undefined' && (document as any).fonts?.ready) {
+      (document as any).fonts.ready.then(() => {
         if (!cancelled) adjust();
       });
     }
@@ -84,7 +82,7 @@ export default function FitText({
 
   return (
     <Tag
-      ref={containerRef}
+      ref={containerRef as any}
       className={className}
       style={{
         display: 'block',

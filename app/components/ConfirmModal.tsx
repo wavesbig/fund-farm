@@ -1,7 +1,20 @@
 'use client';
 
+import * as React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { TrashIcon } from './Icons';
+
+export interface ConfirmModalProps {
+  title: string;
+  message?: string;
+  messageContent?: React.ReactNode;
+  onConfirm: () => void;
+  onCancel: () => void;
+  confirmText?: string;
+  icon?: React.ReactNode;
+  confirmVariant?: 'danger' | 'primary' | 'secondary';
+}
 
 export default function ConfirmModal({
   title,
@@ -12,13 +25,13 @@ export default function ConfirmModal({
   confirmText = '确定删除',
   icon,
   confirmVariant = 'danger'
-}) {
-  const handleOpenChange = (open) => {
+}: ConfirmModalProps) {
+  const handleOpenChange = (open: boolean) => {
     if (!open) onCancel();
   };
 
-  const confirmButtonToneClass =
-    confirmVariant === 'primary' ? 'button' : confirmVariant === 'secondary' ? 'button secondary' : 'button danger';
+  const buttonVariant =
+    confirmVariant === 'primary' ? 'default' : confirmVariant === 'secondary' ? 'secondary' : 'destructive';
 
   return (
     <Dialog open onOpenChange={handleOpenChange}>
@@ -31,33 +44,34 @@ export default function ConfirmModal({
           {icon || <TrashIcon width="20" height="20" className="shrink-0 text-[var(--danger)]" />}
           <DialogTitle className="flex-1 text-base font-semibold">{title}</DialogTitle>
         </DialogHeader>
-        {/* asChild + div：避免 Description 默认 <p> 与 messageContent 内块级元素嵌套导致 hydration 报错 */}
         <DialogDescription asChild>
           <div className="text-left text-sm leading-relaxed text-[var(--muted-foreground)]">
             {messageContent || message}
           </div>
         </DialogDescription>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <button
+          <Button
             type="button"
-            className="button secondary min-w-0 flex-1 cursor-pointer h-auto min-h-[48px] py-3 sm:h-11 sm:min-h-0 sm:py-0"
+            variant="secondary"
+            className="min-w-0 flex-1 cursor-pointer h-auto min-h-[48px] py-3 sm:h-11 sm:min-h-0 sm:py-0 rounded-xl"
             onClick={(e) => {
               e.stopPropagation();
               onCancel();
             }}
           >
             取消
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className={`${confirmButtonToneClass} min-w-0 flex-1 cursor-pointer h-auto min-h-[48px] py-3 sm:h-11 sm:min-h-0 sm:py-0`}
+            variant={buttonVariant}
+            className="min-w-0 flex-1 cursor-pointer h-auto min-h-[48px] py-3 sm:h-11 sm:min-h-0 sm:py-0 rounded-xl"
             onClick={(e) => {
               e.stopPropagation();
               onConfirm();
             }}
           >
             {confirmText}
-          </button>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

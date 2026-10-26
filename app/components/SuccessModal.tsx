@@ -1,9 +1,18 @@
 'use client';
 
+import * as React from 'react';
 import { motion } from 'framer-motion';
 import UsageTipsCarousel from './UsageTipsCarousel';
+import { Button } from '@/components/ui/button';
 
-export default function SuccessModal({ message, onClose, overlayStyle, cardStyle }) {
+export interface SuccessModalProps {
+  message: string;
+  onClose: () => void;
+  overlayStyle?: React.CSSProperties;
+  cardStyle?: React.CSSProperties;
+}
+
+export default function SuccessModal({ message, onClose, overlayStyle, cardStyle }: SuccessModalProps) {
   return (
     <motion.div
       className="modal-overlay"
@@ -26,34 +35,23 @@ export default function SuccessModal({ message, onClose, overlayStyle, cardStyle
         onTouchStart={(e) => e.stopPropagation()}
         style={{ pointerEvents: 'auto', ...cardStyle }}
       >
-        <div className="success-message" style={{ textAlign: 'center', padding: '20px 0' }}>
-          <div style={{ fontSize: '48px', marginBottom: 16 }}>🎉</div>
-          <h3 style={{ marginBottom: 8 }}>{message}</h3>
-          <p className="muted" style={{ marginBottom: 20 }}>
-            操作已完成，您可以继续使用。
-          </p>
+        <div className="success-message text-center py-5">
+          <div className="text-5xl mb-4">🎉</div>
+          <h3 className="mb-2 font-semibold text-lg">{message}</h3>
+          <p className="text-sm text-muted-foreground mb-5">操作已完成，您可以继续使用。</p>
           <UsageTipsCarousel style={{ marginBottom: 0 }} />
-          <motion.button
-            whileTap={{ scale: 0.96 }}
-            whileHover={{ scale: 1.01 }}
+          <Button
             type="button"
-            className="button"
+            variant="default"
+            size="lg"
             onClick={(e) => {
               e.stopPropagation();
               onClose();
             }}
-            style={{
-              marginTop: 20,
-              width: '100%',
-              pointerEvents: 'auto',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'none'
-            }}
+            className="w-full mt-5 font-medium rounded-xl h-11"
           >
             关闭
-          </motion.button>
+          </Button>
         </div>
       </motion.div>
     </motion.div>

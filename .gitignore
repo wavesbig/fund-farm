@@ -98,6 +98,9 @@ cli/
 /.codex/
 /jgb-cli/
 
+# TypeScript
+*.tsbuildinfo
+
 # Local SQLite Database
 /data/*
 !/data/.gitkeep

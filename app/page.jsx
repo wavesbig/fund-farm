@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, useMemo, useCallback, useTransition, useDeferredValue } from 'react';
 import dynamic from 'next/dynamic';
 import SearchBar from './components/SearchBar';
+import Navbar from './components/Navbar';
 import SummaryTabContent from './components/SummaryTabContent';
+import FilterBar from './components/FilterBar';
 import FundListView from './components/FundListView';
 import NavLayout from './components/NavLayout';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,9 +23,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { toast as sonnerToast } from 'sonner';
 
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/ui/empty';
+import { Spinner } from '@/components/ui/spinner';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Announcement from './components/Announcement';
 import EmptyStateCard from './components/EmptyStateCard';
+import Footer from './components/Footer';
 import FundCard from './components/FundCard';
 
 import GroupSummary from './components/GroupSummary';
@@ -59,6 +64,7 @@ import { useTheme } from './hooks/useTheme';
 import { useTradingDay } from './hooks/useTradingDay';
 import { useHoldingProfit } from './hooks/useHoldingProfit';
 import { useGroupActions } from './hooks/useGroupActions';
+import { useFundFilterSort } from './hooks/useFundFilterSort';
 import { useSummaryCalculations } from './hooks/useSummaryCalculations';
 import { useNavHeights } from './hooks/useNavHeights';
 import { useScanImport } from './hooks/useScanImport';
@@ -800,390 +806,22 @@ export default function HomePage() {
     return new Set(group.codes);
   }, [currentTab, groupById, groupsWithHoldings, funds, holdings, getHoldingProfit]);
 
-  // 当前 tab 作用域下的基金（不包含“列表搜索”过滤）
-  const scopedFunds = useMemo(() => {
-    return funds.filter((f) => {
-      if (currentTab === 'all') return true;
-      if (currentTab === 'fav') return favorites.has(f.code);
-      if (!activeGroupCodeSet) return true;
-      return activeGroupCodeSet.has(f.code);
-    });
-  }, [funds, currentTab, favorites, activeGroupCodeSet]);
-
-  const [fundExtraDataByCode, setFundExtraDataByCode] = useState({});
-  const fundExtraDataCacheRef = useRef(new Map());
-
-  useEffect(() => {
-    // 始终尝试为当前列表基金获取额外数据（阶段涨跌幅、连涨连跌），用于展示图标或排序
-    const codes = scopedFunds.map((f) => f.code);
-    if (codes.length === 0) return;
-
-    let cancelled = false;
-    const missing = [];
-    const cachedBatch = {};
-
-    for (const code of codes) {
-      if (!fundExtraDataCacheRef.current.has(code)) {
-        missing.push(code);
-      } else {
-        cachedBatch[code] = fundExtraDataCacheRef.current.get(code);
-      }
-    }
-
-    if (Object.keys(cachedBatch).length > 0) {
-      setFundExtraDataByCode((prev) => {
-        let changed = false;
-        const next = { ...prev };
-        for (const [code, value] of Object.entries(cachedBatch)) {
-          if (next[code] !== value) {
-            next[code] = value;
-            changed = true;
-          }
-        }
-        return changed ? next : prev;
-      });
-    }
-
-    if (missing.length === 0) return;
-
-    (async () => {
-      // 这里的 fetchFundPeriodReturns 已包含阶段涨跌幅和连涨连跌数据
-      await asyncPool(4, missing, async (code) => {
-        const value = await fetchFundPeriodReturns(code);
-        fundExtraDataCacheRef.current.set(code, value);
-        if (cancelled) return;
-        setFundExtraDataByCode((prev) => {
-          if (prev[code] === value) return prev;
-          return { ...prev, [code]: value };
-        });
-      });
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [scopedFunds]);
-
-  // 过滤和排序后的基金列表（包含“列表搜索”过滤）
-  const displayFundsRaw = useMemo(() => {
-    let filtered = [...scopedFunds];
-
-    const q = String(shouldShowGroupFundSearch ? (deferredGroupFundSearchTerm ?? '') : '').trim();
-    if (q) {
-      const qLower = q.toLowerCase();
-      filtered = filtered.filter((f) => {
-        const name = String(f?.name ?? '').toLowerCase();
-        const code = String(f?.code ?? '').toLowerCase();
-        let hasTagMatch = false;
-        if (f?.code && Array.isArray(fundTagListsByCode?.[f.code])) {
-          hasTagMatch = fundTagListsByCode[f.code].some(
-            (t) => t?.name && String(t.name).toLowerCase().includes(qLower)
-          );
-        }
-        return name.includes(qLower) || code.includes(qLower) || hasTagMatch;
-      });
-    }
-
-    if (currentTab !== 'all' && currentTab !== 'fav' && currentTab !== SUMMARY_TAB_ID && sortBy === 'default') {
-      const group = groups.find((g) => g.id === currentTab);
-      if (group && group.codes) {
-        const codeMap = new Map(group.codes.map((code, index) => [code, index]));
-        filtered.sort((a, b) => {
-          const indexA = codeMap.get(a.code) ?? Number.MAX_SAFE_INTEGER;
-          const indexB = codeMap.get(b.code) ?? Number.MAX_SAFE_INTEGER;
-          return indexA - indexB;
-        });
-      }
-    }
-
-    const profitByCode =
-      sortBy === 'holdingAmount' || sortBy === 'holdingRatio' || sortBy === 'todayProfit' || sortBy === 'holding'
-        ? new Map(filtered.map((f) => [f.code, getHoldingProfitForTab(f, holdingsForTabWithLinked[f.code])]))
-        : null;
-
-    const estimateProfitByCode =
-      sortBy === 'estimateProfit'
-        ? new Map(
-            filtered.map((f) => {
-              const hasTodayData = isNavUpdated(f.jzrq, todayStr, f.confirmDays);
-              const holding = holdingsForTabWithLinked[f.code];
-              const profit = getHoldingProfitForTab(f, holding);
-              const total = profit ? profit.profitTotal : null;
-              if (hasTodayData) return [f.code, total];
-
-              const principal =
-                holding && isNumber(holding.cost) && isNumber(holding.share) ? holding.cost * holding.share : 0;
-              const hasTodayEstimate = !f.noValuation && isString(f.gztime) && f.gztime.startsWith(todayStr);
-              const estimateChangeValue = f.noValuation ? null : isNumber(f.gszzl) ? Number(f.gszzl) : null;
-              const holdingProfitPercentValue = total != null && principal > 0 ? (total / principal) * 100 : null;
-              const hasEstimatePercent = hasTodayEstimate && estimateChangeValue != null;
-              const hasHoldingPercent = holdingProfitPercentValue != null;
-              const fallbackEstimateProfitPercentValue =
-                hasEstimatePercent || hasHoldingPercent
-                  ? (hasEstimatePercent ? estimateChangeValue : 0) + (hasHoldingPercent ? holdingProfitPercentValue : 0)
-                  : null;
-
-              const val =
-                fallbackEstimateProfitPercentValue != null && principal > 0
-                  ? principal * (fallbackEstimateProfitPercentValue / 100)
-                  : null;
-              return [f.code, val];
-            })
-          )
-        : null;
-
-    return filtered.sort((a, b) => {
-      if (sortBy === 'yield') {
-        const getYieldValue = (fund) => {
-          // 与 estimateChangePercent 展示逻辑对齐：
-          // - noValuation 为 true 一律视为无“估算涨幅”
-          // - 仅在 gszzl 为数字时使用 gszzl
-          if (fund.noValuation) {
-            return { value: 0, hasValue: false };
-          }
-          if (isNumber(fund.gszzl)) {
-            return { value: Number(fund.gszzl), hasValue: true };
-          }
-          return { value: 0, hasValue: false };
-        };
-
-        const { value: valA, hasValue: hasA } = getYieldValue(a);
-        const { value: valB, hasValue: hasB } = getYieldValue(b);
-
-        // 无“估算涨幅”展示值（界面为 `—`）的基金统一排在最后
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-
-        return sortOrder === 'asc' ? valA - valB : valB - valA;
-      }
-      if (sortBy === 'holdingAmount') {
-        const pa = profitByCode?.get(a.code);
-        const pb = profitByCode?.get(b.code);
-        const amountA = pa?.amount ?? Number.NEGATIVE_INFINITY;
-        const amountB = pb?.amount ?? Number.NEGATIVE_INFINITY;
-        return sortOrder === 'asc' ? amountA - amountB : amountB - amountA;
-      }
-      if (sortBy === 'holdingRatio') {
-        const pa = profitByCode?.get(a.code);
-        const pb = profitByCode?.get(b.code);
-        const amountA = pa?.amount;
-        const amountB = pb?.amount;
-        const hasA = amountA != null && Number.isFinite(amountA) && amountA > 0;
-        const hasB = amountB != null && Number.isFinite(amountB) && amountB > 0;
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-        // holdingRatio sort is equivalent to holdingAmount sort (same denominator within group)
-        return sortOrder === 'asc' ? amountA - amountB : amountB - amountA;
-      }
-      if (sortBy === 'yesterdayIncrease') {
-        const valA = Number(a.zzl);
-        const valB = Number(b.zzl);
-        const hasA = Number.isFinite(valA);
-        const hasB = Number.isFinite(valB);
-
-        // 无最新涨幅数据（界面展示为 `—`）的基金统一排在最后
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-
-        return sortOrder === 'asc' ? valA - valB : valB - valA;
-      }
-      if (sortBy === 'todayProfit') {
-        const pa = profitByCode?.get(a.code);
-        const pb = profitByCode?.get(b.code);
-        const valA = pa?.profitToday;
-        const valB = pb?.profitToday;
-        const hasA = valA != null && Number.isFinite(valA);
-        const hasB = valB != null && Number.isFinite(valB);
-
-        // 无当日收益数据的基金统一排在最后
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-
-        return sortOrder === 'asc' ? valA - valB : valB - valA;
-      }
-      if (sortBy === 'holding') {
-        const pa = profitByCode?.get(a.code);
-        const pb = profitByCode?.get(b.code);
-        const valA = pa?.profitTotal;
-        const valB = pb?.profitTotal;
-        const hasA = valA != null && Number.isFinite(valA);
-        const hasB = valB != null && Number.isFinite(valB);
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-        return sortOrder === 'asc' ? valA - valB : valB - valA;
-      }
-      if (sortBy === 'estimateProfit') {
-        const valA = estimateProfitByCode ? estimateProfitByCode.get(a.code) : null;
-        const valB = estimateProfitByCode ? estimateProfitByCode.get(b.code) : null;
-        const hasA = valA != null && Number.isFinite(valA);
-        const hasB = valB != null && Number.isFinite(valB);
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-        return sortOrder === 'asc' ? valA - valB : valB - valA;
-      }
-      if (sortBy === 'yesterdayProfit') {
-        const getYesterdayProfit = (code, jzrq) => {
-          const list = currentFundDailyEarnings?.[code];
-          if (!isArray(list) || list.length === 0) return null;
-          let matchedDaily = null;
-          if (isString(jzrq)) {
-            if (jzrq === todayStr) {
-              for (let i = list.length - 1; i >= 0; i--) {
-                if (list[i]?.date && list[i].date < todayStr) {
-                  matchedDaily = list[i];
-                  break;
-                }
-              }
-            } else {
-              for (const item of list) {
-                if (item?.date === jzrq) {
-                  matchedDaily = item;
-                  break;
-                }
-              }
-            }
-          }
-          if (!matchedDaily && jzrq !== todayStr) matchedDaily = list[list.length - 1];
-          return matchedDaily && Number.isFinite(Number(matchedDaily.earnings)) ? Number(matchedDaily.earnings) : null;
-        };
-        const valA = getYesterdayProfit(a.code, a.jzrq);
-        const valB = getYesterdayProfit(b.code, b.jzrq);
-        const hasA = valA != null && Number.isFinite(valA);
-        const hasB = valB != null && Number.isFinite(valB);
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-        return sortOrder === 'asc' ? valA - valB : valB - valA;
-      }
-      if (sortBy === 'holdingDays') {
-        const ha = holdingsForTabWithLinked[a.code];
-        const hb = holdingsForTabWithLinked[b.code];
-        const valA = ha?.firstPurchaseDate ? dayjs(todayStr).diff(dayjs(ha.firstPurchaseDate), 'day') : null;
-        const valB = hb?.firstPurchaseDate ? dayjs(todayStr).diff(dayjs(hb.firstPurchaseDate), 'day') : null;
-        const hasA = valA != null && Number.isFinite(valA);
-        const hasB = valB != null && Number.isFinite(valB);
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-        return sortOrder === 'asc' ? valA - valB : valB - valA;
-      }
-      if (sortBy === 'holdingCost') {
-        const getCost = (h) =>
-          h?.cost != null && h?.share != null && Number.isFinite(Number(h.cost)) && Number.isFinite(Number(h.share))
-            ? Number(h.cost) * Number(h.share)
-            : null;
-        const valA = getCost(holdingsForTabWithLinked[a.code]);
-        const valB = getCost(holdingsForTabWithLinked[b.code]);
-        const hasA = valA != null && Number.isFinite(valA);
-        const hasB = valB != null && Number.isFinite(valB);
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-        return sortOrder === 'asc' ? valA - valB : valB - valA;
-      }
-      if (sortBy === 'sinceAddedChangePercent') {
-        const getSinceAddedChangeValue = (f) => {
-          const addBaseNavRaw = f.addBaseNav != null && f.addBaseNav !== '' ? Number(f.addBaseNav) : null;
-          const addBaseNav =
-            addBaseNavRaw != null && Number.isFinite(addBaseNavRaw) && addBaseNavRaw > 0 ? addBaseNavRaw : null;
-          const sinceAddedCurrentNav = (() => {
-            if (f.noValuation) {
-              const v = Number(f.dwjz);
-              return Number.isFinite(v) && v > 0 ? v : null;
-            }
-            const v = Number(f.gsz);
-            return Number.isFinite(v) && v > 0 ? v : null;
-          })();
-          return addBaseNav != null && sinceAddedCurrentNav != null
-            ? (sinceAddedCurrentNav / addBaseNav - 1) * 100
-            : null;
-        };
-        const valA = getSinceAddedChangeValue(a);
-        const valB = getSinceAddedChangeValue(b);
-        const hasA = valA != null && Number.isFinite(valA);
-        const hasB = valB != null && Number.isFinite(valB);
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-        return sortOrder === 'asc' ? valA - valB : valB - valA;
-      }
-      if (sortBy === 'consecutiveTrend') {
-        const getTrendValue = (code) => {
-          const trend = fundExtraDataByCode[code]?.consecutiveTrend;
-          if (!trend || !Number.isFinite(trend.days)) return 0;
-          return trend.type === 'up' ? trend.days : -trend.days;
-        };
-        const valA = getTrendValue(a.code);
-        const valB = getTrendValue(b.code);
-        return sortOrder === 'asc' ? valA - valB : valB - valA;
-      }
-      if (['last1Week', 'last1Month', 'last3Months', 'last6Months', 'last1Year'].includes(sortBy)) {
-        const keyMap = {
-          last1Week: 'week',
-          last1Month: 'month',
-          last3Months: 'month3',
-          last6Months: 'month6',
-          last1Year: 'year1'
-        };
-        const key = keyMap[sortBy];
-        const valA = fundExtraDataByCode[a.code]?.[key];
-        const valB = fundExtraDataByCode[b.code]?.[key];
-        const hasA = valA != null && Number.isFinite(valA);
-        const hasB = valB != null && Number.isFinite(valB);
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-        return sortOrder === 'asc' ? valA - valB : valB - valA;
-      }
-      if (sortBy === 'tags') {
-        const getTagKey = (fund) => {
-          const code = String(fund?.code ?? '').trim();
-          const list = code ? fundTagListsByCode?.[code] : null;
-          if (!isArray(list) || list.length === 0) return '';
-          return list
-            .map((t) => (t?.name != null ? String(t.name).trim() : ''))
-            .filter(Boolean)
-            .join('、');
-        };
-        const keyA = getTagKey(a);
-        const keyB = getTagKey(b);
-        const hasA = !!keyA;
-        const hasB = !!keyB;
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;
-        if (!hasB) return -1;
-        return sortOrder === 'asc' ? keyA.localeCompare(keyB, 'zh-CN') : keyB.localeCompare(keyA, 'zh-CN');
-      }
-      if (sortBy === 'name') {
-        const nameA = a.name ?? '';
-        const nameB = b.name ?? '';
-        return sortOrder === 'asc' ? nameA.localeCompare(nameB, 'zh-CN') : nameB.localeCompare(nameA, 'zh-CN');
-      }
-      return 0;
-    });
-  }, [
-    scopedFunds,
+  const { scopedFunds, displayFundsRaw, displayFunds, fundExtraDataByCode } = useFundFilterSort({
+    funds,
     currentTab,
+    favorites,
+    activeGroupCodeSet,
+    shouldShowGroupFundSearch,
+    deferredGroupFundSearchTerm,
+    fundTagListsByCode,
     groups,
     sortBy,
     sortOrder,
     holdingsForTabWithLinked,
     getHoldingProfitForTab,
-    deferredGroupFundSearchTerm,
-    shouldShowGroupFundSearch,
-    currentFundDailyEarnings,
-    fundExtraDataByCode,
     todayStr,
-    fundTagListsByCode
-  ]);
-
-  const displayFunds = useDeferredValue(displayFundsRaw);
+    currentFundDailyEarnings
+  });
 
   const latestDailyByCode = useMemo(() => {
     const out = {};
@@ -4566,17 +4204,7 @@ export default function HomePage() {
           background: 'var(--bg-gradient, #0f172a)'
         }}
       >
-        <div
-          className="loading-spinner"
-          style={{
-            width: 36,
-            height: 36,
-            border: '3px solid rgba(255,255,255,0.1)',
-            borderTopColor: 'var(--primary, #38bdf8)',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-          }}
-        />
+        <Spinner className="size-9 text-primary" />
       </div>
     );
   }
@@ -4605,187 +4233,48 @@ export default function HomePage() {
       >
         <>
           <Announcement />
-          <div className="navbar glass" ref={navbarRef}>
-            {refreshing && <div className="loading-bar"></div>}
-            <div className={`brand ${isSearchFocused || selectedFunds.length > 0 ? 'search-focused-sibling' : ''}`}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    style={{
-                      width: 24,
-                      height: 24,
-                      marginRight: 4,
-                      position: 'relative',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {/* 同步中图标 */}
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        margin: 'auto',
-                        opacity: isSyncing ? 1 : 0,
-                        transform: isSyncing ? 'translateY(0px)' : 'translateY(4px)',
-                        transition: 'opacity 0.25s ease, transform 0.25s ease'
-                      }}
-                    >
-                      <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" stroke="var(--primary)" />
-                      <path d="M12 12v9" stroke="var(--accent)" />
-                      <path d="m16 16-4-4-4 4" stroke="var(--accent)" />
-                    </svg>
-                    {/* 默认图标 */}
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        margin: 'auto',
-                        opacity: isSyncing ? 0 : 1,
-                        transform: isSyncing ? 'translateY(-4px)' : 'translateY(0px)',
-                        transition: 'opacity 0.25s ease, transform 0.25s ease'
-                      }}
-                    >
-                      <circle cx="12" cy="12" r="10" stroke="var(--accent)" strokeWidth="2" />
-                      <path d="M5 14c2-4 7-6 14-5" stroke="var(--primary)" strokeWidth="2" />
-                    </svg>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{isSyncing ? '正在同步到云端...' : undefined}</p>
-                </TooltipContent>
-              </Tooltip>
-              <span>基估宝</span>
-            </div>
-            <div
-              className={`glass add-fund-section navbar-add-fund ${isSearchFocused || selectedFunds.length > 0 ? 'search-focused' : ''}`}
-              role="region"
-              aria-label="添加基金"
-            >
-              <div className="search-container" ref={dropdownRef}>
-                {selectedFunds.length > 0 && (
-                  <div className="selected-inline-chips" style={{ marginBottom: 8, marginLeft: 0 }}>
-                    {selectedFunds.map((fund) => (
-                      <div key={fund.CODE} className="fund-chip">
-                        <span>{fund.NAME}</span>
-                        <button onClick={() => toggleSelectFund(fund)} className="remove-chip">
-                          <CloseIcon width="14" height="14" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <SearchBar
-                  inputRef={inputRef}
-                  searchTerm={searchTerm}
-                  handleSearchInput={handleSearchInput}
-                  showDropdown={showDropdown}
-                  setShowDropdown={setShowDropdown}
-                  isSearchFocused={isSearchFocused}
-                  setIsSearchFocused={setIsSearchFocused}
-                  searchResults={searchResults}
-                  isSearching={isSearching}
-                  selectedFunds={selectedFunds}
-                  toggleSelectFund={toggleSelectFund}
-                  isScanning={isScanning}
-                  handleScanClick={handleScanClick}
-                  addFund={addFund}
-                />
-              </div>
-              {error && (
-                <div className="muted" style={{ marginTop: 8, color: 'var(--danger)' }}>
-                  {error}
-                </div>
-              )}
-            </div>
-            <div className={`actions ${isSearchFocused || selectedFunds.length > 0 ? 'search-focused-sibling' : ''}`}>
-              <UpdateChecker onModalOpenChange={setIsUpdateModalOpen} />
-              <span className="github-icon-wrap">
-                <Image
-                  unoptimized
-                  alt="项目Github地址"
-                  src={githubImg}
-                  style={{ width: '30px', height: '30px', cursor: 'pointer' }}
-                  onClick={() => window.open('https://github.com/hzm0321/real-time-fund')}
-                />
-              </span>
-              {isMobile && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="icon-button mobile-search-btn"
-                      aria-label="筛选基金"
-                      onClick={handleMobileSearchClick}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-                        <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>筛选</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-              <RefreshButton
-                refreshMs={refreshMs}
-                manualRefresh={manualRefresh}
-                refreshing={refreshing}
-                fundsLength={funds.length}
-                refreshCycleStartRef={refreshCycleStartRef}
-              />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    className="icon-button"
-                    aria-label={theme === 'dark' ? '切换到亮色主题' : '切换到暗色主题'}
-                    onClick={handleThemeToggle}
-                  >
-                    {theme === 'dark' ? <SunIcon width="18" height="18" /> : <MoonIcon width="18" height="18" />}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{theme === 'dark' ? '亮色' : '暗色'}</p>
-                </TooltipContent>
-              </Tooltip>
-              <UserMenu
-                user={user}
-                userAvatar={userAvatar}
-                navbarHeight={navbarHeight}
-                lastSyncTime={lastSyncTime}
-                isSyncing={isSyncing}
-                onSync={() => user?.id && syncUserConfig(user.id)}
-                onOpenSettings={() => setSettingsOpen(true)}
-                onOpenPortfolioEarnings={() => setPortfolioEarningsOpen(true)}
-                onOpenLogin={handleOpenLogin}
-                onLogout={handleLogout}
-                onLogoutConfirmOpenChange={setIsLogoutConfirmOpen}
-                onTutorial={() => {
-                  if (isMobile) {
-                    setTutorialDrawerOpen(true);
-                  } else {
-                    window.open('https://www.yuque.com/u267605/ookgim/im06q8tembbld6im?singleDoc', '_blank');
-                  }
-                }}
-                onUpdateLog={() => setUpdateLogOpen(true)}
-              />
-            </div>
-          </div>
+          <Navbar
+            navbarRef={navbarRef}
+            refreshing={refreshing}
+            isSyncing={isSyncing}
+            isSearchFocused={isSearchFocused}
+            selectedFunds={selectedFunds}
+            toggleSelectFund={toggleSelectFund}
+            dropdownRef={dropdownRef}
+            inputRef={inputRef}
+            searchTerm={searchTerm}
+            handleSearchInput={handleSearchInput}
+            showDropdown={showDropdown}
+            setShowDropdown={setShowDropdown}
+            setIsSearchFocused={setIsSearchFocused}
+            searchResults={searchResults}
+            isSearching={isSearching}
+            isScanning={isScanning}
+            handleScanClick={handleScanClick}
+            addFund={addFund}
+            error={error}
+            setIsUpdateModalOpen={setIsUpdateModalOpen}
+            isMobile={isMobile}
+            handleMobileSearchClick={handleMobileSearchClick}
+            refreshMs={refreshMs}
+            manualRefresh={manualRefresh}
+            fundsLength={funds.length}
+            refreshCycleStartRef={refreshCycleStartRef}
+            theme={theme}
+            handleThemeToggle={handleThemeToggle}
+            user={user}
+            userAvatar={userAvatar}
+            navbarHeight={navbarHeight}
+            lastSyncTime={lastSyncTime}
+            syncUserConfig={syncUserConfig}
+            setSettingsOpen={setSettingsOpen}
+            setPortfolioEarningsOpen={setPortfolioEarningsOpen}
+            handleOpenLogin={handleOpenLogin}
+            handleLogout={handleLogout}
+            setIsLogoutConfirmOpen={setIsLogoutConfirmOpen}
+            setTutorialDrawerOpen={setTutorialDrawerOpen}
+            setUpdateLogOpen={setUpdateLogOpen}
+          />
           {shouldShowMarketIndex && (
             <MarketIndexAccordion
               navbarHeight={navbarHeight}
@@ -4796,397 +4285,47 @@ export default function HomePage() {
           <div style={{ display: mainTab === 'home' ? 'contents' : 'none' }}>
             <div className="grid">
               <div className="col-12">
-                <div
-                  ref={filterBarRef}
-                  className="filter-bar"
-                  style={{
-                    top: `calc(${navbarHeight}px + var(--market-index-height, 0px))`,
-                    marginTop: !shouldShowMarketIndex ? navbarHeight : 0,
-                    marginBottom: 8,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: 12
-                  }}
-                >
-                  <div className="tabs-container">
-                    <div
-                      className="tabs-scroll-wrapper"
-                      style={{
-                        position: 'relative',
-                        flex: 1,
-                        minWidth: 0,
-                        paddingLeft: !showGroupDropdown && !isMobile && hasTabOverflow ? 32 : 0,
-                        paddingRight: !showGroupDropdown && !isMobile && hasTabOverflow ? 32 : 0,
-                        transition: 'padding 0.2s ease'
-                      }}
-                    >
-                      <AnimatePresence>
-                        {!showGroupDropdown && !isMobile && hasTabOverflow && (
-                          <>
-                            <motion.button
-                              initial={{ opacity: 0, scale: 0.8, y: '-50%', x: 0 }}
-                              animate={{ opacity: 1, scale: 1, y: '-50%', x: 0 }}
-                              exit={{ opacity: 0, scale: 0.8, y: '-50%', x: 0 }}
-                              whileHover={canLeft ? { scale: 1.1, y: '-50%', x: 0 } : {}}
-                              whileTap={canLeft ? { scale: 0.95, y: '-50%', x: 0 } : {}}
-                              transition={{ duration: 0.15 }}
-                              className={`tabs-scroll-btn left ${!canLeft ? 'opacity-30 cursor-not-allowed' : ''}`}
-                              disabled={!canLeft}
-                              title="单击向左滚动，双击滚动到最左端"
-                              onClick={scrollTabsLeftBtn}
-                              onDoubleClick={scrollTabsToLeftEnd}
-                            >
-                              <ChevronLeft size={16} />
-                            </motion.button>
-                            <motion.button
-                              initial={{ opacity: 0, scale: 0.8, y: '-50%', x: 0 }}
-                              animate={{ opacity: 1, scale: 1, y: '-50%', x: 0 }}
-                              exit={{ opacity: 0, scale: 0.8, y: '-50%', x: 0 }}
-                              whileHover={canRight ? { scale: 1.1, y: '-50%', x: 0 } : {}}
-                              whileTap={canRight ? { scale: 0.95, y: '-50%', x: 0 } : {}}
-                              transition={{ duration: 0.15 }}
-                              className={`tabs-scroll-btn right ${!canRight ? 'opacity-30 cursor-not-allowed' : ''}`}
-                              disabled={!canRight}
-                              title="单击向右滚动，双击滚动到最右端"
-                              onClick={scrollTabsRightBtn}
-                              onDoubleClick={scrollTabsToRightEnd}
-                            >
-                              <ChevronRight size={16} />
-                            </motion.button>
-                          </>
-                        )}
-                      </AnimatePresence>
-                      <div
-                        className="tabs-scroll-area"
-                        ref={scrollAreaRef}
-                        data-mask-left={!showGroupDropdown && canLeft}
-                        data-mask-right={!showGroupDropdown && canRight}
-                        onMouseDown={handleMouseDown}
-                        onMouseLeave={handleMouseLeaveOrUp}
-                        onMouseUp={handleMouseLeaveOrUp}
-                        onMouseMove={handleMouseMove}
-                        onWheel={handleWheel}
-                        onScroll={updateTabOverflow}
-                      >
-                        <div className="tabs" ref={tabsRef}>
-                          <AnimatePresence mode="popLayout">
-                            {showPortfolioSummaryTab && (
-                              <motion.button
-                                layout
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                key="portfolio-summary"
-                                className={`tab ${currentTab === SUMMARY_TAB_ID ? 'active' : ''}`}
-                                onClick={() => handleTabClick(SUMMARY_TAB_ID)}
-                                transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }}
-                              >
-                                汇总
-                              </motion.button>
-                            )}
-                            <motion.button
-                              layout
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.8 }}
-                              key="all"
-                              className={`tab ${currentTab === 'all' ? 'active' : ''}`}
-                              onClick={() => handleTabClick('all')}
-                              transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }}
-                            >
-                              全部 ({funds.length})
-                            </motion.button>
-                            {!showGroupDropdown &&
-                              groups.map((g) => {
-                                const isFav = g.id === 'fav' || g.isPreset;
-                                const count = isFav ? favorites.size : g.codes?.length || 0;
-                                const label = isFav ? '自选' : g.name;
-                                return (
-                                  <motion.button
-                                    layout
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.8 }}
-                                    key={g.id}
-                                    className={`tab ${currentTab === g.id ? 'active' : ''}`}
-                                    onClick={() => handleTabClick(g.id)}
-                                    transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }}
-                                  >
-                                    {label} ({count})
-                                  </motion.button>
-                                );
-                              })}
-                            {showGroupDropdown && (
-                              <div
-                                key="group-dropdown"
-                                style={{ minWidth: isMobile ? 170 : 210, maxWidth: isMobile ? 230 : 300 }}
-                              >
-                                <Select
-                                  value={isGroupDropdownTabActive ? currentTab : ''}
-                                  onValueChange={(value) => handleTabClick(value)}
-                                >
-                                  <SelectTrigger
-                                    className={cn(
-                                      'h-4 py-0 text-xs shadow-none',
-                                      isGroupDropdownTabActive &&
-                                        'border-primary/70 text-primary ring-1 ring-primary/25'
-                                    )}
-                                    style={{
-                                      background: isGroupDropdownTabActive
-                                        ? 'color-mix(in srgb, var(--primary) 12%, var(--card-bg))'
-                                        : 'var(--card-bg)',
-                                      boxShadow: isGroupDropdownTabActive
-                                        ? '0 0 0 1px rgba(255, 255, 255, 0.05), 0 6px 18px rgba(34, 211, 238, 0.12)'
-                                        : undefined,
-                                      height: 32
-                                    }}
-                                    aria-label="选择分组"
-                                  >
-                                    <SelectValue placeholder="选择分组" />
-                                  </SelectTrigger>
-                                  <SelectContent
-                                    position="popper"
-                                    align="start"
-                                    style={{
-                                      width: isMobile ? 230 : 300
-                                    }}
-                                  >
-                                    <SelectGroup>
-                                      {groups.map((g) => {
-                                        const isFav = g.id === 'fav' || g.isPreset;
-                                        const count = isFav ? favorites.size : g.codes?.length || 0;
-                                        const label = isFav ? '自选' : g.name;
-                                        return (
-                                          <SelectItem key={g.id} value={g.id}>
-                                            {label} ({count})
-                                          </SelectItem>
-                                        );
-                                      })}
-                                    </SelectGroup>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
-                          </AnimatePresence>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button className="icon-button add-group-btn" onClick={() => setGroupModalOpen(true)}>
-                                <PlusIcon width="16" height="16" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>新增分组</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      </div>
-                    </div>
-                    {groups.length > 0 && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button className="icon-button manage-groups-btn" onClick={() => setGroupManageOpen(true)}>
-                            <SortIcon width="16" height="16" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>管理分组</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-
-                  <div
-                    className="sort-group"
-                    style={{
-                      display: currentTab === SUMMARY_TAB_ID ? 'none' : 'flex',
-                      alignItems: 'center',
-                      gap: 12
-                    }}
-                  >
-                    <div
-                      className="view-toggle"
-                      style={{
-                        display: 'flex',
-                        background: 'rgba(255,255,255,0.05)',
-                        borderRadius: '10px',
-                        padding: '2px'
-                      }}
-                    >
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            className={`icon-button ${viewMode === 'card' ? 'active' : ''}`}
-                            onClick={() => {
-                              applyViewMode('card');
-                            }}
-                            style={{
-                              border: 'none',
-                              width: '32px',
-                              height: '32px',
-                              background: viewMode === 'card' ? 'var(--primary)' : 'transparent',
-                              color: viewMode === 'card' ? '#05263b' : 'var(--muted)'
-                            }}
-                          >
-                            <GridIcon width="16" height="16" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>卡片视图</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            className={`icon-button ${viewMode === 'list' ? 'active' : ''}`}
-                            onClick={() => {
-                              applyViewMode('list');
-                            }}
-                            style={{
-                              border: 'none',
-                              width: '32px',
-                              height: '32px',
-                              background: viewMode === 'list' ? 'var(--primary)' : 'transparent',
-                              color: viewMode === 'list' ? '#05263b' : 'var(--muted)'
-                            }}
-                          >
-                            <ListIcon width="16" height="16" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>表格视图</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-
-                    <div className="divider" style={{ width: '1px', height: '20px', background: 'var(--border)' }} />
-
-                    <div className="sort-items" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            className="icon-button"
-                            onClick={() => setSortSettingOpen(true)}
-                            style={{
-                              border: 'none',
-                              background: 'transparent',
-                              padding: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              fontSize: '12px',
-                              color: 'var(--muted-foreground)',
-                              cursor: 'pointer',
-                              width: '50px'
-                            }}
-                          >
-                            <span className="muted">排序</span>
-                            <SettingsIcon width="14" height="14" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>排序个性化设置</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      {(isMobile ? mobileSortDisplayMode : pcSortDisplayMode) === 'dropdown' ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <Select
-                            value={sortBy}
-                            onValueChange={(nextSortBy) => {
-                              startTransition(() => {
-                                setSortBy(nextSortBy);
-                                if (nextSortBy !== sortBy) setSortOrder('desc');
-                              });
-                            }}
-                          >
-                            <SelectTrigger
-                              className="h-4 min-w-[110px] py-0 text-xs shadow-none"
-                              style={{ background: 'var(--card-bg)', height: 36 }}
-                            >
-                              <SelectValue placeholder="选择排序规则" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {sortRules
-                                .filter((s) => s.enabled)
-                                .map((s) => (
-                                  <SelectItem key={s.id} value={s.id}>
-                                    {s.alias || s.label}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                          <Select
-                            value={sortOrder}
-                            onValueChange={(value) => {
-                              startTransition(() => {
-                                setSortOrder(value);
-                              });
-                            }}
-                          >
-                            <SelectTrigger
-                              className="h-4 min-w-[84px] py-0 text-xs shadow-none"
-                              style={{ background: 'var(--card-bg)', height: 36 }}
-                            >
-                              <SelectValue placeholder="排序方向" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="desc">降序</SelectItem>
-                              <SelectItem value="asc">升序</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      ) : (
-                        <div className="chips">
-                          {sortRules
-                            .filter((s) => s.enabled)
-                            .map((s) => (
-                              <button
-                                key={s.id}
-                                className={`chip ${sortBy === s.id ? 'active' : ''}`}
-                                onClick={() => {
-                                  startTransition(() => {
-                                    if (sortBy === s.id) {
-                                      // 同一按钮重复点击，切换升序/降序
-                                      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-                                    } else {
-                                      // 切换到新的排序字段，默认用降序
-                                      setSortBy(s.id);
-                                      setSortOrder('desc');
-                                    }
-                                  });
-                                }}
-                                style={{
-                                  height: '28px',
-                                  fontSize: '12px',
-                                  padding: '0 10px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 4
-                                }}
-                              >
-                                <span>{s.alias || s.label}</span>
-                                {s.id !== 'default' && sortBy === s.id && (
-                                  <span
-                                    style={{
-                                      display: 'inline-flex',
-                                      flexDirection: 'column',
-                                      lineHeight: 1,
-                                      fontSize: '8px'
-                                    }}
-                                  >
-                                    <span style={{ opacity: sortOrder === 'asc' ? 1 : 0.3 }}>▲</span>
-                                    <span style={{ opacity: sortOrder === 'desc' ? 1 : 0.3 }}>▼</span>
-                                  </span>
-                                )}
-                              </button>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <FilterBar
+                  filterBarRef={filterBarRef}
+                  navbarHeight={navbarHeight}
+                  shouldShowMarketIndex={shouldShowMarketIndex}
+                  showGroupDropdown={showGroupDropdown}
+                  isMobile={isMobile}
+                  hasTabOverflow={hasTabOverflow}
+                  canLeft={canLeft}
+                  canRight={canRight}
+                  scrollTabsLeftBtn={scrollTabsLeftBtn}
+                  scrollTabsToLeftEnd={scrollTabsToLeftEnd}
+                  scrollTabsRightBtn={scrollTabsRightBtn}
+                  scrollTabsToRightEnd={scrollTabsToRightEnd}
+                  scrollAreaRef={scrollAreaRef}
+                  tabsRef={tabsRef}
+                  handleMouseDown={handleMouseDown}
+                  handleMouseLeaveOrUp={handleMouseLeaveOrUp}
+                  handleMouseMove={handleMouseMove}
+                  handleWheel={handleWheel}
+                  updateTabOverflow={updateTabOverflow}
+                  showPortfolioSummaryTab={showPortfolioSummaryTab}
+                  currentTab={currentTab}
+                  handleTabClick={handleTabClick}
+                  fundsCount={funds.length}
+                  groups={groups}
+                  favoritesCount={favorites.size}
+                  isGroupDropdownTabActive={isGroupDropdownTabActive}
+                  setGroupModalOpen={setGroupModalOpen}
+                  setGroupManageOpen={setGroupManageOpen}
+                  viewMode={viewMode}
+                  applyViewMode={applyViewMode}
+                  setSortSettingOpen={setSortSettingOpen}
+                  mobileSortDisplayMode={mobileSortDisplayMode}
+                  pcSortDisplayMode={pcSortDisplayMode}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  sortOrder={sortOrder}
+                  setSortOrder={setSortOrder}
+                  sortRules={sortRules}
+                  startTransition={startTransition}
+                />
 
                 {scopedFunds.length === 0 && !(currentTab === SUMMARY_TAB_ID && showPortfolioSummaryTab) ? (
                   <EmptyStateCard
@@ -5325,42 +4464,14 @@ export default function HomePage() {
                     )}
 
                     {currentTab !== 'all' && currentTab !== 'fav' && currentTab !== SUMMARY_TAB_ID && (
-                      <motion.button
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="button-dashed"
+                      <Button
+                        variant="outline"
                         onClick={() => setAddFundToGroupOpen(true)}
-                        style={{
-                          width: '100%',
-                          height: '48px',
-                          border: '2px dashed var(--border)',
-                          background: 'transparent',
-                          borderRadius: '12px',
-                          color: 'var(--muted)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '8px',
-                          marginTop: '16px',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          fontSize: '14px',
-                          fontWeight: 500
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = 'var(--primary)';
-                          e.currentTarget.style.color = 'var(--primary)';
-                          e.currentTarget.style.background = 'rgba(34, 211, 238, 0.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = 'var(--border)';
-                          e.currentTarget.style.color = 'var(--muted)';
-                          e.currentTarget.style.background = 'transparent';
-                        }}
+                        className="w-full h-12 border-2 border-dashed border-border hover:border-primary hover:text-primary hover:bg-primary/5 text-muted-foreground font-medium rounded-xl mt-4 gap-2 text-sm transition-all shadow-none"
                       >
                         <PlusIcon width="18" height="18" />
                         <span>添加基金到此分组</span>
-                      </motion.button>
+                      </Button>
                     )}
                   </>
                 )}
@@ -5376,53 +4487,14 @@ export default function HomePage() {
               onChange={handleFilesUpload}
             />
 
-            <div className="footer">
-              {!isMobile && (
-                <>
-                  <p style={{ marginBottom: 8 }}>
-                    数据源：实时估值与重仓直连东方财富，仅供个人学习及参考使用。数据可能存在延迟，不作为任何投资建议
-                  </p>
-                  <p style={{ marginBottom: 12 }}>注：估算数据与真实结算数据会有1%左右误差，非股票型基金误差较大</p>
-                  <div
-                    style={{
-                      marginTop: 12,
-                      opacity: 0.8,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 8
-                    }}
-                  >
-                    <p style={{ margin: 0 }}>
-                      遇到任何问题或需求建议可
-                      <button
-                        className="link-button"
-                        onClick={() => {
-                          if (!user?.id) {
-                            sonnerToast.error('请先登录后再提交反馈');
-                            return;
-                          }
-                          setFeedbackNonce((n) => n + 1);
-                          setFeedbackOpen(true);
-                        }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'var(--primary)',
-                          cursor: 'pointer',
-                          padding: '0 4px',
-                          textDecoration: 'underline',
-                          fontSize: 'inherit',
-                          fontWeight: 600
-                        }}
-                      >
-                        点此提交反馈
-                      </button>
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
+            <Footer
+              isMobile={isMobile}
+              user={user}
+              onOpenFeedback={() => {
+                setFeedbackNonce((n) => n + 1);
+                setFeedbackOpen(true);
+              }}
+            />
           </div>
           {hasVisitedMarketTab && (
             <div style={{ display: mainTab === 'market' ? 'contents' : 'none' }}>

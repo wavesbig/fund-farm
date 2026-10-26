@@ -1,16 +1,23 @@
 'use client';
 
+import * as React from 'react';
 import { useRef, useState } from 'react';
-import { Dialog, DialogContent, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Field, FieldLabel, FieldContent } from '@/components/ui/field';
-import { PlusIcon, CloseIcon } from './Icons';
+import { PlusIcon } from './Icons';
 import { cn } from '@/lib/utils';
 
 const MAX_GROUP_NAME_LENGTH = 8;
-const truncateGroupName = (value) => [...(value || '')].slice(0, MAX_GROUP_NAME_LENGTH).join('');
+const truncateGroupName = (value: string) => [...(value || '')].slice(0, MAX_GROUP_NAME_LENGTH).join('');
 
-export default function GroupModal({ onClose, onConfirm }) {
+export interface GroupModalProps {
+  onClose: () => void;
+  onConfirm: (name: string) => void;
+}
+
+export default function GroupModal({ onClose, onConfirm }: GroupModalProps) {
   const [name, setName] = useState('');
   const isComposingRef = useRef(false);
 
@@ -46,20 +53,15 @@ export default function GroupModal({ onClose, onConfirm }) {
               分组名称（最多 {MAX_GROUP_NAME_LENGTH} 个字）
             </FieldLabel>
             <FieldContent>
-              <input
+              <Input
                 id="group-modal-name"
-                className={cn(
-                  'flex h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-3.5 py-2 text-base text-[var(--foreground)] outline-none',
-                  'placeholder:text-[var(--muted-foreground)]',
-                  'transition-colors duration-200 focus:border-[var(--ring)] focus:ring-2 focus:ring-[var(--ring)]/20 focus:ring-offset-2 focus:ring-offset-[var(--card)]',
-                  'disabled:cursor-not-allowed disabled:opacity-50'
-                )}
+                className="h-11 rounded-xl text-base"
                 autoFocus
                 placeholder="请输入分组名称..."
                 value={name}
                 onChange={(e) => {
                   const v = e.target.value || '';
-                  setName(isComposingRef.current || e.nativeEvent.isComposing ? v : truncateGroupName(v));
+                  setName(isComposingRef.current || (e.nativeEvent as any).isComposing ? v : truncateGroupName(v));
                 }}
                 onCompositionStart={() => {
                   isComposingRef.current = true;
@@ -72,7 +74,7 @@ export default function GroupModal({ onClose, onConfirm }) {
                   if (!isComposingRef.current) setName(truncateGroupName(e.currentTarget.value));
                 }}
                 onKeyDown={(e) => {
-                  if (e.nativeEvent.isComposing) return;
+                  if ((e.nativeEvent as any).isComposing) return;
                   if (e.key === 'Enter') confirmName();
                 }}
               />
@@ -80,11 +82,7 @@ export default function GroupModal({ onClose, onConfirm }) {
           </Field>
 
           <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              className="flex-1 h-11 rounded-xl cursor-pointer bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--secondary)]/80 border border-[var(--border)]"
-              onClick={onClose}
-            >
+            <Button variant="secondary" className="flex-1 h-11 rounded-xl cursor-pointer" onClick={onClose}>
               取消
             </Button>
             <Button className="flex-1 h-11 rounded-xl cursor-pointer" onClick={confirmName} disabled={!name.trim()}>

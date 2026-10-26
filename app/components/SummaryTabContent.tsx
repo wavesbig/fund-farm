@@ -1,9 +1,43 @@
 'use client';
 
-import React from 'react';
+import * as React from 'react';
 import GroupSummary from './GroupSummary';
 import GroupAccountSummaryCard from './GroupAccountSummaryCard';
 import { SUMMARY_TAB_ID, SUMMARY_SOURCE_GLOBAL } from '@/app/constants';
+import type { Fund, FundGroup, Holding } from '@/types';
+
+export interface SummaryCardItem {
+  groupId: string;
+  groupName: string;
+  totalAsset: number;
+  holdingReturn: number;
+  holdingReturnPercent: number;
+  accountReturn: number;
+  accountReturnPercent: number;
+  hasAnyTodayData: boolean;
+  upCount: number;
+  downCount: number;
+  sparkSeries?: Array<{ time: string; value: number }>;
+}
+
+export interface SummaryTabContentProps {
+  funds: Fund[];
+  holdings: Record<string, Holding>;
+  groups: FundGroup[];
+  getProfit: (code: string, tabId: string) => any;
+  summaryTabPortfolioTotals: any;
+  navbarHeight: number;
+  filterBarHeight: number;
+  isGroupSummarySticky: boolean;
+  setIsGroupSummarySticky: (next: boolean) => void;
+  maskAmounts: boolean;
+  setMaskAmounts: React.Dispatch<React.SetStateAction<boolean>> | ((val: (v: boolean) => boolean) => void);
+  shouldShowMarketIndex: boolean;
+  summaryCardItems: SummaryCardItem[];
+  isMobile: boolean;
+  startTransition: React.TransitionStartFunction;
+  setCurrentTab: (tab: string) => void;
+}
 
 export default function SummaryTabContent({
   funds,
@@ -22,7 +56,7 @@ export default function SummaryTabContent({
   isMobile,
   startTransition,
   setCurrentTab
-}) {
+}: SummaryTabContentProps) {
   return (
     <>
       <GroupSummary
@@ -34,9 +68,9 @@ export default function SummaryTabContent({
         summaryTotalsOverride={summaryTabPortfolioTotals}
         stickyTop={navbarHeight + filterBarHeight + (isMobile ? -14 : 0)}
         isSticky={isGroupSummarySticky}
-        onToggleSticky={(next) => setIsGroupSummarySticky(next)}
+        onToggleSticky={(next: boolean) => setIsGroupSummarySticky(next)}
         masked={maskAmounts}
-        onToggleMasked={() => setMaskAmounts((v) => !v)}
+        onToggleMasked={() => (setMaskAmounts as any)((v: boolean) => !v)}
         shouldShowMarketIndex={shouldShowMarketIndex}
         navbarHeight={navbarHeight}
       />
