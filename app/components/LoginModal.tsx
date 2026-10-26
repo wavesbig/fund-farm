@@ -1,14 +1,25 @@
 'use client';
-import { useIsMobile } from '@/app/hooks/useIsMobile';
 
-import Image from 'next/image';
+import * as React from 'react';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import { Mail, Loader2 } from 'lucide-react';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { MailIcon } from './Icons';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import githubImg from '../assets/github.svg';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-export default function LoginModal({ onClose, showToast, isExplicitLoginRef, initialError = '' }) {
+export interface LoginModalProps {
+  onClose: () => void;
+  showToast: (msg: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
+  isExplicitLoginRef?: React.MutableRefObject<boolean>;
+  initialError?: string;
+}
+
+export default function LoginModal({ onClose, showToast, isExplicitLoginRef, initialError = '' }: LoginModalProps) {
   const isMobile = useIsMobile();
   const [loginEmail, setLoginEmail] = useState('');
   const [loginOtp, setLoginOtp] = useState('');
@@ -16,16 +27,15 @@ export default function LoginModal({ onClose, showToast, isExplicitLoginRef, ini
   const [loginError, setLoginError] = useState(initialError);
   const [loginSuccess, setLoginSuccess] = useState('');
 
-  const loginModalCardRef = useRef(null);
-  const otpTouchWrapRef = useRef(null);
+  const otpTouchWrapRef = useRef<HTMLDivElement>(null);
   // iOS 代理 input：在用户手势中同步 focus，保持键盘弹起状态
-  const proxyInputRef = useRef(null);
+  const proxyInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSendOtp = async (e) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     setLoginSuccess('');
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabase) {
       showToast('未配置 Supabase，无法登录', 'error');
       return;
     }
@@ -54,7 +64,7 @@ export default function LoginModal({ onClose, showToast, isExplicitLoginRef, ini
       });
       if (error) throw error;
       setLoginSuccess('验证码已发送，请查收邮箱输入验证码完成注册/登录');
-    } catch (err) {
+    } catch (err: any) {
       if (err.message?.includes('rate limit')) {
         setLoginError('请求过于频繁，请稍后再试');
       } else if (err.message?.includes('network')) {
@@ -77,7 +87,7 @@ export default function LoginModal({ onClose, showToast, isExplicitLoginRef, ini
       setLoginError('请输入邮箱中的验证码');
       return;
     }
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabase) {
       showToast('未配置 Supabase，无法登录', 'error');
       return;
     }
@@ -93,7 +103,7 @@ export default function LoginModal({ onClose, showToast, isExplicitLoginRef, ini
       if (data?.user) {
         onClose();
       }
-    } catch (err) {
+    } catch (err: any) {
       setLoginError(err.message || '验证失败，请检查验证码或稍后再试');
       if (isExplicitLoginRef) isExplicitLoginRef.current = false;
     }
@@ -102,7 +112,7 @@ export default function LoginModal({ onClose, showToast, isExplicitLoginRef, ini
 
   const handleGithubLogin = async () => {
     setLoginError('');
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabase) {
       showToast('未配置 Supabase，无法登录', 'error');
       return;
     }
@@ -116,7 +126,7 @@ export default function LoginModal({ onClose, showToast, isExplicitLoginRef, ini
         }
       });
       if (error) throw error;
-    } catch (err) {
+    } catch (err: any) {
       setLoginError(err.message || 'GitHub 登录失败，请稍后再试');
       if (isExplicitLoginRef) isExplicitLoginRef.current = false;
       setLoginLoading(false);
@@ -143,7 +153,6 @@ export default function LoginModal({ onClose, showToast, isExplicitLoginRef, ini
   useLayoutEffect(() => {
     if (!loginSuccess || !isMobile) return;
     const run = () => focusOtpInput();
-    // 立即执行一次 + rAF + setTimeout 多重尝试，确保 OTP input 已渲染
     run();
     const t = requestAnimationFrame(run);
     const t2 = window.setTimeout(run, 50);
@@ -173,32 +182,31 @@ export default function LoginModal({ onClose, showToast, isExplicitLoginRef, ini
           pointerEvents: 'none'
         }}
       />
-      <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="登录" onClick={onClose}>
-        <div ref={loginModalCardRef} className="glass card modal login-modal" onClick={(e) => e.stopPropagation()}>
-          <div className="title" style={{ marginBottom: 16 }}>
-            <MailIcon width="20" height="20" />
-            <span>邮箱登录</span>
-            <span className="muted">使用邮箱验证登录</span>
-          </div>
+      <Dialog open onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="glass card modal max-w-[420px] w-[90vw] z-[99] p-5" overlayClassName="modal-overlay">
+          <DialogTitle asChild>
+            <div className="title flex items-center gap-2 mb-4">
+              <Mail className="w-5 h-5 text-primary" />
+              <span className="font-semibold text-base text-foreground">邮箱登录</span>
+              <span className="text-xs text-[var(--muted)] ml-auto">使用邮箱验证登录</span>
+            </div>
+          </DialogTitle>
 
-          <form onSubmit={handleSendOtp}>
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
-                请输入邮箱，我们将发送验证码到您的邮箱
-              </div>
-              <input
-                style={{ width: '100%' }}
-                className="input text-[16PX] md:text-sm"
+          <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
+            <div className="space-y-1.5 text-left">
+              <div className="text-xs text-[var(--muted)]">请输入邮箱，我们将发送验证码到您的邮箱</div>
+              <Input
                 type="email"
                 placeholder="your@email.com"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                disabled={loginLoading || !!loginSuccess}
+                disabled={loginLoading || Boolean(loginSuccess)}
+                className="w-full h-9 bg-black/20 text-[16PX] md:text-sm"
               />
             </div>
 
             {loginSuccess && (
-              <div className="login-message success" style={{ marginBottom: 12 }}>
+              <div className="p-2.5 rounded-lg bg-[var(--success)]/10 text-[var(--success)] text-xs border border-[var(--success)]/20 leading-relaxed">
                 <span>{loginSuccess}</span>
               </div>
             )}
@@ -206,109 +214,81 @@ export default function LoginModal({ onClose, showToast, isExplicitLoginRef, ini
             {loginSuccess && (
               <div
                 ref={otpTouchWrapRef}
-                className="form-group"
-                style={{ marginBottom: 16, touchAction: 'manipulation' }}
+                className="space-y-2 text-left"
+                style={{ touchAction: 'manipulation' }}
                 onPointerDownCapture={isMobile ? () => focusOtpInput() : undefined}
               >
-                <div className="muted" style={{ marginBottom: 8, fontSize: '0.8rem' }}>
-                  请输入邮箱验证码以完成注册/登录
+                <div className="text-xs text-[var(--muted)]">请输入邮箱验证码以完成注册/登录</div>
+                <div className="flex justify-center py-1">
+                  <InputOTP
+                    maxLength={6}
+                    value={loginOtp}
+                    onChange={(value) => setLoginOtp(value)}
+                    disabled={loginLoading}
+                    autoFocus={Boolean(isMobile)}
+                    autoComplete="one-time-code"
+                    type={isMobile ? 'tel' : 'text'}
+                    enterKeyHint="done"
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
                 </div>
-                <InputOTP
-                  maxLength={6}
-                  value={loginOtp}
-                  onChange={(value) => setLoginOtp(value)}
-                  disabled={loginLoading}
-                  autoFocus={!!isMobile}
-                  autoComplete="one-time-code"
-                  type={isMobile ? 'tel' : 'text'}
-                  enterKeyHint="done"
-                >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
               </div>
             )}
+
             {loginError && (
-              <div className="login-message error" style={{ marginBottom: 12 }}>
+              <div className="p-2.5 rounded-lg bg-[var(--danger)]/10 text-[var(--danger)] text-xs border border-[var(--danger)]/20 leading-relaxed">
                 <span>{loginError}</span>
               </div>
             )}
-            <div className="row" style={{ justifyContent: 'flex-end', gap: 12 }}>
-              <button type="button" className="button secondary" onClick={onClose}>
+
+            <div className="flex items-center justify-end gap-3 mt-2">
+              <Button type="button" variant="outline" className="h-9 px-4 text-xs bg-white/5" onClick={onClose}>
                 取消
-              </button>
-              <button
-                className="button"
+              </Button>
+              <Button
                 type={loginSuccess ? 'button' : 'submit'}
                 onClick={loginSuccess ? handleVerifyEmailOtp : undefined}
-                disabled={loginLoading || (loginSuccess && !loginOtp)}
+                disabled={loginLoading || Boolean(loginSuccess && !loginOtp)}
+                className="h-9 px-4 text-xs font-medium gap-1"
               >
-                {loginLoading ? '处理中...' : loginSuccess ? '确认验证码' : '发送邮箱验证码'}
-              </button>
+                {loginLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>{loginLoading ? '处理中...' : loginSuccess ? '确认验证码' : '发送邮箱验证码'}</span>
+              </Button>
             </div>
           </form>
 
           {!loginSuccess && process.env.NEXT_PUBLIC_IS_GITHUB_LOGIN === 'true' && (
             <>
-              <div
-                className="login-divider"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  margin: '20px 0',
-                  gap: 12
-                }}
-              >
-                <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-                <span className="muted" style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
-                  或使用
-                </span>
-                <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+              <div className="flex items-center my-4 gap-3">
+                <div className="flex-1 h-px bg-[var(--border)]" />
+                <span className="text-xs text-[var(--muted)] whitespace-nowrap">或使用</span>
+                <div className="flex-1 h-px bg-[var(--border)]" />
               </div>
 
-              <button
+              <Button
                 type="button"
-                className="github-login-btn"
+                variant="outline"
                 onClick={handleGithubLogin}
                 disabled={loginLoading}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 10,
-                  padding: '12px 16px',
-                  border: '1px solid var(--border)',
-                  borderRadius: 8,
-                  background: 'var(--bg)',
-                  color: 'var(--text)',
-                  cursor: loginLoading ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  opacity: loginLoading ? 0.6 : 1,
-                  transition: 'all 0.2s ease'
-                }}
+                className="w-full h-10 flex items-center justify-center gap-2.5 bg-background text-sm font-medium border-[var(--border)]"
               >
-                <span className="github-icon-wrap">
-                  <Image
-                    unoptimized
-                    alt="项目Github地址"
-                    src={githubImg}
-                    style={{ width: '24px', height: '24px', cursor: 'pointer' }}
-                  />
+                <span className="shrink-0 flex items-center">
+                  <Image unoptimized alt="GitHub" src={githubImg} width={20} height={20} />
                 </span>
                 <span>使用 GitHub 登录</span>
-              </button>
+              </Button>
             </>
           )}
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
