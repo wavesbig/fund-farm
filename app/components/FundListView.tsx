@@ -7,10 +7,6 @@ import PcFundTable from './PcFundTable';
 import MobileFundTable from './MobileFundTable';
 import FundCard from './FundCard';
 
-const TablePc = PcFundTable as React.ComponentType<any>;
-const TableMobile = MobileFundTable as React.ComponentType<any>;
-const CardFund = FundCard as React.ComponentType<any>;
-
 export interface FundListViewProps {
   viewMode: 'list' | 'card' | string;
   isMobile: boolean;
@@ -21,17 +17,17 @@ export interface FundListViewProps {
   userId?: string;
   currentTab: string;
   groups: any[];
-  favorites: string[];
+  favorites: any;
   sortBy: string;
   sortOrder: 'asc' | 'desc';
   sortRules: any[];
   setSortBy: (sortBy: string) => void;
   setSortOrder: React.Dispatch<React.SetStateAction<'asc' | 'desc'>>;
   startTransition: (fn: () => void) => void;
-  handleReorder: (newList: any[]) => void;
+  handleReorder: (oldIndex: number, newIndex: number) => void;
   handleRemoveFundEntry: (fund: any) => void;
   removeFundsFromCurrentTabHandler: (funds: any[]) => void;
-  handleMoveFunds: (funds: any[], targetGroupId: string) => void;
+  handleMoveFunds: (payload: any) => Promise<any> | void;
   pcBatchClearSelectionRef?: React.MutableRefObject<any>;
   handleToggleFavoriteRow: (code: string) => void;
   handleHoldingAmountClickRow: (row: any) => void;
@@ -159,7 +155,7 @@ const FundListView = React.memo(function FundListView({
         >
           {/* PC 列表：使用 PcFundTable + 右侧冻结操作列 */}
           {viewMode === 'list' && !isMobile && (
-            <TablePc
+            <PcFundTable
               stickyTop={navbarHeight + filterBarHeight}
               data={pcFundTableData}
               relatedSectorSessionKey={userId ?? ''}
@@ -198,7 +194,7 @@ const FundListView = React.memo(function FundListView({
 
           {/* 移动端列表：使用 MobileFundTable */}
           {viewMode === 'list' && isMobile && (
-            <TableMobile
+            <MobileFundTable
               data={pcFundTableData}
               relatedSectorSessionKey={userId ?? ''}
               currentTab={currentTab}
@@ -250,7 +246,7 @@ const FundListView = React.memo(function FundListView({
                   transition={{ duration: 0.15 }}
                   style={{ position: 'relative', overflow: 'hidden' }}
                 >
-                  <CardFund
+                  <FundCard
                     fundCode={f.code}
                     isHoldingLinked={
                       (currentTab === 'all' || currentTab === 'fav') && linkedHoldingsForAllFav.linked?.has?.(f?.code)

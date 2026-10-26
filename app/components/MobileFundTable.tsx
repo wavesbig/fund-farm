@@ -16,7 +16,14 @@ import ReactDOM from 'react-dom';
 import { toast as sonnerToast } from 'sonner';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useModalStore } from '../stores';
-import { flexRender, getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table';
+import {
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+  type ColumnDef,
+  type Row
+} from '@tanstack/react-table';
 import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -356,6 +363,30 @@ function SortableRow({ row, children, disabled }) {
   );
 }
 
+interface MemoizedMobileTableRowProps {
+  row: Row<any>;
+  index: number;
+  sortBy: string;
+  isEditMode: boolean;
+  mobileGridLayout: { gridTemplateColumns?: string; minWidth?: number };
+  isFavorites?: boolean;
+  isSelected?: boolean;
+  masked?: boolean;
+  periodReturns?: any;
+  relatedSector?: any;
+  sectorQuote?: any;
+  fundExtraData?: any;
+  tableColumnOrder: string[];
+  tableColumnVisibility: Record<string, boolean>;
+  getPinClass: (columnId: string, isHeader: boolean) => string;
+  getAlignClass: (columnId: string) => string;
+  LAST_COLUMN_EXTRA: number;
+  editLongPressRef: React.MutableRefObject<any>;
+  clearEditLongPressTimer: () => void;
+  setIsEditMode: (val: boolean) => void;
+  setEditSelectedCodes: React.Dispatch<React.SetStateAction<Set<string>>>;
+}
+
 const MemoizedMobileTableRow = memo(
   ({
     row,
@@ -379,7 +410,7 @@ const MemoizedMobileTableRow = memo(
     clearEditLongPressTimer,
     setIsEditMode,
     setEditSelectedCodes
-  }) => {
+  }: MemoizedMobileTableRowProps) => {
     return (
       <SortableRow row={row} disabled={sortBy !== 'default' || !isEditMode}>
         {() => (
@@ -434,9 +465,9 @@ const MemoizedMobileTableRow = memo(
               const columnId = cell.column.id;
               const pinClass = getPinClass(columnId, false);
               const alignClass = getAlignClass(columnId);
-              const cellClassName = cell.column.columnDef.meta?.cellClassName || '';
+              const cellClassName = (cell.column.columnDef.meta as any)?.cellClassName || '';
               const isLastColumn = cellIndex === row.getVisibleCells().length - 1;
-              const style = isLastColumn ? { paddingRight: LAST_COLUMN_EXTRA } : {};
+              const style: React.CSSProperties = isLastColumn ? { paddingRight: LAST_COLUMN_EXTRA } : {};
               if (cellIndex === 0) {
                 if (index % 2 !== 0) {
                   style.background = 'var(--table-row-alt-bg)';
@@ -460,7 +491,7 @@ const MemoizedMobileTableRow = memo(
       </SortableRow>
     );
   },
-  (prevProps, nextProps) => {
+  (prevProps: MemoizedMobileTableRowProps, nextProps: MemoizedMobileTableRowProps) => {
     return (
       prevProps.index === nextProps.index &&
       prevProps.sortBy === nextProps.sortBy &&
@@ -505,6 +536,35 @@ MemoizedMobileTableRow.displayName = 'MemoizedMobileTableRow';
  * @param {(open: boolean) => void} [props.onMobileSettingModalOpenChange] - 移动端表格「个性化设置」弹框打开/关闭时通知父级（用于隐藏底栏等）
  * @param {(row: any) => void} [props.onFundTagsClick] - 点击标签列时打开编辑标签
  */
+export interface MobileFundTableProps {
+  data?: any[];
+  onRemoveFund?: (fund: any) => void;
+  currentTab?: string;
+  groups?: any[];
+  onMoveFunds?: (payload: any) => Promise<any> | void;
+  favorites?: Set<string>;
+  onToggleFavorite?: (code: string) => void;
+  onHoldingAmountClick?: (row: any, meta: { hasHolding: boolean }) => void;
+  onHoldingProfitClick?: (row: any) => void;
+  sortBy?: string;
+  sortOrder?: string;
+  sortRules?: any[];
+  onSortChange?: (field: string) => void;
+  onReorder?: (oldIndex: number, newIndex: number) => void;
+  onCustomSettingsChange?: () => void;
+  stickyTop?: number;
+  getFundCardProps?: (row: any) => any;
+  closeDrawerRef?: React.MutableRefObject<any>;
+  masked?: boolean;
+  relatedSectorSessionKey?: string;
+  onRemoveFunds?: (codes: string[]) => boolean | void;
+  batchSelectionClearRef?: React.MutableRefObject<(() => void) | null>;
+  onFundCardDrawerOpenChange?: (open: boolean) => void;
+  onMobileSettingModalOpenChange?: (open: boolean) => void;
+  onFundTagsClick?: (row: any) => void;
+  fundExtraDataByCode?: Record<string, any>;
+}
+
 const MobileFundTable = memo(function MobileFundTable({
   data = [],
   onRemoveFund,
@@ -532,7 +592,7 @@ const MobileFundTable = memo(function MobileFundTable({
   onMobileSettingModalOpenChange,
   onFundTagsClick,
   fundExtraDataByCode = {}
-}) {
+}: MobileFundTableProps) {
   // 从 Zustand 读取删除确认弹框状态，避免 page.jsx 订阅导致全量重渲染
   const fundDeleteConfirm = useModalStore((s) => s.fundDeleteConfirm);
   const fundDeleteBulkConfirm = useModalStore((s) => s.fundDeleteBulkConfirm);
@@ -557,7 +617,7 @@ const MobileFundTable = memo(function MobileFundTable({
   }, [currentTab, sortBy, sortOrder]);
 
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editSelectedCodes, setEditSelectedCodes] = useState(() => new Set());
+  const [editSelectedCodes, setEditSelectedCodes] = useState<Set<string>>(() => new Set<string>());
   const [moveGroupOpen, setMoveGroupOpen] = useState(false);
 
   const editLongPressRef = useRef({ timer: null, startX: 0, startY: 0 });
@@ -577,7 +637,7 @@ const MobileFundTable = memo(function MobileFundTable({
   );
   const batchSelectableCount = batchSelectableCodes.length;
 
-  const editSelectedCodesList = useMemo(() => Array.from(editSelectedCodes || []), [editSelectedCodes]);
+  const editSelectedCodesList = useMemo<string[]>(() => Array.from(editSelectedCodes || []), [editSelectedCodes]);
 
   const clearEditLongPressTimer = useCallback(() => {
     if (editLongPressRef.current.timer) {
@@ -602,7 +662,7 @@ const MobileFundTable = memo(function MobileFundTable({
   }, [batchSelectionClearRef, exitEditMode]);
 
   useEffect(() => {
-    setEditSelectedCodes(new Set());
+    setEditSelectedCodes(new Set<string>());
   }, [currentTab]);
 
   useEffect(() => {
@@ -610,7 +670,7 @@ const MobileFundTable = memo(function MobileFundTable({
       if (!prev?.size) return prev;
       const allowed = new Set(selectableCodes);
       let changed = false;
-      const next = new Set();
+      const next = new Set<string>();
       for (const c of prev) {
         if (allowed.has(c)) next.add(c);
         else changed = true;
@@ -707,7 +767,7 @@ const MobileFundTable = memo(function MobileFundTable({
   const getCustomSettingsWithMigration = () => {
     if (typeof window === 'undefined') return {};
     try {
-      const parsed = storageStore.getItem('customSettings') || {};
+      const parsed: Record<string, any> = storageStore.getItem('customSettings') || {};
       if (!parsed || !isObject(parsed)) return {};
       if (
         parsed.pcTableColumnOrder != null ||
@@ -739,11 +799,11 @@ const MobileFundTable = memo(function MobileFundTable({
   };
 
   const getInitialMobileConfigByGroup = () => {
-    const parsed = getCustomSettingsWithMigration();
-    const byGroup = {};
+    const parsed: Record<string, any> = getCustomSettingsWithMigration();
+    const byGroup: Record<string, any> = {};
     Object.keys(parsed).forEach((k) => {
       if (k === 'pcContainerWidth') return;
-      const group = parsed[k];
+      const group: Record<string, any> = parsed[k];
       if (!group || !isObject(group)) return;
       const order =
         isArray(group.mobileTableColumnOrder) && group.mobileTableColumnOrder.length > 0
@@ -756,7 +816,7 @@ const MobileFundTable = memo(function MobileFundTable({
       byGroup[k] = {
         mobileTableColumnOrder: order
           ? (() => {
-              const valid = order.filter((id) => MOBILE_NON_FROZEN_COLUMN_IDS.includes(id));
+              const valid = order.filter((id: string) => MOBILE_NON_FROZEN_COLUMN_IDS.includes(id));
               const missing = MOBILE_NON_FROZEN_COLUMN_IDS.filter((id) => !valid.includes(id));
               return [...valid, ...missing];
             })()
@@ -768,13 +828,13 @@ const MobileFundTable = memo(function MobileFundTable({
     return byGroup;
   };
 
-  const [configByGroup, setConfigByGroup] = useState(getInitialMobileConfigByGroup);
+  const [configByGroup, setConfigByGroup] = useState<Record<string, any>>(getInitialMobileConfigByGroup);
 
   const currentGroupMobile = configByGroup[groupKey];
   const showFullFundName = currentGroupMobile?.mobileShowFullFundName ?? false;
   const defaultOrder = [...MOBILE_NON_FROZEN_COLUMN_IDS];
-  const defaultVisibility = (() => {
-    const o = {};
+  const defaultVisibility: Record<string, boolean> = (() => {
+    const o: Record<string, boolean> = {};
     MOBILE_NON_FROZEN_COLUMN_IDS.forEach((id) => {
       o[id] = MOBILE_COLUMNS_DEFAULT_HIDDEN_IF_PERSONALIZED.has(id) ? false : true;
     });
@@ -784,14 +844,14 @@ const MobileFundTable = memo(function MobileFundTable({
   const mobileColumnOrder = (() => {
     const order = currentGroupMobile?.mobileTableColumnOrder ?? defaultOrder;
     if (!isArray(order) || order.length === 0) return [...MOBILE_NON_FROZEN_COLUMN_IDS];
-    const valid = order.filter((id) => MOBILE_NON_FROZEN_COLUMN_IDS.includes(id));
+    const valid = order.filter((id: string) => MOBILE_NON_FROZEN_COLUMN_IDS.includes(id));
     const missing = MOBILE_NON_FROZEN_COLUMN_IDS.filter((id) => !valid.includes(id));
     return [...valid, ...missing];
   })();
-  const mobileColumnVisibility = (() => {
+  const mobileColumnVisibility: Record<string, boolean> = (() => {
     const vis = currentGroupMobile?.mobileTableColumnVisibility ?? null;
     if (vis && isObject(vis) && Object.keys(vis).length > 0) {
-      const next = { ...vis };
+      const next: Record<string, boolean> = { ...vis };
       MOBILE_NON_FROZEN_COLUMN_IDS.forEach((id) => {
         if (next[id] === undefined) {
           next[id] = MOBILE_COLUMNS_DEFAULT_HIDDEN_IF_PERSONALIZED.has(id) ? false : true;
@@ -804,11 +864,11 @@ const MobileFundTable = memo(function MobileFundTable({
   const dataSourceEnabled = !isEditMode && mobileColumnVisibility?.dataSource !== false;
   const dataSourceAccuracyLabels = useDataSourceAccuracyLabels(data, dataSourceEnabled);
 
-  const persistMobileGroupConfig = (updates) => {
+  const persistMobileGroupConfig = (updates: any) => {
     if (typeof window === 'undefined') return;
     try {
-      const parsed = storageStore.getItem('customSettings') || {};
-      const group = parsed[groupKey] && isObject(parsed[groupKey]) ? { ...parsed[groupKey] } : {};
+      const parsed: Record<string, any> = storageStore.getItem('customSettings') || {};
+      const group: Record<string, any> = parsed[groupKey] && isObject(parsed[groupKey]) ? { ...parsed[groupKey] } : {};
       if (updates.mobileTableColumnOrder !== undefined) group.mobileTableColumnOrder = updates.mobileTableColumnOrder;
       if (updates.mobileTableColumnVisibility !== undefined)
         group.mobileTableColumnVisibility = updates.mobileTableColumnVisibility;
@@ -819,20 +879,20 @@ const MobileFundTable = memo(function MobileFundTable({
     } catch {}
   };
 
-  const setMobileColumnOrder = (nextOrderOrUpdater) => {
+  const setMobileColumnOrder = (nextOrderOrUpdater: any) => {
     const next = isFunction(nextOrderOrUpdater) ? nextOrderOrUpdater(mobileColumnOrder) : nextOrderOrUpdater;
     persistMobileGroupConfig({ mobileTableColumnOrder: next });
   };
-  const setMobileColumnVisibility = (nextOrUpdater) => {
+  const setMobileColumnVisibility = (nextOrUpdater: any) => {
     const next = isFunction(nextOrUpdater) ? nextOrUpdater(mobileColumnVisibility) : nextOrUpdater;
     persistMobileGroupConfig({ mobileTableColumnVisibility: next });
   };
 
-  const persistShowFullFundName = (show) => {
+  const persistShowFullFundName = (show: boolean) => {
     if (typeof window === 'undefined') return;
     try {
-      const parsed = storageStore.getItem('customSettings') || {};
-      const group = parsed[groupKey] && isObject(parsed[groupKey]) ? { ...parsed[groupKey] } : {};
+      const parsed: Record<string, any> = storageStore.getItem('customSettings') || {};
+      const group: Record<string, any> = parsed[groupKey] && isObject(parsed[groupKey]) ? { ...parsed[groupKey] } : {};
       group.mobileShowFullFundName = show;
       parsed[groupKey] = group;
       storageStore.setItem('customSettings', JSON.stringify(parsed));
@@ -851,13 +911,13 @@ const MobileFundTable = memo(function MobileFundTable({
   const handleSyncMobileSettings = (targetIds = []) => {
     if (!targetIds.length || typeof window === 'undefined') return false;
     try {
-      const parsed = storageStore.getItem('customSettings') || {};
+      const parsed: Record<string, any> = storageStore.getItem('customSettings') || {};
       const payload = {
         mobileTableColumnOrder: [...mobileColumnOrder],
         mobileTableColumnVisibility: { ...mobileColumnVisibility },
         mobileShowFullFundName: !!showFullFundName
       };
-      const targetUpdates = {};
+      const targetUpdates: Record<string, any> = {};
       targetIds.forEach((targetId) => {
         if (!targetId || targetId === groupKey) return;
         const group = parsed[targetId] && isObject(parsed[targetId]) ? { ...parsed[targetId] } : {};
@@ -870,7 +930,7 @@ const MobileFundTable = memo(function MobileFundTable({
       setConfigByGroup((prev) => {
         const next = { ...prev };
         Object.entries(targetUpdates).forEach(([targetId, updates]) => {
-          next[targetId] = { ...next[targetId], ...updates };
+          next[targetId] = { ...(next[targetId] || {}), ...(updates as object) };
         });
         return next;
       });
@@ -941,13 +1001,13 @@ const MobileFundTable = memo(function MobileFundTable({
     if (typeof window === 'undefined') return;
     const getEffectiveStickyTop = () => {
       const stickySummaryCard = document.querySelector('.group-summary-sticky .group-summary-card');
-      const marketIndexEl = document.querySelector('.market-index-accordion-root');
+      const marketIndexEl = document.querySelector<HTMLElement>('.market-index-accordion-root');
       const currentMarketIndexHeight = marketIndexEl ? marketIndexEl.offsetHeight : 0;
       const baseStickyTop = stickyTop + currentMarketIndexHeight;
 
       if (!stickySummaryCard) return baseStickyTop;
 
-      const stickySummaryWrapper = stickySummaryCard.closest('.group-summary-sticky');
+      const stickySummaryWrapper = stickySummaryCard.closest<HTMLElement>('.group-summary-sticky');
       if (!stickySummaryWrapper) return baseStickyTop;
 
       const wrapperRect = stickySummaryWrapper.getBoundingClientRect();
@@ -1139,8 +1199,8 @@ const MobileFundTable = memo(function MobileFundTable({
 
   const relatedSectorEnabled = mobileColumnVisibility?.relatedSector !== false;
   const relatedSectorCacheRef = useRef(new Map());
-  const [relatedSectorByCode, setRelatedSectorByCode] = useState({});
-  const [sectorQuoteByLabel, setSectorQuoteByLabel] = useState({});
+  const [relatedSectorByCode, setRelatedSectorByCode] = useState<Record<string, string>>({});
+  const [sectorQuoteByLabel, setSectorQuoteByLabel] = useState<Record<string, any>>({});
 
   const sectorAuthSegment = relatedSectorSessionKey || 'anon';
 
@@ -1173,7 +1233,7 @@ const MobileFundTable = memo(function MobileFundTable({
           const next = { ...prev };
           for (const [code, value] of Object.entries(batchResults)) {
             if (next[code] === value) continue;
-            next[code] = value;
+            next[code] = String(value ?? '');
             changed = true;
           }
           return changed ? next : prev;
@@ -1192,28 +1252,28 @@ const MobileFundTable = memo(function MobileFundTable({
     if (!relatedSectorEnabled) return;
     if (!isArray(data) || data.length === 0) return;
 
-    const labels = new Set();
+    const labels = new Set<string>();
     for (const row of data) {
       const code = row?.code;
       const lbl = code && relatedSectorByCode[code];
       const t = lbl != null ? String(lbl).trim() : '';
       if (t) labels.add(t);
     }
-    const labelList = Array.from(labels);
+    const labelList: string[] = Array.from(labels);
     if (labelList.length === 0) return;
 
     let cancelled = false;
     (async () => {
       try {
         // 1. 批量获取 secid
-        const secidResults = await fetchFundSecidsBatch(labelList);
+        const secidResults: Record<string, string> = await fetchFundSecidsBatch(labelList);
         if (cancelled) return;
 
         // 2. 批量获取行情
         const secids = labelList.map((label) => secidResults[label]).filter(Boolean);
-        const quotes = await fetchEastmoneySectorQuotesBatch(secids);
+        const quotes: Record<string, any> = await fetchEastmoneySectorQuotesBatch(secids);
         if (cancelled) return;
-        const batch = {};
+        const batch: Record<string, any> = {};
         for (const label of labelList) {
           const secid = secidResults[label];
           if (!secid) continue;
@@ -1282,14 +1342,14 @@ const MobileFundTable = memo(function MobileFundTable({
     mobileColumnVisibility?.period6m !== false ||
     mobileColumnVisibility?.period1y !== false;
   const periodReturnsCacheRef = useRef(new Map());
-  const [periodReturnsByCode, setPeriodReturnsByCode] = useState({});
+  const [periodReturnsByCode, setPeriodReturnsByCode] = useState<Record<string, any>>({});
 
   useEffect(() => {
     if (!periodReturnsEnabled) return;
     if (!isArray(data) || data.length === 0) return;
 
     const codes = Array.from(new Set(data.map((d) => d?.code).filter(Boolean)));
-    const cachedBatch = {};
+    const cachedBatch: Record<string, any> = {};
     for (const code of codes) {
       if (!periodReturnsCacheRef.current.has(code)) continue;
       cachedBatch[code] = periodReturnsCacheRef.current.get(code);
@@ -1322,7 +1382,7 @@ const MobileFundTable = memo(function MobileFundTable({
 
     let cancelled = false;
     (async () => {
-      const batchResults = {};
+      const batchResults: Record<string, any> = {};
       let updateTimeout = null;
 
       const triggerBatchUpdate = () => {
@@ -1371,12 +1431,12 @@ const MobileFundTable = memo(function MobileFundTable({
     };
   }, [periodReturnsEnabled, data]);
 
-  const columnWidthMap = useMemo(() => {
+  const columnWidthMap: Record<string, number> = useMemo(() => {
     const visibleNonNameIds = mobileColumnOrder.filter((id) => mobileColumnVisibility[id] !== false);
     const nonNameCount = visibleNonNameIds.length;
 
-    const mapWithEditAndData = (fundNameWidth, w) => {
-      const map = {
+    const mapWithEditAndData = (fundNameWidth: number, w: number): Record<string, number> => {
+      const map: Record<string, number> = {
         fundName: fundNameWidth,
         [EDIT_MOVE_TO_FRONT_COL]: w,
         [EDIT_DRAG_COL]: w
@@ -1657,73 +1717,48 @@ const MobileFundTable = memo(function MobileFundTable({
     );
   };
 
-  const columns = useMemo(
-    () => [
-      {
-        accessorKey: 'fundName',
-        header: () => {
-          if (isEditMode) {
-            const allCount = batchSelectableCount;
-            const selectedCount = editSelectedCodes.size;
-            const checked = allCount > 0 && selectedCount === allCount;
-            const indeterminate = selectedCount > 0 && selectedCount < allCount;
+  const columns: ColumnDef<any>[] = useMemo<ColumnDef<any>[]>(
+    () =>
+      [
+        {
+          accessorKey: 'fundName',
+          header: () => {
+            if (isEditMode) {
+              const allCount = batchSelectableCount;
+              const selectedCount = editSelectedCodes.size;
+              const checked = allCount > 0 && selectedCount === allCount;
+              const indeterminate = selectedCount > 0 && selectedCount < allCount;
+              return (
+                <MobileEditBatchHeader
+                  totalCount={allCount}
+                  selectedCount={selectedCount}
+                  checked={checked}
+                  indeterminate={indeterminate}
+                  onToggleAll={setAllEditSelected}
+                  onMove={() => {
+                    if (!onMoveFunds || selectedCount === 0) return;
+                    setMoveGroupOpen(true);
+                  }}
+                  onRemove={() => {
+                    if (!onRemoveFunds || selectedCount === 0) return;
+                    const codes: string[] = Array.from(editSelectedCodes);
+                    const shouldClear = onRemoveFunds(codes);
+                    if (shouldClear !== false) exitEditMode();
+                  }}
+                  onClose={exitEditMode}
+                  hasMoveFunds={!!onMoveFunds}
+                />
+              );
+            }
             return (
-              <MobileEditBatchHeader
-                totalCount={allCount}
-                selectedCount={selectedCount}
-                checked={checked}
-                indeterminate={indeterminate}
-                onToggleAll={setAllEditSelected}
-                onMove={() => {
-                  if (!onMoveFunds || selectedCount === 0) return;
-                  setMoveGroupOpen(true);
-                }}
-                onRemove={() => {
-                  if (!onRemoveFunds || selectedCount === 0) return;
-                  const codes = Array.from(editSelectedCodes);
-                  const shouldClear = onRemoveFunds(codes);
-                  if (shouldClear !== false) exitEditMode();
-                }}
-                onClose={exitEditMode}
-                hasMoveFunds={!!onMoveFunds}
-              />
-            );
-          }
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 6 }}>
-              <button
-                type="button"
-                className="icon-button"
-                onClick={(e) => {
-                  e.stopPropagation?.();
-                  setSettingModalOpen(true);
-                }}
-                style={{
-                  border: 'none',
-                  width: '28px',
-                  height: '28px',
-                  minWidth: '28px',
-                  backgroundColor: 'transparent',
-                  color: 'var(--text)',
-                  flexShrink: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <SettingsIcon width="18" height="18" />
-              </button>
-              {true && (
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 6 }}>
                 <button
                   type="button"
                   className="icon-button"
                   onClick={(e) => {
                     e.stopPropagation?.();
-                    clearEditLongPressTimer();
-                    setIsEditMode(true);
-                    setEditSelectedCodes(new Set());
+                    setSettingModalOpen(true);
                   }}
-                  aria-label="编辑"
                   style={{
                     border: 'none',
                     width: '28px',
@@ -1734,864 +1769,890 @@ const MobileFundTable = memo(function MobileFundTable({
                     flexShrink: 0,
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: 1,
-                    cursor: 'pointer'
+                    justifyContent: 'center'
                   }}
                 >
-                  <PencilIcon width="18" height="18" />
+                  <SettingsIcon width="18" height="18" />
                 </button>
-              )}
-            </div>
-          );
+                {true && (
+                  <button
+                    type="button"
+                    className="icon-button"
+                    onClick={(e) => {
+                      e.stopPropagation?.();
+                      clearEditLongPressTimer();
+                      setIsEditMode(true);
+                      setEditSelectedCodes(new Set());
+                    }}
+                    aria-label="编辑"
+                    style={{
+                      border: 'none',
+                      width: '28px',
+                      height: '28px',
+                      minWidth: '28px',
+                      backgroundColor: 'transparent',
+                      color: 'var(--text)',
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: 1,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <PencilIcon width="18" height="18" />
+                  </button>
+                )}
+              </div>
+            );
+          },
+          cell: (info) => (
+            <MobileFundNameCell
+              info={info}
+              showFullFundName={showFullFundName}
+              onOpenCardSheet={getFundCardProps ? handleOpenCardSheet : undefined}
+            />
+          ),
+          meta: { align: 'left', cellClassName: 'name-cell', width: columnWidthMap.fundName }
         },
-        cell: (info) => (
-          <MobileFundNameCell
-            info={info}
-            showFullFundName={showFullFundName}
-            onOpenCardSheet={getFundCardProps ? handleOpenCardSheet : undefined}
-          />
-        ),
-        meta: { align: 'left', cellClassName: 'name-cell', width: columnWidthMap.fundName }
-      },
-      {
-        id: EDIT_MOVE_TO_FRONT_COL,
-        header: '移到最前',
-        cell: (info) => {
-          const code = info.row.original?.code;
-          const idx = code ? data.findIndex((d) => d.code === code) : -1;
-          const canMove = sortBy === 'default' && idx > 0 && onReorder;
-          return (
+        {
+          id: EDIT_MOVE_TO_FRONT_COL,
+          header: '移到最前',
+          cell: (info) => {
+            const code = info.row.original?.code;
+            const idx = code ? data.findIndex((d) => d.code === code) : -1;
+            const canMove = sortBy === 'default' && idx > 0 && onReorder;
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                <button
+                  type="button"
+                  className="link-button"
+                  disabled={idx <= 0}
+                  aria-label={idx <= 0 ? '已在最前' : '移到最前'}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    padding: '4px 6px',
+                    border: 'none',
+                    background: 'transparent',
+                    color: canMove ? 'var(--primary)' : 'var(--muted)',
+                    cursor: !canMove ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (sortBy !== 'default') {
+                      sonnerToast.warning('拖拽基金顺序需要在默认排序下操作');
+                      return;
+                    }
+                    if (idx <= 0 || !onReorder) return;
+                    onReorder(idx, 0);
+                  }}
+                >
+                  <ArrowUpToLineIcon width={18} height={18} aria-hidden />
+                </button>
+              </div>
+            );
+          },
+          meta: {
+            align: 'center',
+            cellClassName: 'mobile-edit-action-cell',
+            width: columnWidthMap[EDIT_MOVE_TO_FRONT_COL]
+          }
+        },
+        {
+          id: EDIT_DRAG_COL,
+          header: '拖动',
+          cell: () => (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+              <EditDragHandleCell disabled={sortBy !== 'default'} />
+            </div>
+          ),
+          meta: { align: 'center', cellClassName: 'mobile-edit-action-cell', width: columnWidthMap[EDIT_DRAG_COL] }
+        },
+        {
+          id: 'dataSource',
+          header: '数据源',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const autoSource = !!original.rawFund?.autoSource;
+            const dataSource = original.rawFund?.dataSource || 1;
+            const text = autoSource ? `自动源${dataSource}` : `数据源${dataSource}`;
+            const accuracyLabel = dataSourceAccuracyLabels?.[original.rawFund?.code || original.code];
+            return (
+              <div
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-end',
+                  alignItems: 'flex-end',
+                  gap: '4px'
+                }}
+              >
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'font-normal text-[11px] cursor-pointer hover:border-primary/50 transition-colors',
+                    autoSource ? 'border-primary/30 text-primary bg-primary/5' : 'text-muted-foreground border-border'
+                  )}
+                  style={autoSource ? { gap: '2px' } : {}}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    useModalStore.setState({ dataSourceModal: { open: true, fund: original.rawFund } });
+                  }}
+                >
+                  {autoSource && <Sparkles size={10} style={{ opacity: 0.8 }} />}
+                  {text}
+                </Badge>
+                <DataSourceAccuracyBadge label={accuracyLabel} />
+              </div>
+            );
+          },
+          meta: { align: 'right', width: columnWidthMap.dataSource ?? 80 }
+        },
+        {
+          id: 'tags',
+          header: '基金标签',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const list = isArray(original.fundTags) ? original.fundTags : [];
+            const hasTags = list.length > 0;
+            return (
               <button
                 type="button"
-                className="link-button"
-                disabled={idx <= 0}
-                aria-label={idx <= 0 ? '已在最前' : '移到最前'}
+                onClick={(e) => {
+                  e.stopPropagation?.();
+                  onFundTagsClickRef.current?.(original);
+                }}
                 style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  padding: '4px 6px',
+                  width: '100%',
+                  minWidth: 0,
                   border: 'none',
                   background: 'transparent',
-                  color: canMove ? 'var(--primary)' : 'var(--muted)',
-                  cursor: !canMove ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  padding: '2px 0',
+                  cursor: onFundTagsClick ? 'pointer' : 'default',
+                  textAlign: 'left'
                 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (sortBy !== 'default') {
-                    sonnerToast.warning('拖拽基金顺序需要在默认排序下操作');
-                    return;
-                  }
-                  if (idx <= 0 || !onReorder) return;
-                  onReorder(idx, 0);
-                }}
+                disabled={!onFundTagsClick}
               >
-                <ArrowUpToLineIcon width={18} height={18} aria-hidden />
-              </button>
-            </div>
-          );
-        },
-        meta: {
-          align: 'center',
-          cellClassName: 'mobile-edit-action-cell',
-          width: columnWidthMap[EDIT_MOVE_TO_FRONT_COL]
-        }
-      },
-      {
-        id: EDIT_DRAG_COL,
-        header: '拖动',
-        cell: () => (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-            <EditDragHandleCell disabled={sortBy !== 'default'} />
-          </div>
-        ),
-        meta: { align: 'center', cellClassName: 'mobile-edit-action-cell', width: columnWidthMap[EDIT_DRAG_COL] }
-      },
-      {
-        id: 'dataSource',
-        header: '数据源',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const autoSource = !!original.rawFund?.autoSource;
-          const dataSource = original.rawFund?.dataSource || 1;
-          const text = autoSource ? `自动源${dataSource}` : `数据源${dataSource}`;
-          const accuracyLabel = dataSourceAccuracyLabels?.[original.rawFund?.code || original.code];
-          return (
-            <div
-              style={{
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-end',
-                alignItems: 'flex-end',
-                gap: '4px'
-              }}
-            >
-              <Badge
-                variant="outline"
-                className={cn(
-                  'font-normal text-[11px] cursor-pointer hover:border-primary/50 transition-colors',
-                  autoSource ? 'border-primary/30 text-primary bg-primary/5' : 'text-muted-foreground border-border'
+                {hasTags ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 4,
+                      justifyContent: 'flex-end'
+                    }}
+                  >
+                    {list.map((raw, idx) => {
+                      const item =
+                        raw && isObject(raw) && (raw as any).name != null
+                          ? {
+                              name: String((raw as any).name).trim(),
+                              theme: String((raw as any).theme ?? 'default').trim() || 'default'
+                            }
+                          : { name: String(raw).trim(), theme: 'default' };
+                      if (!item.name) return null;
+                      const { variant, className: themeCls } = getTagThemeBadgeProps(item.theme);
+                      return (
+                        <Badge
+                          key={`${item.name}-${idx}`}
+                          variant={variant}
+                          className={cn('text-[11px] font-normal', themeCls)}
+                        >
+                          {item.name}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
+                    —
+                  </div>
                 )}
-                style={autoSource ? { gap: '2px' } : {}}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  useModalStore.setState({ dataSourceModal: { open: true, fund: original.rawFund } });
+              </button>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'tags-cell', width: columnWidthMap.tags ?? 120 }
+        },
+        {
+          id: 'relatedSector',
+          header: '关联板块',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = (code && (relatedSectorByCode?.[code] ?? relatedSectorCacheRef.current.get(code))) || '';
+            const display = value || '—';
+            const labelKey = value ? String(value).trim() : '';
+            const quote = labelKey ? sectorQuoteByLabel?.[labelKey] : null;
+            const nameFromQuote = quote?.name != null ? String(quote.name).trim() : '';
+            const firstLine = nameFromQuote || display;
+            const pct = quote?.pct;
+            const pctText = pct != null ? `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%` : null;
+            const pctCls = pct != null ? (pct > 0 ? 'up' : pct < 0 ? 'down' : '') : '';
+            return (
+              <div
+                style={{
+                  width: '100%',
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'stretch',
+                  gap: 2
                 }}
               >
-                {autoSource && <Sparkles size={10} style={{ opacity: 0.8 }} />}
-                {text}
-              </Badge>
-              <DataSourceAccuracyBadge label={accuracyLabel} />
-            </div>
-          );
-        },
-        meta: { align: 'right', width: columnWidthMap.dataSource ?? 80 }
-      },
-      {
-        id: 'tags',
-        header: '基金标签',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const list = isArray(original.fundTags) ? original.fundTags : [];
-          const hasTags = list.length > 0;
-          return (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation?.();
-                onFundTagsClickRef.current?.(original);
-              }}
-              style={{
-                width: '100%',
-                minWidth: 0,
-                border: 'none',
-                background: 'transparent',
-                padding: '2px 0',
-                cursor: onFundTagsClick ? 'pointer' : 'default',
-                textAlign: 'left'
-              }}
-              disabled={!onFundTagsClick}
-            >
-              {hasTags ? (
-                <div
+                {pctText != null ? (
+                  <div
+                    className={pctCls}
+                    style={{
+                      fontWeight: 700,
+                      textAlign: 'right',
+                      fontSize: 'clamp(9px, 2.5vw, 12px)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {pctText}
+                  </div>
+                ) : null}
+                <span
                   style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 4,
-                    justifyContent: 'flex-end'
+                    display: 'block',
+                    width: '100%',
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'right',
+                    fontSize: pctText != null ? '10px' : '12px'
                   }}
                 >
-                  {list.map((raw, idx) => {
-                    const item =
-                      raw && isObject(raw) && raw.name != null
-                        ? {
-                            name: String(raw.name).trim(),
-                            theme: String(raw.theme ?? 'default').trim() || 'default'
-                          }
-                        : { name: String(raw).trim(), theme: 'default' };
-                    if (!item.name) return null;
-                    const { variant, className: themeCls } = getTagThemeBadgeProps(item.theme);
-                    return (
-                      <Badge
-                        key={`${item.name}-${idx}`}
-                        variant={variant}
-                        className={cn('text-[11px] font-normal', themeCls)}
-                      >
-                        {item.name}
-                      </Badge>
-                    );
-                  })}
-                </div>
-              ) : (
+                  {firstLine}
+                </span>
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'related-sector-cell', width: columnWidthMap.relatedSector ?? 120 }
+        },
+        {
+          id: 'period1w',
+          header: '近1周',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = code ? periodReturnsByCode[code]?.week : null;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
+            return (
+              <div
+                className={cls}
+                style={{
+                  fontWeight: 700,
+                  textAlign: 'right',
+                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {text}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'period-return-cell', width: columnWidthMap.period1w ?? 72 }
+        },
+        {
+          id: 'period1m',
+          header: '近1月',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = code ? periodReturnsByCode[code]?.month : null;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
+            return (
+              <div
+                className={cls}
+                style={{
+                  fontWeight: 700,
+                  textAlign: 'right',
+                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {text}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'period-return-cell', width: columnWidthMap.period1m ?? 72 }
+        },
+        {
+          id: 'period3m',
+          header: '近3月',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = code ? periodReturnsByCode[code]?.month3 : null;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
+            return (
+              <div
+                className={cls}
+                style={{
+                  fontWeight: 700,
+                  textAlign: 'right',
+                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {text}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'period-return-cell', width: columnWidthMap.period3m ?? 72 }
+        },
+        {
+          id: 'period6m',
+          header: '近6月',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = code ? periodReturnsByCode[code]?.month6 : null;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
+            return (
+              <div
+                className={cls}
+                style={{
+                  fontWeight: 700,
+                  textAlign: 'right',
+                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {text}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'period-return-cell', width: columnWidthMap.period6m ?? 72 }
+        },
+        {
+          id: 'period1y',
+          header: '近1年',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = code ? periodReturnsByCode[code]?.year1 : null;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
+            return (
+              <div
+                className={cls}
+                style={{
+                  fontWeight: 700,
+                  textAlign: 'right',
+                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {text}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'period-return-cell', width: columnWidthMap.period1y ?? 72 }
+        },
+        {
+          id: 'holdingRatio',
+          header: '持仓占比',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.holdingRatioValue;
+            if (value == null) {
+              return (
                 <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
                   —
                 </div>
-              )}
-            </button>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'tags-cell', width: columnWidthMap.tags ?? 120 }
-      },
-      {
-        id: 'relatedSector',
-        header: '关联板块',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = (code && (relatedSectorByCode?.[code] ?? relatedSectorCacheRef.current.get(code))) || '';
-          const display = value || '—';
-          const labelKey = value ? String(value).trim() : '';
-          const quote = labelKey ? sectorQuoteByLabel?.[labelKey] : null;
-          const nameFromQuote = quote?.name != null ? String(quote.name).trim() : '';
-          const firstLine = nameFromQuote || display;
-          const pct = quote?.pct;
-          const pctText = pct != null ? `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%` : null;
-          const pctCls = pct != null ? (pct > 0 ? 'up' : pct < 0 ? 'down' : '') : '';
-          return (
-            <div
-              style={{
-                width: '100%',
-                minWidth: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'stretch',
-                gap: 2
-              }}
-            >
-              {pctText != null ? (
-                <div
-                  className={pctCls}
-                  style={{
-                    fontWeight: 700,
-                    textAlign: 'right',
-                    fontSize: 'clamp(9px, 2.5vw, 12px)',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {pctText}
-                </div>
-              ) : null}
+              );
+            }
+            const text = `${(value * 100).toFixed(2)}%`;
+            return (
               <span
                 style={{
-                  display: 'block',
-                  width: '100%',
-                  minWidth: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                  fontWeight: 700,
                   textAlign: 'right',
-                  fontSize: pctText != null ? '10px' : '12px'
+                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  display: 'block',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
                 }}
               >
-                {firstLine}
+                {masked ? <span className="mask-text">******</span> : text}
               </span>
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'related-sector-cell', width: columnWidthMap.relatedSector ?? 120 }
-      },
-      {
-        id: 'period1w',
-        header: '近1周',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = code ? periodReturnsByCode[code]?.week : null;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
-          return (
-            <div
-              className={cls}
-              style={{
-                fontWeight: 700,
-                textAlign: 'right',
-                fontSize: 'clamp(10px, 3vw, 14px)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {text}
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'period-return-cell', width: columnWidthMap.period1w ?? 72 }
-      },
-      {
-        id: 'period1m',
-        header: '近1月',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = code ? periodReturnsByCode[code]?.month : null;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
-          return (
-            <div
-              className={cls}
-              style={{
-                fontWeight: 700,
-                textAlign: 'right',
-                fontSize: 'clamp(10px, 3vw, 14px)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {text}
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'period-return-cell', width: columnWidthMap.period1m ?? 72 }
-      },
-      {
-        id: 'period3m',
-        header: '近3月',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = code ? periodReturnsByCode[code]?.month3 : null;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
-          return (
-            <div
-              className={cls}
-              style={{
-                fontWeight: 700,
-                textAlign: 'right',
-                fontSize: 'clamp(10px, 3vw, 14px)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {text}
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'period-return-cell', width: columnWidthMap.period3m ?? 72 }
-      },
-      {
-        id: 'period6m',
-        header: '近6月',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = code ? periodReturnsByCode[code]?.month6 : null;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
-          return (
-            <div
-              className={cls}
-              style={{
-                fontWeight: 700,
-                textAlign: 'right',
-                fontSize: 'clamp(10px, 3vw, 14px)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {text}
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'period-return-cell', width: columnWidthMap.period6m ?? 72 }
-      },
-      {
-        id: 'period1y',
-        header: '近1年',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = code ? periodReturnsByCode[code]?.year1 : null;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
-          return (
-            <div
-              className={cls}
-              style={{
-                fontWeight: 700,
-                textAlign: 'right',
-                fontSize: 'clamp(10px, 3vw, 14px)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {text}
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'period-return-cell', width: columnWidthMap.period1y ?? 72 }
-      },
-      {
-        id: 'holdingRatio',
-        header: '持仓占比',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.holdingRatioValue;
-          if (value == null) {
-            return (
-              <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
-                —
-              </div>
             );
-          }
-          const text = `${(value * 100).toFixed(2)}%`;
-          return (
-            <span
-              style={{
-                fontWeight: 700,
-                textAlign: 'right',
-                fontSize: 'clamp(10px, 3vw, 14px)',
-                display: 'block',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {masked ? <span className="mask-text">******</span> : text}
-            </span>
-          );
+          },
+          meta: { align: 'right', cellClassName: 'holding-ratio-cell', width: columnWidthMap.holdingRatio ?? 72 }
         },
-        meta: { align: 'right', cellClassName: 'holding-ratio-cell', width: columnWidthMap.holdingRatio ?? 72 }
-      },
-      {
-        accessorKey: 'holdingCost',
-        header: '持仓成本',
-        cell: (info) => {
-          const original = info.row.original || {};
-          if (original.holdingCostValue == null) {
+        {
+          accessorKey: 'holdingCost',
+          header: '持仓成本',
+          cell: (info) => {
+            const original = info.row.original || {};
+            if (original.holdingCostValue == null) {
+              return (
+                <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
+                  —
+                </div>
+              );
+            }
             return (
-              <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
-                —
-              </div>
+              <span
+                style={{
+                  fontWeight: 700,
+                  textAlign: 'right',
+                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  display: 'block',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {masked ? <span className="mask-text">******</span> : (info.getValue() ?? '—')}
+              </span>
             );
-          }
-          return (
-            <span
-              style={{
-                fontWeight: 700,
-                textAlign: 'right',
-                fontSize: 'clamp(10px, 3vw, 14px)',
-                display: 'block',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {masked ? <span className="mask-text">******</span> : (info.getValue() ?? '—')}
-            </span>
-          );
+          },
+          meta: { align: 'right', cellClassName: 'holding-cost-cell', width: columnWidthMap.holdingCost ?? 80 }
         },
-        meta: { align: 'right', cellClassName: 'holding-cost-cell', width: columnWidthMap.holdingCost ?? 80 }
-      },
-      {
-        accessorKey: 'costNav',
-        header: '成本净值',
-        cell: (info) => {
-          const original = info.row.original || {};
-          if (original.costNavValue == null) {
+        {
+          accessorKey: 'costNav',
+          header: '成本净值',
+          cell: (info) => {
+            const original = info.row.original || {};
+            if (original.costNavValue == null) {
+              return (
+                <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
+                  —
+                </div>
+              );
+            }
             return (
-              <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
-                —
-              </div>
+              <span
+                style={{
+                  fontWeight: 700,
+                  textAlign: 'right',
+                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  display: 'block',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {masked ? <span className="mask-text">******</span> : (info.getValue() ?? '—')}
+              </span>
             );
-          }
-          return (
-            <span
-              style={{
-                fontWeight: 700,
-                textAlign: 'right',
-                fontSize: 'clamp(10px, 3vw, 14px)',
-                display: 'block',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {masked ? <span className="mask-text">******</span> : (info.getValue() ?? '—')}
-            </span>
-          );
+          },
+          meta: { align: 'right', cellClassName: 'cost-nav-cell', width: columnWidthMap.costNav ?? 64 }
         },
-        meta: { align: 'right', cellClassName: 'cost-nav-cell', width: columnWidthMap.costNav ?? 64 }
-      },
-      {
-        accessorKey: 'latestNav',
-        header: '最新净值',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const date = original.latestNavDate ?? '-';
-          const displayDate = isString(date) && date.length > 5 ? date.slice(5) : date;
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-              <span style={{ display: 'block', width: '100%', fontWeight: 700 }}>
-                <span
-                  style={{
-                    fontSize: 'clamp(10px, 3vw, 14px)',
-                    display: 'block',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {info.getValue() ?? '—'}
+        {
+          accessorKey: 'latestNav',
+          header: '最新净值',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const date = original.latestNavDate ?? '-';
+            const displayDate = isString(date) && date.length > 5 ? date.slice(5) : date;
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
+                <span style={{ display: 'block', width: '100%', fontWeight: 700 }}>
+                  <span
+                    style={{
+                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      display: 'block',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {info.getValue() ?? '—'}
+                  </span>
                 </span>
-              </span>
-              <span className="muted" style={{ fontSize: '10px' }}>
-                {displayDate}
-              </span>
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'value-cell', width: columnWidthMap.latestNav }
-      },
-      {
-        accessorKey: 'estimateNav',
-        header: '估算净值',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const date = original.estimateNavDate ?? '-';
-          const displayDate = isString(date) && date.length > 5 ? date.slice(5) : date;
-          const estimateNav = info.getValue();
-          const hasEstimateNav = estimateNav != null && estimateNav !== '—';
-
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-              <span style={{ display: 'block', width: '100%', fontWeight: 700 }}>
-                <span
-                  style={{
-                    fontSize: 'clamp(10px, 3vw, 14px)',
-                    display: 'block',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {estimateNav ?? '—'}
-                </span>
-              </span>
-              {hasEstimateNav && displayDate && displayDate !== '-' ? (
                 <span className="muted" style={{ fontSize: '10px' }}>
                   {displayDate}
                 </span>
-              ) : null}
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'value-cell', width: columnWidthMap.estimateNav }
-      },
-      {
-        accessorKey: 'yesterdayChangePercent',
-        header: '最新涨幅',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.yesterdayChangeValue;
-          const date = original.yesterdayDate ?? '-';
-          const displayDate = isString(date) && date.length > 5 ? date.slice(5) : date;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-              <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
-                <span
-                  style={{
-                    fontSize: 'clamp(10px, 3vw, 14px)',
-                    display: 'block',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {info.getValue() ?? '—'}
-                </span>
-              </span>
-              <span className="muted" style={{ fontSize: '10px' }}>
-                {displayDate}
-              </span>
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'change-cell', width: columnWidthMap.yesterdayChangePercent }
-      },
-      {
-        accessorKey: 'estimateChangePercent',
-        header: '估算涨幅',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.estimateChangeValue;
-          const isMuted = original.estimateChangeMuted;
-          const time = original.estimateTime ?? '-';
-          const displayTime = isString(time) && time.length > 5 ? time.slice(5) : time;
-          const cls = isMuted ? 'muted' : value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = info.getValue();
-          const hasText = text != null && text !== '—';
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-              <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
-                <span
-                  style={{
-                    fontSize: 'clamp(10px, 3vw, 14px)',
-                    display: 'block',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {text ?? '—'}
-                </span>
-              </span>
-              {hasText && displayTime && displayTime !== '-' ? (
-                <span className="muted" style={{ fontSize: '10px' }}>
-                  {displayTime}
-                </span>
-              ) : null}
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'est-change-cell', width: columnWidthMap.estimateChangePercent }
-      },
-      {
-        accessorKey: 'sinceAddedChangePercent',
-        header: '自添加来',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.sinceAddedChangeValue;
-          const cls = value == null ? 'muted' : value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const rawDate = original.sinceAddedDateRaw ?? '';
-          const displayDate = original.sinceAddedDate ?? '';
-          const text = info.getValue();
-          const hasText = text != null && text !== '—';
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-              <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
-                <span
-                  style={{
-                    fontSize: 'clamp(10px, 3vw, 14px)',
-                    display: 'block',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {text ?? '—'}
-                </span>
-              </span>
-              {hasText && displayDate ? (
-                <span
-                  className="muted"
-                  style={{ fontSize: '10px' }}
-                  title={rawDate && rawDate !== displayDate ? rawDate : undefined}
-                >
-                  {displayDate}
-                </span>
-              ) : null}
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'since-added-cell', width: columnWidthMap.sinceAddedChangePercent }
-      },
-      {
-        accessorKey: 'totalChangePercent',
-        header: '估算收益',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.estimateProfitValue;
-          const hasProfit = value != null;
-          const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
-          const amountStr = hasProfit ? (original.estimateProfit ?? '') : '—';
-          const percentStr = original.estimateProfitPercent ?? '';
-
-          return (
-            <div style={{ width: '100%' }}>
-              <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
-                <span
-                  style={{
-                    fontSize: 'clamp(10px, 3vw, 14px)',
-                    display: 'block',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
-                </span>
-              </span>
-              {hasProfit && percentStr && !masked ? (
-                <span
-                  className={`${cls} estimate-profit-percent`}
-                  style={{ display: 'block', width: '100%', fontSize: '0.75em', opacity: 0.9, fontWeight: 500 }}
-                >
-                  <span
-                    style={{
-                      fontSize: 'clamp(9px, 2.3vw, 11px)',
-                      display: 'block',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}
-                  >
-                    {percentStr}
-                  </span>
-                </span>
-              ) : null}
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'total-change-cell', width: columnWidthMap.totalChangePercent }
-      },
-      {
-        accessorKey: 'holdingDays',
-        header: '持有天数',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.holdingDaysValue;
-          if (value == null) {
-            return (
-              <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
-                —
               </div>
             );
-          }
-          return <div style={{ fontWeight: 700, textAlign: 'right' }}>{value}</div>;
+          },
+          meta: { align: 'right', cellClassName: 'value-cell', width: columnWidthMap.latestNav }
         },
-        meta: { align: 'right', cellClassName: 'holding-days-cell', width: columnWidthMap.holdingDays ?? 64 }
-      },
-      {
-        accessorKey: 'todayProfit',
-        header: '当日收益',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.todayProfitValue;
-          const hasProfit = value != null;
-          const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
-          const amountStr = hasProfit ? (info.getValue() ?? '') : '—';
-          const percentStr = original.todayProfitPercent ?? '';
-          return (
-            <div style={{ width: '100%' }}>
-              <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
-                <span
-                  style={{
-                    fontSize: 'clamp(10px, 3vw, 14px)',
-                    display: 'block',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
-                </span>
-              </span>
-              {percentStr && !masked ? (
-                <span
-                  className={`${cls} today-profit-percent`}
-                  style={{ display: 'block', width: '100%', fontSize: '0.75em', opacity: 0.9, fontWeight: 500 }}
-                >
+        {
+          accessorKey: 'estimateNav',
+          header: '估算净值',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const date = original.estimateNavDate ?? '-';
+            const displayDate = isString(date) && date.length > 5 ? date.slice(5) : date;
+            const estimateNav = info.getValue();
+            const hasEstimateNav = estimateNav != null && estimateNav !== '—';
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
+                <span style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(9px, 2.3vw, 11px)',
+                      fontSize: 'clamp(10px, 3vw, 14px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {percentStr}
+                    {estimateNav ?? '—'}
                   </span>
                 </span>
-              ) : null}
-            </div>
-          );
+                {hasEstimateNav && displayDate && displayDate !== '-' ? (
+                  <span className="muted" style={{ fontSize: '10px' }}>
+                    {displayDate}
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'value-cell', width: columnWidthMap.estimateNav }
         },
-        meta: { align: 'right', cellClassName: 'profit-cell', width: columnWidthMap.todayProfit }
-      },
-      {
-        accessorKey: 'yesterdayProfit',
-        header: '昨日收益',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.yesterdayProfitValue;
-          const hasProfit = value != null;
-          const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
-          const amountStr = hasProfit ? (info.getValue() ?? '') : '—';
-          const percentStr = original.yesterdayProfitPercent ?? '';
-          const pctVal = original.yesterdaySecondLinePctValue;
-          const pctCls =
-            pctVal != null && Number.isFinite(pctVal) ? (pctVal > 0 ? 'up' : pctVal < 0 ? 'down' : '') : 'muted';
-          return (
-            <div style={{ width: '100%' }}>
-              <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
-                <span
-                  style={{
-                    fontSize: 'clamp(10px, 3vw, 14px)',
-                    display: 'block',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
-                </span>
-              </span>
-              {percentStr && !masked ? (
-                <span
-                  className={`${pctCls} yesterday-profit-percent`}
-                  style={{ display: 'block', width: '100%', fontSize: '0.75em', opacity: 0.9, fontWeight: 500 }}
-                >
+        {
+          accessorKey: 'yesterdayChangePercent',
+          header: '最新涨幅',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.yesterdayChangeValue;
+            const date = original.yesterdayDate ?? '-';
+            const displayDate = isString(date) && date.length > 5 ? date.slice(5) : date;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
+                <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(9px, 2.3vw, 11px)',
+                      fontSize: 'clamp(10px, 3vw, 14px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {percentStr}
+                    {info.getValue() ?? '—'}
                   </span>
                 </span>
-              ) : null}
-            </div>
-          );
-        },
-        meta: { align: 'right', cellClassName: 'yesterday-profit-cell', width: columnWidthMap.yesterdayProfit ?? 80 }
-      },
-      {
-        accessorKey: 'holdingProfit',
-        header: '持有收益',
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.holdingProfitValue;
-          const hasTotal = value != null;
-          const cls = hasTotal ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
-          const amountStr = hasTotal ? (info.getValue() ?? '') : '—';
-          const percentStr = original.holdingProfitPercent ?? '';
-          return (
-            <div style={{ width: '100%' }}>
-              <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
-                <span
-                  style={{
-                    fontSize: 'clamp(10px, 3vw, 14px)',
-                    display: 'block',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {masked && hasTotal ? <span className="mask-text">******</span> : amountStr}
+                <span className="muted" style={{ fontSize: '10px' }}>
+                  {displayDate}
                 </span>
-              </span>
-              {percentStr && !masked ? (
-                <span
-                  className={`${cls} holding-profit-percent`}
-                  style={{ display: 'block', width: '100%', fontSize: '0.75em', opacity: 0.9, fontWeight: 500 }}
-                >
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'change-cell', width: columnWidthMap.yesterdayChangePercent }
+        },
+        {
+          accessorKey: 'estimateChangePercent',
+          header: '估算涨幅',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.estimateChangeValue;
+            const isMuted = original.estimateChangeMuted;
+            const time = original.estimateTime ?? '-';
+            const displayTime = isString(time) && time.length > 5 ? time.slice(5) : time;
+            const cls = isMuted ? 'muted' : value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = info.getValue();
+            const hasText = text != null && text !== '—';
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
+                <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(9px, 2.3vw, 11px)',
+                      fontSize: 'clamp(10px, 3vw, 14px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {percentStr}
+                    {text ?? '—'}
                   </span>
                 </span>
-              ) : null}
-            </div>
-          );
+                {hasText && displayTime && displayTime !== '-' ? (
+                  <span className="muted" style={{ fontSize: '10px' }}>
+                    {displayTime}
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'est-change-cell', width: columnWidthMap.estimateChangePercent }
         },
-        meta: { align: 'right', cellClassName: 'holding-cell', width: columnWidthMap.holdingProfit }
-      }
-    ],
+        {
+          accessorKey: 'sinceAddedChangePercent',
+          header: '自添加来',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.sinceAddedChangeValue;
+            const cls = value == null ? 'muted' : value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const rawDate = original.sinceAddedDateRaw ?? '';
+            const displayDate = original.sinceAddedDate ?? '';
+            const text = info.getValue();
+            const hasText = text != null && text !== '—';
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
+                <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
+                  <span
+                    style={{
+                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      display: 'block',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {text ?? '—'}
+                  </span>
+                </span>
+                {hasText && displayDate ? (
+                  <span
+                    className="muted"
+                    style={{ fontSize: '10px' }}
+                    title={rawDate && rawDate !== displayDate ? rawDate : undefined}
+                  >
+                    {displayDate}
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'since-added-cell', width: columnWidthMap.sinceAddedChangePercent }
+        },
+        {
+          accessorKey: 'totalChangePercent',
+          header: '估算收益',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.estimateProfitValue;
+            const hasProfit = value != null;
+            const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
+            const amountStr = hasProfit ? (original.estimateProfit ?? '') : '—';
+            const percentStr = original.estimateProfitPercent ?? '';
+
+            return (
+              <div style={{ width: '100%' }}>
+                <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
+                  <span
+                    style={{
+                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      display: 'block',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
+                  </span>
+                </span>
+                {hasProfit && percentStr && !masked ? (
+                  <span
+                    className={`${cls} estimate-profit-percent`}
+                    style={{ display: 'block', width: '100%', fontSize: '0.75em', opacity: 0.9, fontWeight: 500 }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 'clamp(9px, 2.3vw, 11px)',
+                        display: 'block',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {percentStr}
+                    </span>
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'total-change-cell', width: columnWidthMap.totalChangePercent }
+        },
+        {
+          accessorKey: 'holdingDays',
+          header: '持有天数',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.holdingDaysValue;
+            if (value == null) {
+              return (
+                <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
+                  —
+                </div>
+              );
+            }
+            return <div style={{ fontWeight: 700, textAlign: 'right' }}>{value}</div>;
+          },
+          meta: { align: 'right', cellClassName: 'holding-days-cell', width: columnWidthMap.holdingDays ?? 64 }
+        },
+        {
+          accessorKey: 'todayProfit',
+          header: '当日收益',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.todayProfitValue;
+            const hasProfit = value != null;
+            const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
+            const amountStr = hasProfit ? (info.getValue() ?? '') : '—';
+            const percentStr = original.todayProfitPercent ?? '';
+            return (
+              <div style={{ width: '100%' }}>
+                <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
+                  <span
+                    style={{
+                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      display: 'block',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
+                  </span>
+                </span>
+                {percentStr && !masked ? (
+                  <span
+                    className={`${cls} today-profit-percent`}
+                    style={{ display: 'block', width: '100%', fontSize: '0.75em', opacity: 0.9, fontWeight: 500 }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 'clamp(9px, 2.3vw, 11px)',
+                        display: 'block',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {percentStr}
+                    </span>
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'profit-cell', width: columnWidthMap.todayProfit }
+        },
+        {
+          accessorKey: 'yesterdayProfit',
+          header: '昨日收益',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.yesterdayProfitValue;
+            const hasProfit = value != null;
+            const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
+            const amountStr = hasProfit ? (info.getValue() ?? '') : '—';
+            const percentStr = original.yesterdayProfitPercent ?? '';
+            const pctVal = original.yesterdaySecondLinePctValue;
+            const pctCls =
+              pctVal != null && Number.isFinite(pctVal) ? (pctVal > 0 ? 'up' : pctVal < 0 ? 'down' : '') : 'muted';
+            return (
+              <div style={{ width: '100%' }}>
+                <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
+                  <span
+                    style={{
+                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      display: 'block',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
+                  </span>
+                </span>
+                {percentStr && !masked ? (
+                  <span
+                    className={`${pctCls} yesterday-profit-percent`}
+                    style={{ display: 'block', width: '100%', fontSize: '0.75em', opacity: 0.9, fontWeight: 500 }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 'clamp(9px, 2.3vw, 11px)',
+                        display: 'block',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {percentStr}
+                    </span>
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'yesterday-profit-cell', width: columnWidthMap.yesterdayProfit ?? 80 }
+        },
+        {
+          accessorKey: 'holdingProfit',
+          header: '持有收益',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.holdingProfitValue;
+            const hasTotal = value != null;
+            const cls = hasTotal ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
+            const amountStr = hasTotal ? (info.getValue() ?? '') : '—';
+            const percentStr = original.holdingProfitPercent ?? '';
+            return (
+              <div style={{ width: '100%' }}>
+                <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
+                  <span
+                    style={{
+                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      display: 'block',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {masked && hasTotal ? <span className="mask-text">******</span> : amountStr}
+                  </span>
+                </span>
+                {percentStr && !masked ? (
+                  <span
+                    className={`${cls} holding-profit-percent`}
+                    style={{ display: 'block', width: '100%', fontSize: '0.75em', opacity: 0.9, fontWeight: 500 }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 'clamp(9px, 2.3vw, 11px)',
+                        display: 'block',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {percentStr}
+                    </span>
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'holding-cell', width: columnWidthMap.holdingProfit }
+        }
+      ] as any[],
     [
       columnWidthMap,
       showFullFundName,
@@ -2687,7 +2748,7 @@ const MobileFundTable = memo(function MobileFundTable({
       return;
     }
     const gap = 12;
-    const widths = headerGroup.headers.map((h) => h.column.columnDef.meta?.width ?? 80);
+    const widths = headerGroup.headers.map((h) => (h.column.columnDef.meta as any)?.width ?? 80);
     if (widths.length > 0) widths[widths.length - 1] += LAST_COLUMN_EXTRA;
     const positions = [0];
     let acc = 0;
@@ -2734,7 +2795,7 @@ const MobileFundTable = memo(function MobileFundTable({
   const mobileGridLayout = useMemo(() => {
     if (!headerGroup?.headers?.length) return { gridTemplateColumns: '', minWidth: undefined };
     const gap = 12;
-    const widths = headerGroup.headers.map((h) => h.column.columnDef.meta?.width ?? 80);
+    const widths = headerGroup.headers.map((h) => (h.column.columnDef.meta as any)?.width ?? 80);
     if (widths.length > 0) widths[widths.length - 1] += LAST_COLUMN_EXTRA;
     return {
       gridTemplateColumns: widths.map((w) => `${w}px`).join(' '),
@@ -2929,9 +2990,9 @@ const MobileFundTable = memo(function MobileFundTable({
         const columnId = cell.column.id;
         const pinClass = getPinClass(columnId, false);
         const alignClass = getAlignClass(columnId);
-        const cellClassName = cell.column.columnDef.meta?.cellClassName || '';
+        const cellClassName = (cell.column.columnDef.meta as any)?.cellClassName || '';
         const isLastColumn = cellIndex === row.getVisibleCells().length - 1;
-        const style = isLastColumn ? { paddingRight: LAST_COLUMN_EXTRA } : {};
+        const style: React.CSSProperties = isLastColumn ? { paddingRight: LAST_COLUMN_EXTRA } : {};
         if (cellIndex === 0) {
           if (index % 2 !== 0) {
             style.background = 'var(--table-row-alt-bg)';
@@ -2948,7 +3009,7 @@ const MobileFundTable = memo(function MobileFundTable({
     </div>
   );
 
-  const renderContent = (onlyShowHeader) => {
+  const renderContent = (onlyShowHeader = false) => {
     if (onlyShowHeader) {
       return (
         <div
@@ -2984,10 +3045,9 @@ const MobileFundTable = memo(function MobileFundTable({
                 onDragEnd={handleDragEnd}
                 onDragCancel={handleDragCancel}
                 modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-                dropAnimation={null}
                 autoScroll={false}
               >
-                <SortableContext items={data.map((item) => item.code)} strategy={verticalListSortingStrategy}>
+                <SortableContext items={data.map((item: any) => item.code)} strategy={verticalListSortingStrategy}>
                   <AnimatePresence>
                     {tableRows.map((row, index) => (
                       <MemoizedMobileTableRow
@@ -3058,7 +3118,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 onBlur={(e) => {
                   let val = parseInt(e.target.value, 10);
                   if (isNaN(val) || val < 1) val = 20;
-                  e.target.value = val;
+                  e.target.value = String(val);
                   if (val !== table.getState().pagination.pageSize) {
                     table.setPageSize(val);
                     if (typeof window !== 'undefined') {

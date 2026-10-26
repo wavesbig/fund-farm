@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { RefreshCw, FolderPlusIcon } from 'lucide-react';
 import { isFunction, isPlainObject } from 'lodash';
@@ -48,6 +49,10 @@ import { migrateDcaPlansToScoped } from '../lib/fundHelpers';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import ClientErrorBoundary from './ClientErrorBoundary';
 
+export interface ModalsLayerProps {
+  callbacksRef: React.MutableRefObject<any>;
+}
+
 /**
  * ModalsLayer — 将所有弹框渲染从 page.jsx 抽离到独立组件。
  *
@@ -55,10 +60,8 @@ import ClientErrorBoundary from './ClientErrorBoundary';
  * 通过 callbacksRef 获取页面级回调与数据（ref 更新不触发重渲染）。
  *
  * 当弹框开关时，仅 ModalsLayer 重渲染，page.jsx 主体不受影响。
- *
- * @param {{ current: Object }} props.callbacksRef - 页面级回调与数据的 ref 封装
  */
-export default function ModalsLayer({ callbacksRef }) {
+export default function ModalsLayer({ callbacksRef }: ModalsLayerProps) {
   const modalErrorResetKey = useModalStore((s) => s.modalErrorResetKey);
 
   return (
@@ -75,7 +78,7 @@ export default function ModalsLayer({ callbacksRef }) {
   );
 }
 
-function ModalsLayerContent({ callbacksRef }) {
+function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
   const cb = callbacksRef;
 
   // ========== Modal 开关状态订阅 ==========
@@ -89,8 +92,6 @@ function ModalsLayerContent({ callbacksRef }) {
   const tutorialDrawerOpen = useModalStore((s) => s.tutorialDrawerOpen);
   const updateLogOpen = useModalStore((s) => s.updateLogOpen);
   const portfolioEarningsOpen = useModalStore((s) => s.portfolioEarningsOpen);
-  const mobileFundDrawerOpen = useModalStore((s) => s.mobileFundDrawerOpen);
-  const mobileTableSettingModalOpen = useModalStore((s) => s.mobileTableSettingModalOpen);
   const sortSettingOpen = useModalStore((s) => s.sortSettingOpen);
   const allSectorsModalOpen = useModalStore((s) => s.allSectorsModalOpen);
   const aiConfigModalOpen = useModalStore((s) => s.aiConfigModalOpen);
@@ -137,51 +138,52 @@ function ModalsLayerContent({ callbacksRef }) {
   // ---- Modal setter 兼容层（直接操作 Zustand，不订阅）----
   const _ms = useModalStore.setState;
   const _gs = useModalStore.getState;
-  const setSettingsOpen = (v) => _ms({ settingsOpen: isFunction(v) ? v(_gs().settingsOpen) : v });
-  const setFeedbackOpen = (v) => _ms({ feedbackOpen: isFunction(v) ? v(_gs().feedbackOpen) : v });
-  const setWeChatOpen = (v) => _ms({ weChatOpen: isFunction(v) ? v(_gs().weChatOpen) : v });
-  const setDonateOpen = (v) => _ms({ donateOpen: isFunction(v) ? v(_gs().donateOpen) : v });
-  const setLoginModalOpen = (v) => _ms({ loginModalOpen: isFunction(v) ? v(_gs().loginModalOpen) : v });
-  const setLoginInitialError = (v) => _ms({ loginInitialError: isFunction(v) ? v(_gs().loginInitialError) : v });
-  const setTutorialDrawerOpen = (v) => _ms({ tutorialDrawerOpen: isFunction(v) ? v(_gs().tutorialDrawerOpen) : v });
-  const setUpdateLogOpen = (v) => _ms({ updateLogOpen: isFunction(v) ? v(_gs().updateLogOpen) : v });
-  const setSortSettingOpen = (v) => _ms({ sortSettingOpen: isFunction(v) ? v(_gs().sortSettingOpen) : v });
-  const setAllSectorsModalOpen = (v) => _ms({ allSectorsModalOpen: isFunction(v) ? v(_gs().allSectorsModalOpen) : v });
-  const setAiConfigModalOpen = (v) => _ms({ aiConfigModalOpen: isFunction(v) ? v(_gs().aiConfigModalOpen) : v });
-  const setGroupModalOpen = (v) => _ms({ groupModalOpen: isFunction(v) ? v(_gs().groupModalOpen) : v });
-  const setGroupManageOpen = (v) => _ms({ groupManageOpen: isFunction(v) ? v(_gs().groupManageOpen) : v });
-  const setAddFundToGroupOpen = (v) => _ms({ addFundToGroupOpen: isFunction(v) ? v(_gs().addFundToGroupOpen) : v });
-  const setPortfolioEarningsOpen = (v) =>
+  const setSettingsOpen = (v: any) => _ms({ settingsOpen: isFunction(v) ? v(_gs().settingsOpen) : v });
+  const setFeedbackOpen = (v: any) => _ms({ feedbackOpen: isFunction(v) ? v(_gs().feedbackOpen) : v });
+  const setWeChatOpen = (v: any) => _ms({ weChatOpen: isFunction(v) ? v(_gs().weChatOpen) : v });
+  const setDonateOpen = (v: any) => _ms({ donateOpen: isFunction(v) ? v(_gs().donateOpen) : v });
+  const setLoginModalOpen = (v: any) => _ms({ loginModalOpen: isFunction(v) ? v(_gs().loginModalOpen) : v });
+  const setLoginInitialError = (v: any) => _ms({ loginInitialError: isFunction(v) ? v(_gs().loginInitialError) : v });
+  const setTutorialDrawerOpen = (v: any) =>
+    _ms({ tutorialDrawerOpen: isFunction(v) ? v(_gs().tutorialDrawerOpen) : v });
+  const setUpdateLogOpen = (v: any) => _ms({ updateLogOpen: isFunction(v) ? v(_gs().updateLogOpen) : v });
+  const setSortSettingOpen = (v: any) => _ms({ sortSettingOpen: isFunction(v) ? v(_gs().sortSettingOpen) : v });
+  const setAllSectorsModalOpen = (v: any) =>
+    _ms({ allSectorsModalOpen: isFunction(v) ? v(_gs().allSectorsModalOpen) : v });
+  const setAiConfigModalOpen = (v: any) => _ms({ aiConfigModalOpen: isFunction(v) ? v(_gs().aiConfigModalOpen) : v });
+  const setGroupModalOpen = (v: any) => _ms({ groupModalOpen: isFunction(v) ? v(_gs().groupModalOpen) : v });
+  const setGroupManageOpen = (v: any) => _ms({ groupManageOpen: isFunction(v) ? v(_gs().groupManageOpen) : v });
+  const setAddFundToGroupOpen = (v: any) =>
+    _ms({ addFundToGroupOpen: isFunction(v) ? v(_gs().addFundToGroupOpen) : v });
+  const setPortfolioEarningsOpen = (v: any) =>
     _ms({ portfolioEarningsOpen: isFunction(v) ? v(_gs().portfolioEarningsOpen) : v });
-  const setSuccessModal = (v) => _ms({ successModal: isFunction(v) ? v(_gs().successModal) : v });
-  const setCloudConfigModal = (v) => _ms({ cloudConfigModal: isFunction(v) ? v(_gs().cloudConfigModal) : v });
-  const setDeviceConflictModal = (v) => _ms({ deviceConflictModal: isFunction(v) ? v(_gs().deviceConflictModal) : v });
-  const setFundDeleteConfirm = (v) => _ms({ fundDeleteConfirm: isFunction(v) ? v(_gs().fundDeleteConfirm) : v });
-  const setFundDeleteBulkConfirm = (v) =>
+  const setSuccessModal = (v: any) => _ms({ successModal: isFunction(v) ? v(_gs().successModal) : v });
+  const setCloudConfigModal = (v: any) => _ms({ cloudConfigModal: isFunction(v) ? v(_gs().cloudConfigModal) : v });
+  const setDeviceConflictModal = (v: any) =>
+    _ms({ deviceConflictModal: isFunction(v) ? v(_gs().deviceConflictModal) : v });
+  const setFundDeleteConfirm = (v: any) => _ms({ fundDeleteConfirm: isFunction(v) ? v(_gs().fundDeleteConfirm) : v });
+  const setFundDeleteBulkConfirm = (v: any) =>
     _ms({ fundDeleteBulkConfirm: isFunction(v) ? v(_gs().fundDeleteBulkConfirm) : v });
-  const setHoldingModal = (v) => _ms({ holdingModal: isFunction(v) ? v(_gs().holdingModal) : v });
-  const setActionModal = (v) => _ms({ actionModal: isFunction(v) ? v(_gs().actionModal) : v });
-  const setTradeModal = (v) => _ms({ tradeModal: isFunction(v) ? v(_gs().tradeModal) : v });
-  const setConvertModal = (v) => _ms({ convertModal: isFunction(v) ? v(_gs().convertModal) : v });
-  const setDividendMethodModal = (v) => _ms({ dividendMethodModal: isFunction(v) ? v(_gs().dividendMethodModal) : v });
-  const setSelectFundSingleModal = (v) =>
+  const setHoldingModal = (v: any) => _ms({ holdingModal: isFunction(v) ? v(_gs().holdingModal) : v });
+  const setActionModal = (v: any) => _ms({ actionModal: isFunction(v) ? v(_gs().actionModal) : v });
+  const setTradeModal = (v: any) => _ms({ tradeModal: isFunction(v) ? v(_gs().tradeModal) : v });
+  const setConvertModal = (v: any) => _ms({ convertModal: isFunction(v) ? v(_gs().convertModal) : v });
+  const setDividendMethodModal = (v: any) =>
+    _ms({ dividendMethodModal: isFunction(v) ? v(_gs().dividendMethodModal) : v });
+  const setSelectFundSingleModal = (v: any) =>
     _ms({ selectFundSingleModal: isFunction(v) ? v(_gs().selectFundSingleModal) : v });
-  const setSelectHoldingGroupModal = (v) =>
+  const setSelectHoldingGroupModal = (v: any) =>
     _ms({ selectHoldingGroupModal: isFunction(v) ? v(_gs().selectHoldingGroupModal) : v });
-  const setDataSourceModal = (v) => _ms({ dataSourceModal: isFunction(v) ? v(_gs().dataSourceModal) : v });
-  const setDcaModal = (v) => _ms({ dcaModal: isFunction(v) ? v(_gs().dcaModal) : v });
-  const setClearConfirm = (v) => _ms({ clearConfirm: isFunction(v) ? v(_gs().clearConfirm) : v });
-  const setHoldingMigrateDialog = (v) =>
+  const setDataSourceModal = (v: any) => _ms({ dataSourceModal: isFunction(v) ? v(_gs().dataSourceModal) : v });
+  const setDcaModal = (v: any) => _ms({ dcaModal: isFunction(v) ? v(_gs().dcaModal) : v });
+  const setClearConfirm = (v: any) => _ms({ clearConfirm: isFunction(v) ? v(_gs().clearConfirm) : v });
+  const setHoldingMigrateDialog = (v: any) =>
     _ms({ holdingMigrateDialog: isFunction(v) ? v(_gs().holdingMigrateDialog) : v });
-  const setHistoryModal = (v) => _ms({ historyModal: isFunction(v) ? v(_gs().historyModal) : v });
-  const setAddHistoryModal = (v) => _ms({ addHistoryModal: isFunction(v) ? v(_gs().addHistoryModal) : v });
-  const setFundTagsEdit = (v) => _ms({ fundTagsEdit: isFunction(v) ? v(_gs().fundTagsEdit) : v });
-  const setMobileTableSettingModalOpen = (v) =>
-    _ms({ mobileTableSettingModalOpen: isFunction(v) ? v(_gs().mobileTableSettingModalOpen) : v });
-  const setMobileFundDrawerOpen = (v) =>
-    _ms({ mobileFundDrawerOpen: isFunction(v) ? v(_gs().mobileFundDrawerOpen) : v });
-  const setScanModalOpen = (v) => _ms({ scanModalOpen: isFunction(v) ? v(_gs().scanModalOpen) : v });
-  const setScanConfirmModalOpen = (v) =>
+  const setHistoryModal = (v: any) => _ms({ historyModal: isFunction(v) ? v(_gs().historyModal) : v });
+  const setAddHistoryModal = (v: any) => _ms({ addHistoryModal: isFunction(v) ? v(_gs().addHistoryModal) : v });
+  const setFundTagsEdit = (v: any) => _ms({ fundTagsEdit: isFunction(v) ? v(_gs().fundTagsEdit) : v });
+  const setScanModalOpen = (v: any) => _ms({ scanModalOpen: isFunction(v) ? v(_gs().scanModalOpen) : v });
+  const setScanConfirmModalOpen = (v: any) =>
     _ms({ scanConfirmModalOpen: isFunction(v) ? v(_gs().scanConfirmModalOpen) : v });
 
   return (
@@ -243,7 +245,7 @@ function ModalsLayerContent({ callbacksRef }) {
               fundDeleteBulkConfirm.fundsWithOtherGroups &&
               fundDeleteBulkConfirm.fundsWithOtherGroups.length > 0 ? (
                 <div className="flex flex-col gap-3 text-left">
-                  {fundDeleteBulkConfirm.fundsWithOtherGroups.map((f) => (
+                  {fundDeleteBulkConfirm.fundsWithOtherGroups.map((f: any) => (
                     <p key={f.code} className="m-0 leading-relaxed">
                       基金 &#34;{f.name}&#34; 还存在于以下分组：
                       <span className="text-[var(--primary)] font-semibold">{f.otherGroups.join('、')}</span>
@@ -320,7 +322,7 @@ function ModalsLayerContent({ callbacksRef }) {
         {addFundToGroupOpen && (
           <AddFundToGroupModal
             allFunds={cb.current.funds}
-            currentGroupCodes={(cb.current.groups || []).find((g) => g.id === cb.current.currentTab)?.codes || []}
+            currentGroupCodes={(cb.current.groups || []).find((g: any) => g.id === cb.current.currentTab)?.codes || []}
             holdings={cb.current.holdings}
             fundTagListsByCode={cb.current.fundTagListsByCode}
             fundTagRecords={cb.current.fundTagRecords}
@@ -340,7 +342,7 @@ function ModalsLayerContent({ callbacksRef }) {
             dcaPlans={cb.current.dcaPlans}
             pendingTrades={cb.current.pendingTrades}
             onClose={() => setSelectHoldingGroupModal({ open: false, fund: null })}
-            onNext={(groupId) => {
+            onNext={(groupId: string) => {
               const fund = selectHoldingGroupModal.fund;
               setSelectHoldingGroupModal({ open: false, fund: null });
               setActionModal({ open: true, fund, groupId });
@@ -355,7 +357,7 @@ function ModalsLayerContent({ callbacksRef }) {
           <FundDataSourceSelector
             fund={dataSourceModal.fund}
             onClose={() => setDataSourceModal({ open: false, fund: null })}
-            onSelect={(sourceId, autoSource) =>
+            onSelect={(sourceId: number, autoSource: boolean) =>
               cb.current.handleDataSourceSelect(dataSourceModal.fund.code, sourceId, autoSource)
             }
           />
@@ -368,13 +370,13 @@ function ModalsLayerContent({ callbacksRef }) {
           <HoldingActionModal
             fund={actionModal.fund}
             onClose={() => setActionModal({ open: false, fund: null })}
-            onAction={(type) => cb.current.handleAction(type, actionModal.fund, actionModal.groupId)}
+            onAction={(type: string) => cb.current.handleAction(type, actionModal.fund, actionModal.groupId)}
             nestedModalOpen={historyModal.open || addHistoryModal.open}
             groupName={
-              actionModal.groupId ? (cb.current.groups || []).find((g) => g.id === actionModal.groupId)?.name : ''
+              actionModal.groupId ? (cb.current.groups || []).find((g: any) => g.id === actionModal.groupId)?.name : ''
             }
             hasHistory={
-              !!(cb.current.transactions?.[actionModal.fund?.code] || []).some((t) =>
+              !!(cb.current.transactions?.[actionModal.fund?.code] || []).some((t: any) =>
                 !cb.current.getScopedGroupId?.(actionModal.groupId)
                   ? !t.groupId
                   : t.groupId === cb.current.getScopedGroupId?.(actionModal.groupId)
@@ -382,7 +384,7 @@ function ModalsLayerContent({ callbacksRef }) {
             }
             pendingCount={
               (cb.current.pendingTrades || []).filter(
-                (t) =>
+                (t: any) =>
                   t.fundCode === actionModal.fund?.code &&
                   (!cb.current.getScopedGroupId?.(actionModal.groupId)
                     ? !t.groupId
@@ -401,17 +403,17 @@ function ModalsLayerContent({ callbacksRef }) {
             fund={tradeModal.fund}
             holding={cb.current.getScopedHolding?.(tradeModal.fund?.code, tradeModal.groupId)}
             onClose={() => setTradeModal({ open: false, fund: null, type: 'buy' })}
-            onConfirm={(data) => cb.current.handleTrade(tradeModal.fund, data)}
+            onConfirm={(data: any) => cb.current.handleTrade(tradeModal.fund, data)}
             pendingTrades={(cb.current.pendingTrades || []).filter(
-              (t) =>
+              (t: any) =>
                 t.fundCode === tradeModal.fund?.code &&
                 (!cb.current.getScopedGroupId?.(tradeModal.groupId)
                   ? !t.groupId
                   : t.groupId === cb.current.getScopedGroupId?.(tradeModal.groupId))
             )}
-            onDeletePending={(id) => {
-              cb.current.setPendingTrades?.((prev) => {
-                const next = prev.filter((t) => t.id !== id);
+            onDeletePending={(id: string) => {
+              cb.current.setPendingTrades?.((prev: any[]) => {
+                const next = prev.filter((t: any) => t.id !== id);
                 return next;
               });
               cb.current.showToast?.('已撤销待处理交易', 'success');
@@ -427,11 +429,11 @@ function ModalsLayerContent({ callbacksRef }) {
             fund={dcaModal.fund}
             plan={cb.current.getScopedDcaPlan?.(dcaModal.fund?.code, dcaModal.groupId)}
             onClose={() => setDcaModal({ open: false, fund: null })}
-            onReset={(fundCode) => {
+            onReset={(fundCode: string) => {
               const code = fundCode || dcaModal.fund?.code;
               if (!code) return;
               const scope = cb.current.getScopedGroupId?.(dcaModal.groupId) || DCA_SCOPE_GLOBAL;
-              cb.current.setDcaPlans?.((prev) => {
+              cb.current.setDcaPlans?.((prev: any) => {
                 const scoped = migrateDcaPlansToScoped(prev);
                 const bucket = isPlainObject(scoped[scope]) ? scoped[scope] : null;
                 if (!bucket || !Object.prototype.hasOwnProperty.call(bucket, code)) return prev;
@@ -445,14 +447,14 @@ function ModalsLayerContent({ callbacksRef }) {
               setDcaModal({ open: false, fund: null });
               cb.current.showToast?.('已重置定投数据', 'success');
             }}
-            onConfirm={(config) => {
+            onConfirm={(config: any) => {
               const code = config?.fundCode || dcaModal.fund?.code;
               if (!code) {
                 setDcaModal({ open: false, fund: null });
                 return;
               }
               const scope = cb.current.getScopedGroupId?.(dcaModal.groupId) || DCA_SCOPE_GLOBAL;
-              cb.current.setDcaPlans?.((prev) => {
+              cb.current.setDcaPlans?.((prev: any) => {
                 const scoped = migrateDcaPlansToScoped(prev);
                 const bucket = { ...(isPlainObject(scoped[scope]) ? scoped[scope] : {}) };
                 const existingPlan = bucket[code];
@@ -503,7 +505,13 @@ function ModalsLayerContent({ callbacksRef }) {
               return share * nav;
             })()}
             onClose={() => setConvertModal({ open: false, fund: null })}
-            onPickInFund={({ excludeCodes, initialSelectedCode }) => {
+            onPickInFund={({
+              excludeCodes,
+              initialSelectedCode
+            }: {
+              excludeCodes: string[];
+              initialSelectedCode: string;
+            }) => {
               return new Promise((resolve) => {
                 setSelectFundSingleModal({
                   open: true,
@@ -513,7 +521,7 @@ function ModalsLayerContent({ callbacksRef }) {
                 });
               });
             }}
-            onConfirm={(payload) => {
+            onConfirm={(payload: any) => {
               const tradeGid = cb.current.getScopedGroupId?.(convertModal.groupId);
               const nowTs = Date.now();
 
@@ -555,17 +563,17 @@ function ModalsLayerContent({ callbacksRef }) {
                 ...(tradeGid ? { groupId: tradeGid } : {})
               };
 
-              cb.current.setPendingTrades?.((prev) => [...prev, outPending, inPending]);
+              cb.current.setPendingTrades?.((prev: any[]) => [...prev, outPending, inPending]);
 
-              const ensureHolding = (code) => {
+              const ensureHolding = (code: string) => {
                 if (!code) return;
                 if (!tradeGid) {
-                  cb.current.setHoldings?.((prev) => {
+                  cb.current.setHoldings?.((prev: any) => {
                     if (prev?.[code]) return prev;
                     return { ...(prev || {}), [code]: { share: 0, cost: 0 } };
                   });
                 } else {
-                  cb.current.setGroupHoldings?.((prev) => {
+                  cb.current.setGroupHoldings?.((prev: any) => {
                     const next = { ...(prev || {}) };
                     const bucket = { ...(next[tradeGid] || {}) };
                     if (bucket[code]) return prev;
@@ -580,9 +588,9 @@ function ModalsLayerContent({ callbacksRef }) {
               // 方案一：确保转换到的新基金如果不在当前分组的显示列表 (codes) 中，将其主动追加进去
               if (tradeGid) {
                 const groupsList = cb.current.groups || [];
-                const targetGroup = groupsList.find((g) => g.id === tradeGid);
+                const targetGroup = groupsList.find((g: any) => g.id === tradeGid);
                 if (targetGroup && !(targetGroup.codes || []).includes(payload.inFundCode)) {
-                  const nextGroups = groupsList.map((g) => {
+                  const nextGroups = groupsList.map((g: any) => {
                     if (g.id === tradeGid) {
                       return { ...g, codes: [...(g.codes || []), payload.inFundCode] };
                     }
@@ -617,7 +625,7 @@ function ModalsLayerContent({ callbacksRef }) {
           <Tooltip>
             <TooltipTrigger asChild>
               <SelectFundSingleModal
-                allFunds={(cb.current.funds || []).filter((f) => f?.code && f.code !== convertModal.fund?.code)}
+                allFunds={(cb.current.funds || []).filter((f: any) => f?.code && f.code !== convertModal.fund?.code)}
                 excludeCodes={selectFundSingleModal.excludeCodes}
                 initialSelectedCode={selectFundSingleModal.initialSelectedCode}
                 onClose={() => {
@@ -626,7 +634,7 @@ function ModalsLayerContent({ callbacksRef }) {
                   }
                   setSelectFundSingleModal({ open: false, excludeCodes: [], initialSelectedCode: '' });
                 }}
-                onConfirm={(picked) => {
+                onConfirm={(picked: any) => {
                   if (isFunction(selectFundSingleModal._resolve)) {
                     selectFundSingleModal._resolve(picked);
                   }
@@ -658,20 +666,20 @@ function ModalsLayerContent({ callbacksRef }) {
           <TransactionHistoryModal
             fund={historyModal.fund}
             nestedModalOpen={addHistoryModal.open}
-            transactions={(cb.current.transactions?.[historyModal.fund?.code] || []).filter((t) =>
+            transactions={(cb.current.transactions?.[historyModal.fund?.code] || []).filter((t: any) =>
               !cb.current.getScopedGroupId?.(historyModal.groupId)
                 ? !t.groupId
                 : t.groupId === cb.current.getScopedGroupId?.(historyModal.groupId)
             )}
             pendingTransactions={(cb.current.pendingTrades || []).filter(
-              (t) =>
+              (t: any) =>
                 t.fundCode === historyModal.fund?.code &&
                 (!cb.current.getScopedGroupId?.(historyModal.groupId)
                   ? !t.groupId
                   : t.groupId === cb.current.getScopedGroupId?.(historyModal.groupId))
             )}
             onClose={() => setHistoryModal({ open: false, fund: null })}
-            onDeleteTransaction={(id) =>
+            onDeleteTransaction={(id: string) =>
               cb.current.handleDeleteTransaction?.(historyModal.fund?.code, id, historyModal.groupId)
             }
             onAddHistory={() =>
@@ -685,9 +693,9 @@ function ModalsLayerContent({ callbacksRef }) {
             onMergeAllGroups={() =>
               cb.current.handleMergeAllGroupTransactionsToCurrent?.(historyModal.fund?.code, historyModal.groupId)
             }
-            onDeletePending={(id) => {
-              cb.current.setPendingTrades?.((prev) => {
-                const next = prev.filter((t) => t.id !== id);
+            onDeletePending={(id: string) => {
+              cb.current.setPendingTrades?.((prev: any[]) => {
+                const next = prev.filter((t: any) => t.id !== id);
                 return next;
               });
               cb.current.showToast?.('已撤销待处理交易', 'success');
@@ -722,7 +730,7 @@ function ModalsLayerContent({ callbacksRef }) {
                 holding={h}
                 nav={p?.nav}
                 onClose={() => setHoldingModal({ open: false, fund: null })}
-                onSave={(data) => cb.current.handleSaveHolding?.(f?.code, data, holdingModal.groupId)}
+                onSave={(data: any) => cb.current.handleSaveHolding?.(f?.code, data, holdingModal.groupId)}
                 onOpenTrade={() => {
                   if (!f) return;
                   setHoldingModal({ open: false, fund: null });
@@ -743,7 +751,7 @@ function ModalsLayerContent({ callbacksRef }) {
         {fundTagsEdit.open && (
           <FundTagsEditDialog
             open={fundTagsEdit.open}
-            onOpenChange={(open) => setFundTagsEdit((s) => ({ ...s, open }))}
+            onOpenChange={(open: boolean) => setFundTagsEdit((s: any) => ({ ...s, open }))}
             fundCode={fundTagsEdit.code ?? undefined}
             fundName={fundTagsEdit.name}
             tags={fundTagsEdit.tags}
@@ -751,12 +759,12 @@ function ModalsLayerContent({ callbacksRef }) {
             fundTagListsByCode={cb.current.fundTagListsByCode}
             onSave={cb.current.handleSaveFundTags}
             recommendedTagItems={(cb.current.fundTagRecords || [])
-              .map((r) => ({
+              .map((r: any) => ({
                 id: String(r?.id ?? '').trim(),
                 name: String(r?.name ?? '').trim(),
                 theme: String(r?.theme ?? '').trim() || DEFAULT_FUND_TAG_THEME
               }))
-              .filter((x) => x.name)}
+              .filter((x: any) => x.name)}
             onAddPoolTag={cb.current.handleAddPoolTag}
             onUpdateGlobalTag={cb.current.handleUpdateGlobalTag}
             onDeleteGlobalTag={cb.current.handleDeleteGlobalTag}
@@ -907,7 +915,7 @@ function ModalsLayerContent({ callbacksRef }) {
             onRetryOcr={cb.current.handleRetryOcr}
             refreshing={cb.current.refreshing}
             groups={cb.current.groups}
-            existingAllCodes={(cb.current.funds || []).map((f) => f?.code).filter(Boolean)}
+            existingAllCodes={(cb.current.funds || []).map((f: any) => f?.code).filter(Boolean)}
             existingFavCodes={Array.from(cb.current.favorites || new Set())}
             isOcrScan={isOcrScan}
             currentGroup={cb.current.currentTab === 'summary' ? 'all' : cb.current.currentTab}

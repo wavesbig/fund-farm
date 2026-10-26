@@ -19,7 +19,7 @@ export interface SyncPersonalSettingsModalProps {
   onClose: () => void;
   options?: SyncOption[];
   sourceName?: string;
-  onConfirm?: (targetIds: string[]) => boolean | void;
+  onConfirm?: (targetIds: string[]) => boolean | number | void;
 }
 
 export default function SyncPersonalSettingsModal({

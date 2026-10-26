@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect, useCallback, memo } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -13,7 +13,7 @@ import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn, formatMoney } from '@/lib/utils';
-import { useStorageStore } from '@/app/stores';
+import { useStorageStore, storageStore } from '@/app/stores';
 import { fetchFundHoldings, fetchFundData } from '@/app/api/fund';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Stat, ConsecutiveTrendBadge } from '../Common';
@@ -30,7 +30,8 @@ dayjs.extend(isSameOrAfter);
 
 import { DEFAULT_TZ } from '@/app/constants';
 import { isNavUpdated } from '@/app/lib/fundHelpers';
-const getBrowserTimeZone = () => {
+
+const getBrowserTimeZone = (): string => {
   if (typeof Intl !== 'undefined' && Intl.DateTimeFormat) {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     return tz || DEFAULT_TZ;
@@ -38,13 +39,13 @@ const getBrowserTimeZone = () => {
   return DEFAULT_TZ;
 };
 const TZ = getBrowserTimeZone();
-const toTz = (input) => (input ? dayjs.tz(input, TZ) : dayjs().tz(TZ));
+const toTz = (input?: any) => (input ? dayjs.tz(input, TZ) : dayjs().tz(TZ));
 
-const formatDisplayDate = (value) => {
+const formatDisplayDate = (value?: any): string => {
   if (!value) return '-';
 
   const d = toTz(value);
-  if (!d.isValid()) return value;
+  if (!d.isValid()) return String(value);
 
   // 如果是数字（时间戳）或者字符串中包含显式的时间模式，则展示时分
   const isTimestamp = isNumber(value) || (isString(value) && /^\d{10,13}$/.test(value));
@@ -55,10 +56,21 @@ const formatDisplayDate = (value) => {
 };
 
 /** 格式化阶段涨跌幅 */
-const fmtPeriodReturn = (val) => {
+const fmtPeriodReturn = (val?: number | null): string => {
   if (val == null || !Number.isFinite(val)) return '—';
   return `${val > 0 ? '+' : ''}${val.toFixed(2)}%`;
 };
+
+interface MoreSectionProps {
+  holding?: any;
+  profit?: any;
+  hasHoldingAmount: boolean;
+  fundExtraData?: any;
+  masked?: boolean;
+  groupTotalHoldingAmount?: number;
+  isAdded?: boolean;
+  userId?: string;
+}
 
 function MoreSection({
   holding,
@@ -66,10 +78,9 @@ function MoreSection({
   hasHoldingAmount,
   fundExtraData,
   masked,
-  groupTotalHoldingAmount,
-  isAdded = true,
-  userId
-}) {
+  groupTotalHoldingAmount = 0,
+  isAdded = true
+}: MoreSectionProps) {
   const [expanded, setExpanded] = useState(false);
   const isMobile = useIsMobile();
 
@@ -173,6 +184,50 @@ function MoreSection({
   );
 }
 
+export interface FundCardProps {
+  fundCode: string;
+  isHoldingLinked?: boolean;
+  todayStr?: string;
+  currentTab?: string;
+  favorites?: Set<string>;
+  dcaPlans?: Record<string, any>;
+  holdings?: Record<string, any>;
+  fundDailyEarnings?: Record<string, any>;
+  percentModes?: Record<string, boolean>;
+  todayPercentModes?: Record<string, boolean>;
+  valuationSeries?: Record<string, any>;
+  collapsedCodes?: any;
+  collapsedTrends?: any;
+  collapsedValuationTrends?: any;
+  collapsedEarnings?: any;
+  transactions?: any;
+  theme?: string;
+  isTradingDay?: boolean;
+  getHoldingProfit?: (fund: any, holding: any, groupId?: string) => any;
+  onToggleFavorite?: (code: string) => void;
+  onRemoveFund?: (fund: any) => void;
+  onHoldingClick?: (fund: any) => void;
+  onActionClick?: (fund: any) => void;
+  onPercentModeToggle?: (code: string) => void;
+  onTodayPercentModeToggle?: (code: string) => void;
+  onToggleCollapse?: (code: string) => void;
+  onToggleTrendCollapse?: (code: string) => void;
+  onToggleValuationTrendCollapse?: (code: string) => void;
+  onToggleEarningsCollapse?: (code: string) => void;
+  layoutMode?: 'card' | 'drawer';
+  masked?: boolean;
+  fundTags?: any[];
+  onFundTagsClick?: (fund: any, tags: any[]) => void;
+  fundExtraData?: any;
+  onDataSourceClick?: (fund: any) => void;
+  groupTotalHoldingAmount?: number;
+  fallbackFund?: any;
+  hasDca?: boolean;
+  hasPending?: boolean;
+  onAddFund?: (fund: { code: string; name: string }) => void;
+  userId?: string;
+}
+
 const FundCard = memo(function Index({
   fundCode,
   isHoldingLinked = false,
@@ -215,41 +270,50 @@ const FundCard = memo(function Index({
   hasPending = false,
   onAddFund,
   userId
-}) {
-  const storeFund = useStorageStore(useCallback((s) => s.funds?.find((item) => item.code === fundCode), [fundCode]));
-  const isAdded = useStorageStore(useCallback((s) => s.funds?.some((item) => item.code === fundCode), [fundCode]));
-  const refreshMs = useStorageStore((s) => s.refreshMs);
+}: FundCardProps) {
+  const storeFund = useStorageStore(
+    useCallback((s: any) => s.funds?.find((item: any) => item.code === fundCode), [fundCode])
+  );
+  const isAdded = useStorageStore(
+    useCallback((s: any) => s.funds?.some((item: any) => item.code === fundCode), [fundCode])
+  );
+  const refreshMs = useStorageStore((s: any) => s.refreshMs);
 
-  const [fetchedValuation, setFetchedValuation] = useState(null);
+  const [fetchedValuation, setFetchedValuation] = useState<any>(null);
 
   const f = useMemo(() => {
     if (storeFund) return storeFund;
 
     let ds = fallbackFund?.dataSource || 1;
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = JSON.parse(localStorage.getItem('rtf_unadded_ds') || '{}');
-        if (saved[fundCode]) {
-          ds = saved[fundCode];
-        }
-      } catch (e) {}
+    try {
+      const saved = storageStore.getItem('rtf_unadded_ds', {}) || {};
+      if (saved && saved[fundCode]) {
+        ds = saved[fundCode];
+      }
+    } catch (e) {
+      // ignore
     }
 
     if (fetchedValuation) return { ...fallbackFund, dataSource: ds, ...fetchedValuation };
     return { ...fallbackFund, dataSource: ds };
   }, [storeFund, fundCode, fallbackFund, fetchedValuation]);
 
-  const [topHoldings, setTopHoldings] = useState({
+  const [topHoldings, setTopHoldings] = useState<{
+    holdings: any[];
+    holdingsReportDate: string | null;
+    holdingsIsLastQuarter: boolean;
+    assetAllocation?: any[];
+  }>({
     holdings: [],
     holdingsReportDate: null,
     holdingsIsLastQuarter: false
   });
 
   useEffect(() => {
-    const handler = (e) => {
+    const handler = (e: any) => {
       if (e.detail?.fundCode === fundCode) {
         const sourceId = e.detail.sourceId;
-        setFetchedValuation((prev) => ({
+        setFetchedValuation((prev: any) => ({
           ...(prev || {}),
           dataSource: sourceId,
           gsz: null,
@@ -263,7 +327,7 @@ const FundCard = memo(function Index({
         fetchFundData(fundCode, sourceId)
           .then((res) => {
             if (res) {
-              setFetchedValuation((prev) => ({ ...prev, ...res, dataSource: sourceId }));
+              setFetchedValuation((prev: any) => ({ ...prev, ...res, dataSource: sourceId }));
             }
           })
           .catch((err) => {
@@ -282,7 +346,7 @@ const FundCard = memo(function Index({
         try {
           const res = await fetchFundData(fundCode, f?.dataSource);
           if (!cancelled && res) {
-            setFetchedValuation((prev) => ({ ...prev, ...res, dataSource: f?.dataSource || 1 }));
+            setFetchedValuation((prev: any) => ({ ...prev, ...res, dataSource: f?.dataSource || 1 }));
           }
         } catch (e) {
           console.error('fetchFundData error', e);
@@ -293,16 +357,15 @@ const FundCard = memo(function Index({
         cancelled = true;
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdded, fundCode]);
+  }, [isAdded, fundCode, f?.dataSource]);
 
   useEffect(() => {
-    let timer;
+    let timer: NodeJS.Timeout | undefined;
     let cancelled = false;
     const fetchHoldings = async () => {
       try {
         const res = await fetchFundHoldings(fundCode);
-        if (!cancelled) {
+        if (!cancelled && res) {
           setTopHoldings(res);
         }
       } catch (e) {
@@ -327,7 +390,7 @@ const FundCard = memo(function Index({
   const top10WeightSum = useMemo(() => {
     if (!isArray(topHoldings.holdings)) return 0;
     let sum = 0;
-    topHoldings.holdings.forEach((h) => {
+    topHoldings.holdings.forEach((h: any) => {
       if (h.weight) {
         const val = parseFloat(h.weight);
         if (!isNaN(val)) sum += val;
@@ -373,7 +436,7 @@ const FundCard = memo(function Index({
   const holdingLocked = (currentTab === 'all' || currentTab === 'fav') && isHoldingLinked;
   const holdingLinkedTitle = '持仓来自自定义分组汇总，点击选择分组后操作';
 
-  const style =
+  const style: React.CSSProperties =
     layoutMode === 'drawer'
       ? {
           border: 'none',
@@ -386,7 +449,6 @@ const FundCard = memo(function Index({
 
   const isTrendExpanded = !collapsedTrends?.has(fundCode);
   const isValuationTrendExpanded = !collapsedValuationTrends?.has(fundCode);
-  const isEarningsExpanded = !collapsedEarnings?.has(fundCode);
   const showValuationTrend = Boolean(userId);
 
   return (
@@ -497,10 +559,10 @@ const FundCard = memo(function Index({
                 >
                   {fundTags.map((raw, idx) => {
                     const item =
-                      raw && isObject(raw) && raw.name != null
+                      raw && isObject(raw) && (raw as any).name != null
                         ? {
-                            name: String(raw.name).trim(),
-                            theme: String(raw.theme ?? 'default').trim() || 'default'
+                            name: String((raw as any).name).trim(),
+                            theme: String((raw as any).theme ?? 'default').trim() || 'default'
                           }
                         : { name: String(raw).trim(), theme: 'default' };
                     if (!item.name) return null;
@@ -896,7 +958,7 @@ const FundCard = memo(function Index({
             <TabsContent value="holdings" className="mt-3 outline-none">
               {topHoldings.assetAllocation && topHoldings.assetAllocation.length > 0 && (
                 <div className="row" style={{ marginBottom: 12 }}>
-                  {topHoldings.assetAllocation.map((item, idx) => (
+                  {topHoldings.assetAllocation.map((item: any, idx: number) => (
                     <Stat
                       key={idx}
                       label={item.name}
@@ -921,7 +983,7 @@ const FundCard = memo(function Index({
                 <span className="muted">涨跌幅 / 占比</span>
               </div>
               <div className="list">
-                {topHoldings.holdings.map((h, idx) => (
+                {topHoldings.holdings.map((h: any, idx: number) => (
                   <div className="item" key={idx}>
                     <span className="name">{h.name}</span>
                     <div className="values">
@@ -1008,7 +1070,7 @@ const FundCard = memo(function Index({
                   >
                     {topHoldings.assetAllocation && topHoldings.assetAllocation.length > 0 && (
                       <div className="row" style={{ marginBottom: 12, marginTop: 4 }}>
-                        {topHoldings.assetAllocation.map((item, idx) => (
+                        {topHoldings.assetAllocation.map((item: any, idx: number) => (
                           <Stat
                             key={idx}
                             label={item.name}
@@ -1033,7 +1095,7 @@ const FundCard = memo(function Index({
                       <span className="muted">涨跌幅 / 占比</span>
                     </div>
                     <div className="list">
-                      {topHoldings.holdings.map((h, idx) => (
+                      {topHoldings.holdings.map((h: any, idx: number) => (
                         <div className="item" key={idx}>
                           <span className="name">{h.name}</span>
                           <div className="values">

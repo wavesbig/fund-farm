@@ -29,7 +29,7 @@ export interface PcTableSettingModalProps {
   onToggleShowFullFundName?: (show: boolean) => void;
   syncOptions?: Array<{ id: string; name: string; description?: string }>;
   currentGroupName?: string;
-  onSyncSettings?: (targetIds: string[]) => boolean | void;
+  onSyncSettings?: (targetIds: string[]) => boolean | number | void;
 }
 
 export default function PcTableSettingModal({

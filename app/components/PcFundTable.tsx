@@ -16,7 +16,14 @@ import { isArray, isFunction, isObject, isString, throttle, debounce } from 'lod
 import { AnimatePresence, motion } from 'framer-motion';
 import { useModalStore } from '../stores';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
-import { flexRender, getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table';
+import {
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+  type ColumnDef,
+  type Row
+} from '@tanstack/react-table';
 import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -181,6 +188,24 @@ function SortableRow({ row, children, disabled, enableAnimation = true }) {
   );
 }
 
+interface MemoizedTableRowProps {
+  row: Row<any>;
+  index: number;
+  sortBy: string;
+  enableAnimation?: boolean;
+  getCommonPinningStyles: (column: any, isHeader?: boolean) => React.CSSProperties;
+  isFavorites?: boolean;
+  isSelected?: boolean;
+  masked?: boolean;
+  periodReturns?: any;
+  relatedSector?: any;
+  sectorQuote?: any;
+  fundExtraData?: any;
+  columnOrder: string[];
+  columnVisibility: Record<string, boolean>;
+  columnSizing: Record<string, number>;
+}
+
 const MemoizedTableRow = memo(
   ({
     row,
@@ -198,15 +223,15 @@ const MemoizedTableRow = memo(
     columnOrder,
     columnVisibility,
     columnSizing
-  }) => {
+  }: MemoizedTableRowProps) => {
     return (
       <SortableRow row={row} disabled={sortBy !== 'default'} enableAnimation={enableAnimation}>
         <div className={`table-row table-row-scroll ${index % 2 === 1 ? 'row-even' : ''}`} data-masked={masked}>
           {row.getVisibleCells().map((cell) => {
-            const columnId = cell.column.id || cell.column.columnDef?.accessorKey;
+            const columnId = cell.column.id || (cell.column.columnDef as any)?.accessorKey;
             const isNameColumn = columnId === 'fundName';
             const align = isNameColumn ? '' : NON_FROZEN_COLUMN_IDS.includes(columnId) ? 'text-right' : 'text-center';
-            const cellClassName = (cell.column.columnDef.meta && cell.column.columnDef.meta.cellClassName) || '';
+            const cellClassName = (cell.column.columnDef.meta as any)?.cellClassName || '';
             const style = getCommonPinningStyles(cell.column, false);
             const isPinned = cell.column.getIsPinned();
             return (
@@ -224,7 +249,7 @@ const MemoizedTableRow = memo(
       </SortableRow>
     );
   },
-  (prevProps, nextProps) => {
+  (prevProps: MemoizedTableRowProps, nextProps: MemoizedTableRowProps) => {
     return (
       prevProps.index === nextProps.index &&
       prevProps.sortBy === nextProps.sortBy &&
@@ -246,6 +271,21 @@ const MemoizedTableRow = memo(
 
 MemoizedTableRow.displayName = 'MemoizedTableRow';
 
+interface FundNameCellProps {
+  info: any;
+  showFullFundName?: boolean;
+  onOpenCardDialog?: (row: any) => void;
+  favorites?: Set<string>;
+  isGroupTab?: boolean;
+  currentTab?: string;
+  batchRemoveEnabled?: boolean;
+  sortBy?: string;
+  onToggleFavoriteRef?: React.MutableRefObject<any>;
+  onFundTagsClickRef?: React.MutableRefObject<any>;
+  canEditFundTags?: boolean;
+  fundExtraDataByCode?: Record<string, any>;
+}
+
 const FundNameCell = memo(
   ({
     info,
@@ -260,7 +300,7 @@ const FundNameCell = memo(
     onFundTagsClickRef,
     canEditFundTags,
     fundExtraDataByCode
-  }) => {
+  }: FundNameCellProps) => {
     const { isEditMode, selectedCodes, toggleSelected } = useContext(EditModeContext);
     const original = info.row.original || {};
     const code = original.code;
@@ -467,10 +507,10 @@ const FundNameCell = memo(
                 <span className="pc-name-inline-tags">
                   {fundTags.map((raw, idx) => {
                     const item =
-                      raw && isObject(raw) && raw.name != null
+                      raw && isObject(raw) && (raw as any).name != null
                         ? {
-                            name: String(raw.name).trim(),
-                            theme: String(raw.theme ?? 'default').trim() || 'default'
+                            name: String((raw as any).name).trim(),
+                            theme: String((raw as any).theme ?? 'default').trim() || 'default'
                           }
                         : { name: String(raw).trim(), theme: 'default' };
                     if (!item.name) return null;
@@ -551,6 +591,33 @@ FundNameCell.displayName = 'FundNameCell';
  * @param {string} [props.relatedSectorSessionKey] - 登录用户 id（未登录传空），用于关联板块查询缓存与登录后重新拉取
  * @param {(row: any) => void} [props.onFundTagsClick] - 点击标签列时打开编辑标签
  */
+export interface PcFundTableProps {
+  data?: any[];
+  onRemoveFund?: (fund: any) => void;
+  onRemoveFunds?: (codes: string[]) => boolean | void;
+  onMoveFunds?: (payload: any) => Promise<any> | void;
+  currentTab?: string;
+  groups?: any[];
+  favorites?: Set<string>;
+  onToggleFavorite?: (code: string) => void;
+  onHoldingAmountClick?: (row: any, meta: { hasHolding: boolean }) => void;
+  onHoldingProfitClick?: (row: any) => void;
+  sortBy?: string;
+  sortOrder?: string;
+  sortRules?: any[];
+  onSortChange?: (field: string) => void;
+  onReorder?: (oldIndex: number, newIndex: number) => void;
+  onCustomSettingsChange?: () => void;
+  getFundCardProps?: (row: any) => any;
+  closeDialogRef?: React.MutableRefObject<any>;
+  batchSelectionClearRef?: React.MutableRefObject<(() => void) | null>;
+  stickyTop?: number;
+  masked?: boolean;
+  relatedSectorSessionKey?: string;
+  onFundTagsClick?: (row: any) => void;
+  fundExtraDataByCode?: Record<string, any>;
+}
+
 const PcFundTable = memo(function PcFundTable({
   data = [],
   onRemoveFund,
@@ -576,7 +643,7 @@ const PcFundTable = memo(function PcFundTable({
   relatedSectorSessionKey,
   onFundTagsClick,
   fundExtraDataByCode = {}
-}) {
+}: PcFundTableProps) {
   // 从 Zustand 读取删除确认弹框状态，避免 page.jsx 订阅导致全量重渲染
   const fundDeleteConfirm = useModalStore((s) => s.fundDeleteConfirm);
   const fundDeleteBulkConfirm = useModalStore((s) => s.fundDeleteBulkConfirm);
@@ -740,7 +807,7 @@ const PcFundTable = memo(function PcFundTable({
     [data]
   );
   const batchSelectableCount = batchSelectableCodes.length;
-  const [selectedCodes, setSelectedCodes] = useState(() => new Set());
+  const [selectedCodes, setSelectedCodes] = useState<Set<string>>(() => new Set<string>());
   const [moveGroupOpen, setMoveGroupOpen] = useState(false);
 
   useEffect(() => {
@@ -749,7 +816,7 @@ const PcFundTable = memo(function PcFundTable({
   }, [currentTab]);
 
   useEffect(() => {
-    if (!batchRemoveEnabled) setSelectedCodes(new Set());
+    if (!batchRemoveEnabled) setSelectedCodes(new Set<string>());
   }, [batchRemoveEnabled]);
 
   useEffect(() => {
@@ -757,7 +824,7 @@ const PcFundTable = memo(function PcFundTable({
       if (!prev?.size) return prev;
       const allowed = new Set(selectableCodes);
       let changed = false;
-      const next = new Set();
+      const next = new Set<string>();
       for (const c of prev) {
         if (allowed.has(c)) next.add(c);
         else changed = true;
@@ -819,12 +886,12 @@ const PcFundTable = memo(function PcFundTable({
   );
 
   const selectedCount = selectedCodes?.size || 0;
-  const selectedCodesList = useMemo(() => Array.from(selectedCodes || []), [selectedCodes]);
+  const selectedCodesList = useMemo<string[]>(() => Array.from(selectedCodes || []).map(String), [selectedCodes]);
 
-  const getCustomSettingsWithMigration = () => {
+  const getCustomSettingsWithMigration = (): Record<string, any> => {
     if (typeof window === 'undefined') return {};
     try {
-      const parsed = storageStore.getItem('customSettings') || {};
+      const parsed: Record<string, any> = storageStore.getItem('customSettings') || {};
       if (!parsed || !isObject(parsed)) return {};
       if (
         parsed.pcTableColumnOrder != null ||
@@ -855,10 +922,11 @@ const PcFundTable = memo(function PcFundTable({
     }
   };
 
-  const buildPcConfigFromGroup = (group) => {
+  const buildPcConfigFromGroup = (group: any) => {
     if (!group || !isObject(group)) return null;
-    const sizing = group.pcTableColumns;
-    const sizingObj =
+    const g = group as Record<string, any>;
+    const sizing = g.pcTableColumns;
+    const sizingObj: Record<string, any> =
       sizing && isObject(sizing)
         ? Object.fromEntries(Object.entries(sizing).filter(([, v]) => Number.isFinite(v)))
         : {};
@@ -867,11 +935,10 @@ const PcFundTable = memo(function PcFundTable({
       Object.assign(sizingObj, rest);
       delete sizingObj.actions;
     }
-    const order =
-      isArray(group.pcTableColumnOrder) && group.pcTableColumnOrder.length > 0 ? group.pcTableColumnOrder : null;
+    const order = isArray(g.pcTableColumnOrder) && g.pcTableColumnOrder.length > 0 ? g.pcTableColumnOrder : null;
     const visibility =
-      group.pcTableColumnVisibility && isObject(group.pcTableColumnVisibility) ? group.pcTableColumnVisibility : null;
-    const pinned = isArray(group.pcTableColumnPinned) ? group.pcTableColumnPinned : [];
+      g.pcTableColumnVisibility && isObject(g.pcTableColumnVisibility) ? g.pcTableColumnVisibility : null;
+    const pinned = isArray(g.pcTableColumnPinned) ? g.pcTableColumnPinned : [];
     return { sizing: sizingObj, order, visibility, pinned };
   };
 
@@ -883,8 +950,8 @@ const PcFundTable = memo(function PcFundTable({
   });
 
   const getInitialConfigByGroup = () => {
-    const parsed = getCustomSettingsWithMigration();
-    const byGroup = {};
+    const parsed: Record<string, any> = getCustomSettingsWithMigration();
+    const byGroup: Record<string, any> = {};
     Object.keys(parsed).forEach((k) => {
       if (k === 'pcContainerWidth') return;
       const group = parsed[k];
@@ -893,8 +960,8 @@ const PcFundTable = memo(function PcFundTable({
         byGroup[k] = {
           pcTableColumnOrder: pc.order
             ? (() => {
-                const valid = pc.order.filter((id) => NON_FROZEN_COLUMN_IDS.includes(id));
-                const missing = NON_FROZEN_COLUMN_IDS.filter((id) => !valid.includes(id));
+                const valid = pc.order.filter((id: string) => NON_FROZEN_COLUMN_IDS.includes(id));
+                const missing = NON_FROZEN_COLUMN_IDS.filter((id: string) => !valid.includes(id));
                 return [...valid, ...missing];
               })()
             : null,
@@ -908,7 +975,7 @@ const PcFundTable = memo(function PcFundTable({
     return byGroup;
   };
 
-  const [configByGroup, setConfigByGroup] = useState(getInitialConfigByGroup);
+  const [configByGroup, setConfigByGroup] = useState<Record<string, any>>(getInitialConfigByGroup);
 
   const currentGroupPc = configByGroup[groupKey];
   const showFullFundName = currentGroupPc?.pcShowFullFundName ?? false;
@@ -916,14 +983,14 @@ const PcFundTable = memo(function PcFundTable({
   const columnOrder = (() => {
     const order = currentGroupPc?.pcTableColumnOrder ?? defaultPc.order;
     if (!isArray(order) || order.length === 0) return [...NON_FROZEN_COLUMN_IDS];
-    const valid = order.filter((id) => NON_FROZEN_COLUMN_IDS.includes(id));
-    const missing = NON_FROZEN_COLUMN_IDS.filter((id) => !valid.includes(id));
+    const valid = order.filter((id: string) => NON_FROZEN_COLUMN_IDS.includes(id));
+    const missing = NON_FROZEN_COLUMN_IDS.filter((id: string) => !valid.includes(id));
     return [...valid, ...missing];
   })();
-  const columnVisibility = (() => {
+  const columnVisibility: Record<string, boolean> = (() => {
     const vis = currentGroupPc?.pcTableColumnVisibility ?? null;
     if (vis && isObject(vis) && Object.keys(vis).length > 0) {
-      const next = { ...vis };
+      const next: Record<string, boolean> = { ...vis };
       NON_FROZEN_COLUMN_IDS.forEach((id) => {
         if (next[id] === undefined) {
           next[id] = PC_COLUMNS_DEFAULT_HIDDEN_IF_PERSONALIZED.has(id) ? false : true;
@@ -931,13 +998,13 @@ const PcFundTable = memo(function PcFundTable({
       });
       return next;
     }
-    const allVisible = {};
+    const allVisible: Record<string, boolean> = {};
     NON_FROZEN_COLUMN_IDS.forEach((id) => {
       allVisible[id] = PC_COLUMNS_DEFAULT_HIDDEN_IF_PERSONALIZED.has(id) ? false : true;
     });
     return allVisible;
   })();
-  const columnSizing = useMemo(() => {
+  const columnSizing: Record<string, number> = useMemo(() => {
     const s = currentGroupPc?.pcTableColumns;
     if (s && isObject(s)) {
       const out = Object.fromEntries(Object.entries(s).filter(([, v]) => Number.isFinite(v)));
@@ -950,11 +1017,11 @@ const PcFundTable = memo(function PcFundTable({
     return {};
   }, [currentGroupPc?.pcTableColumns]);
 
-  const persistPcGroupConfig = (updates) => {
+  const persistPcGroupConfig = (updates: any) => {
     if (typeof window === 'undefined') return;
     try {
-      const parsed = storageStore.getItem('customSettings') || {};
-      const group = parsed[groupKey] && isObject(parsed[groupKey]) ? { ...parsed[groupKey] } : {};
+      const parsed: Record<string, any> = storageStore.getItem('customSettings') || {};
+      const group: Record<string, any> = parsed[groupKey] && isObject(parsed[groupKey]) ? { ...parsed[groupKey] } : {};
       if (updates.pcTableColumnOrder !== undefined) group.pcTableColumnOrder = updates.pcTableColumnOrder;
       if (updates.pcTableColumnVisibility !== undefined)
         group.pcTableColumnVisibility = updates.pcTableColumnVisibility;
@@ -996,7 +1063,7 @@ const PcFundTable = memo(function PcFundTable({
       setConfigByGroup((prev) => {
         const next = { ...prev };
         Object.entries(targetUpdates).forEach(([targetId, updates]) => {
-          next[targetId] = { ...next[targetId], ...updates };
+          next[targetId] = { ...(next[targetId] || {}), ...(updates as object) };
         });
         return next;
       });
@@ -1114,13 +1181,13 @@ const PcFundTable = memo(function PcFundTable({
     if (typeof window === 'undefined') return;
     const getEffectiveStickyTop = () => {
       const stickySummaryCard = document.querySelector('.group-summary-sticky .group-summary-card');
-      const marketIndexEl = document.querySelector('.market-index-accordion-root');
+      const marketIndexEl = document.querySelector<HTMLElement>('.market-index-accordion-root');
       const currentMarketIndexHeight = marketIndexEl ? marketIndexEl.offsetHeight : 0;
       const baseStickyTop = stickyTop + currentMarketIndexHeight;
 
       if (!stickySummaryCard) return baseStickyTop;
 
-      const stickySummaryWrapper = stickySummaryCard.closest('.group-summary-sticky');
+      const stickySummaryWrapper = stickySummaryCard.closest<HTMLElement>('.group-summary-sticky');
       if (!stickySummaryWrapper) return baseStickyTop;
 
       const wrapperRect = stickySummaryWrapper.getBoundingClientRect();
@@ -1199,11 +1266,14 @@ const PcFundTable = memo(function PcFundTable({
   const dataSourceEnabled = columnVisibility?.dataSource !== false;
   const dataSourceAccuracyLabels = useDataSourceAccuracyLabels(data, dataSourceEnabled);
   const relatedSectorCacheRef = useRef(new Map());
-  const [relatedSectorByCode, setRelatedSectorByCode] = useState({});
-  const [sectorQuoteByLabel, setSectorQuoteByLabel] = useState({});
+  const [relatedSectorByCode, setRelatedSectorByCode] = useState<Record<string, string>>({});
+  const [sectorQuoteByLabel, setSectorQuoteByLabel] = useState<Record<string, any>>({});
 
   const sectorAuthSegment = relatedSectorSessionKey || 'anon';
-  const dataCodes = useMemo(() => Array.from(new Set((data || []).map((d) => d?.code).filter(Boolean))), [data]);
+  const dataCodes: string[] = useMemo(
+    () => Array.from(new Set((data || []).map((d: any) => d?.code).filter(Boolean))),
+    [data]
+  );
   const dataCodesKey = useMemo(() => dataCodes.join('|'), [dataCodes]);
 
   useEffect(() => {
@@ -1234,7 +1304,7 @@ const PcFundTable = memo(function PcFundTable({
           const next = { ...prev };
           for (const [code, value] of Object.entries(batchResults)) {
             if (next[code] === value) continue;
-            next[code] = value;
+            next[code] = String(value ?? '');
             changed = true;
           }
           return changed ? next : prev;
@@ -1253,26 +1323,26 @@ const PcFundTable = memo(function PcFundTable({
     if (!relatedSectorEnabled) return;
     if (dataCodes.length === 0) return;
 
-    const labels = new Set();
+    const labels = new Set<string>();
     for (const code of dataCodes) {
       const lbl = relatedSectorByCode?.[code] ?? relatedSectorCacheRef.current.get(code);
       const t = lbl != null ? String(lbl).trim() : '';
       if (t) labels.add(t);
     }
-    const labelList = Array.from(labels);
+    const labelList: string[] = Array.from(labels);
     if (labelList.length === 0) return;
 
     let cancelled = false;
     (async () => {
       try {
         // 1. 批量获取 secid
-        const secidResults = await fetchFundSecidsBatch(labelList);
+        const secidResults: Record<string, string> = await fetchFundSecidsBatch(labelList);
         if (cancelled) return;
 
         // 2. 批量获取行情
         const secids = labelList.map((label) => secidResults[label]).filter(Boolean);
-        const quotes = await fetchEastmoneySectorQuotesBatch(secids);
-        const batch = {};
+        const quotes: Record<string, any> = await fetchEastmoneySectorQuotesBatch(secids);
+        const batch: Record<string, any> = {};
         for (const label of labelList) {
           const secid = secidResults[label];
           if (!secid) continue;
@@ -1343,13 +1413,13 @@ const PcFundTable = memo(function PcFundTable({
     columnVisibility?.period6m !== false ||
     columnVisibility?.period1y !== false;
   const periodReturnsCacheRef = useRef(new Map());
-  const [periodReturnsByCode, setPeriodReturnsByCode] = useState({});
+  const [periodReturnsByCode, setPeriodReturnsByCode] = useState<Record<string, any>>({});
 
   useEffect(() => {
     if (!periodReturnsEnabled) return;
     if (dataCodes.length === 0) return;
 
-    const cachedBatch = {};
+    const cachedBatch: Record<string, any> = {};
     for (const code of dataCodes) {
       if (!periodReturnsCacheRef.current.has(code)) continue;
       cachedBatch[code] = periodReturnsCacheRef.current.get(code);
@@ -1382,7 +1452,7 @@ const PcFundTable = memo(function PcFundTable({
 
     let cancelled = false;
     (async () => {
-      const batchResults = {};
+      const batchResults: Record<string, any> = {};
       let updateTimeout = null;
 
       const triggerBatchUpdate = () => {
@@ -1478,666 +1548,768 @@ const PcFundTable = memo(function PcFundTable({
     };
   }, [showPortalHeader, showTopScrollbar, tableScrollWidth]);
 
-  const columns = useMemo(
-    () => [
-      {
-        accessorKey: 'fundName',
-        header: () => {
-          if (!batchRemoveEnabled) return '基金名称';
-          if (isEditMode) {
-            const allCount = batchSelectableCount;
-            const checked = allCount > 0 && selectedCount === allCount;
-            const indeterminate = selectedCount > 0 && selectedCount < allCount;
-            return (
-              <BatchRemoveHeader
-                checked={checked}
-                indeterminate={indeterminate}
-                selectedCount={selectedCount}
-                totalCount={allCount}
-                onToggleAll={(nextChecked) => setAllSelected(nextChecked)}
-                onClear={() => setSelectedCodes(new Set())}
-                onRemove={() => {
-                  if (!onRemoveFunds || selectedCount === 0) return;
-                  const codes = Array.from(selectedCodes);
-                  const shouldClear = onRemoveFunds(codes);
-                  if (shouldClear !== false) {
-                    setSelectedCodes(new Set());
+  const columns: ColumnDef<any, any>[] = useMemo<ColumnDef<any, any>[]>(
+    () =>
+      [
+        {
+          accessorKey: 'fundName',
+          header: () => {
+            if (!batchRemoveEnabled) return '基金名称';
+            if (isEditMode) {
+              const allCount = batchSelectableCount;
+              const checked = allCount > 0 && selectedCount === allCount;
+              const indeterminate = selectedCount > 0 && selectedCount < allCount;
+              return (
+                <BatchRemoveHeader
+                  checked={checked}
+                  indeterminate={indeterminate}
+                  selectedCount={selectedCount}
+                  totalCount={allCount}
+                  onToggleAll={(nextChecked) => setAllSelected(nextChecked)}
+                  onClear={() => setSelectedCodes(new Set())}
+                  onRemove={() => {
+                    if (!onRemoveFunds || selectedCount === 0) return;
+                    const codes = Array.from(selectedCodes);
+                    const shouldClear = onRemoveFunds(codes);
+                    if (shouldClear !== false) {
+                      setSelectedCodes(new Set());
+                      setIsEditMode(false);
+                    }
+                  }}
+                  onMove={() => {
+                    if (!onMoveFunds || selectedCount === 0) return;
+                    setMoveGroupOpen(true);
+                  }}
+                  onClose={() => {
                     setIsEditMode(false);
-                  }
-                }}
-                onMove={() => {
-                  if (!onMoveFunds || selectedCount === 0) return;
-                  setMoveGroupOpen(true);
-                }}
-                onClose={() => {
-                  setIsEditMode(false);
-                  setSelectedCodes(new Set());
-                }}
-                disabled={selectedCount === 0}
-              />
+                    setSelectedCodes(new Set());
+                  }}
+                  disabled={selectedCount === 0}
+                />
+              );
+            }
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>基金名称</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="icon-button"
+                      onClick={(e) => {
+                        e.stopPropagation?.();
+                        setIsEditMode(true);
+                      }}
+                      aria-label="编辑"
+                      style={{
+                        border: 'none',
+                        width: '28px',
+                        height: '28px',
+                        minWidth: '28px',
+                        backgroundColor: 'transparent',
+                        color: 'var(--text)',
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        opacity: 0.6,
+                        transition: 'opacity 0.2s'
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                      onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.6')}
+                    >
+                      <PencilIcon width="14" height="14" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>编辑模式</TooltipContent>
+                </Tooltip>
+              </div>
             );
+          },
+          size: 300,
+          minSize: 280,
+          enablePinning: true,
+          cell: (info) => (
+            <FundNameCell
+              info={info}
+              showFullFundName={showFullFundName}
+              onOpenCardDialog={getFundCardProps ? handleOpenCardDialog : undefined}
+              favorites={favorites}
+              isGroupTab={isGroupTab}
+              currentTab={currentTab}
+              batchRemoveEnabled={batchRemoveEnabled}
+              sortBy={sortBy}
+              onToggleFavoriteRef={onToggleFavoriteRef}
+              onFundTagsClickRef={onFundTagsClickRef}
+              canEditFundTags={!!onFundTagsClick}
+              fundExtraDataByCode={fundExtraDataByCode}
+            />
+          ),
+          meta: {
+            align: 'left',
+            cellClassName: 'name-cell'
           }
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>基金名称</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    className="icon-button"
-                    onClick={(e) => {
-                      e.stopPropagation?.();
-                      setIsEditMode(true);
-                    }}
-                    aria-label="编辑"
-                    style={{
-                      border: 'none',
-                      width: '28px',
-                      height: '28px',
-                      minWidth: '28px',
-                      backgroundColor: 'transparent',
-                      color: 'var(--text)',
-                      flexShrink: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      opacity: 0.6,
-                      transition: 'opacity 0.2s'
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = 0.6)}
-                  >
-                    <PencilIcon width="14" height="14" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>编辑模式</TooltipContent>
-              </Tooltip>
-            </div>
-          );
         },
-        size: 300,
-        minSize: 280,
-        enablePinning: true,
-        cell: (info) => (
-          <FundNameCell
-            info={info}
-            showFullFundName={showFullFundName}
-            onOpenCardDialog={getFundCardProps ? handleOpenCardDialog : undefined}
-            favorites={favorites}
-            isGroupTab={isGroupTab}
-            currentTab={currentTab}
-            batchRemoveEnabled={batchRemoveEnabled}
-            sortBy={sortBy}
-            onToggleFavoriteRef={onToggleFavoriteRef}
-            onFundTagsClickRef={onFundTagsClickRef}
-            canEditFundTags={!!onFundTagsClick}
-            fundExtraDataByCode={fundExtraDataByCode}
-          />
-        ),
-        meta: {
-          align: 'left',
-          cellClassName: 'name-cell'
-        }
-      },
-      {
-        id: 'dataSource',
-        header: '数据源',
-        size: 90,
-        minSize: 80,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const autoSource = !!original.rawFund?.autoSource;
-          const dataSource = original.rawFund?.dataSource || 1;
-          const text = autoSource ? `自动源${dataSource}` : `数据源${dataSource}`;
-          const accuracyLabel = dataSourceAccuracyLabels?.[original.rawFund?.code || original.code];
-          return (
-            <div
-              style={{
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <Badge
-                variant="outline"
-                className={cn(
-                  'font-normal text-[11px] cursor-pointer hover:border-primary/50 transition-colors',
-                  autoSource ? 'border-primary/30 text-primary bg-primary/5' : 'text-muted-foreground border-border'
-                )}
-                style={autoSource ? { gap: '2px' } : {}}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  useModalStore.setState({ dataSourceModal: { open: true, fund: original.rawFund } });
+        {
+          id: 'dataSource',
+          header: '数据源',
+          size: 90,
+          minSize: 80,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const autoSource = !!original.rawFund?.autoSource;
+            const dataSource = original.rawFund?.dataSource || 1;
+            const text = autoSource ? `自动源${dataSource}` : `数据源${dataSource}`;
+            const accuracyLabel = dataSourceAccuracyLabels?.[original.rawFund?.code || original.code];
+            return (
+              <div
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '4px'
                 }}
               >
-                {autoSource && <Sparkles size={10} style={{ opacity: 0.8 }} />}
-                {text}
-              </Badge>
-              <DataSourceAccuracyBadge label={accuracyLabel} />
-            </div>
-          );
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'font-normal text-[11px] cursor-pointer hover:border-primary/50 transition-colors',
+                    autoSource ? 'border-primary/30 text-primary bg-primary/5' : 'text-muted-foreground border-border'
+                  )}
+                  style={autoSource ? { gap: '2px' } : {}}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    useModalStore.setState({ dataSourceModal: { open: true, fund: original.rawFund } });
+                  }}
+                >
+                  {autoSource && <Sparkles size={10} style={{ opacity: 0.8 }} />}
+                  {text}
+                </Badge>
+                <DataSourceAccuracyBadge label={accuracyLabel} />
+              </div>
+            );
+          },
+          meta: {
+            align: 'center'
+          }
         },
-        meta: {
-          align: 'center'
-        }
-      },
-      {
-        id: 'relatedSector',
-        header: '关联板块',
-        size: 180,
-        minSize: 120,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = (code && (relatedSectorByCode?.[code] ?? relatedSectorCacheRef.current.get(code))) || '';
-          const display = value || '—';
-          const labelKey = value ? String(value).trim() : '';
-          const quote = labelKey ? sectorQuoteByLabel?.[labelKey] : null;
-          const nameFromQuote = quote?.name != null ? String(quote.name).trim() : '';
-          const firstLine = nameFromQuote || display;
-          const pct = quote?.pct;
-          const pctText = pct != null ? `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%` : null;
-          const pctCls = pct != null ? (pct > 0 ? 'up' : pct < 0 ? 'down' : '') : '';
-          return (
-            <div
-              style={{
-                width: '100%',
-                minWidth: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'stretch',
-                gap: 2
-              }}
-            >
-              {pctText != null ? (
+        {
+          id: 'relatedSector',
+          header: '关联板块',
+          size: 180,
+          minSize: 120,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = (code && (relatedSectorByCode?.[code] ?? relatedSectorCacheRef.current.get(code))) || '';
+            const display = value || '—';
+            const labelKey = value ? String(value).trim() : '';
+            const quote = labelKey ? sectorQuoteByLabel?.[labelKey] : null;
+            const nameFromQuote = quote?.name != null ? String(quote.name).trim() : '';
+            const firstLine = nameFromQuote || display;
+            const pct = quote?.pct;
+            const pctText = pct != null ? `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%` : null;
+            const pctCls = pct != null ? (pct > 0 ? 'up' : pct < 0 ? 'down' : '') : '';
+            return (
+              <div
+                style={{
+                  width: '100%',
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'stretch',
+                  gap: 2
+                }}
+              >
+                {pctText != null ? (
+                  <span
+                    className={pctCls}
+                    style={{
+                      fontWeight: 700,
+                      textAlign: 'right',
+                      fontSize: 'clamp(10px, 1.2vw, 14px)',
+                      display: 'block',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {pctText}
+                  </span>
+                ) : null}
                 <span
-                  className={pctCls}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'right',
+                    fontSize: pctText != null ? '11px' : '14px'
+                  }}
+                >
+                  {firstLine}
+                </span>
+              </div>
+            );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'related-sector-cell'
+          }
+        },
+        {
+          id: 'period1w',
+          header: '近1周',
+          size: 88,
+          minSize: 72,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = code ? periodReturnsByCode[code]?.week : null;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
+            return (
+              <div style={{ textAlign: 'right' }}>
+                <div
+                  className={cls}
                   style={{
                     fontWeight: 700,
-                    textAlign: 'right',
                     fontSize: 'clamp(10px, 1.2vw, 14px)',
-                    display: 'block',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  {pctText}
-                </span>
-              ) : null}
-              <span
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  minWidth: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  textAlign: 'right',
-                  fontSize: pctText != null ? '11px' : '14px'
-                }}
-              >
-                {firstLine}
-              </span>
-            </div>
-          );
-        },
-        meta: {
-          align: 'right',
-          cellClassName: 'related-sector-cell'
-        }
-      },
-      {
-        id: 'period1w',
-        header: '近1周',
-        size: 88,
-        minSize: 72,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = code ? periodReturnsByCode[code]?.week : null;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
-          return (
-            <div style={{ textAlign: 'right' }}>
-              <div
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {text}
+                  {text}
+                </div>
               </div>
-            </div>
-          );
+            );
+          },
+          meta: { align: 'right', cellClassName: 'period-return-cell' }
         },
-        meta: { align: 'right', cellClassName: 'period-return-cell' }
-      },
-      {
-        id: 'period1m',
-        header: '近1月',
-        size: 88,
-        minSize: 72,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = code ? periodReturnsByCode[code]?.month : null;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
-          return (
-            <div style={{ textAlign: 'right' }}>
-              <div
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {text}
+        {
+          id: 'period1m',
+          header: '近1月',
+          size: 88,
+          minSize: 72,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = code ? periodReturnsByCode[code]?.month : null;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
+            return (
+              <div style={{ textAlign: 'right' }}>
+                <div
+                  className={cls}
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {text}
+                </div>
               </div>
-            </div>
-          );
+            );
+          },
+          meta: { align: 'right', cellClassName: 'period-return-cell' }
         },
-        meta: { align: 'right', cellClassName: 'period-return-cell' }
-      },
-      {
-        id: 'period3m',
-        header: '近3月',
-        size: 88,
-        minSize: 72,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = code ? periodReturnsByCode[code]?.month3 : null;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
-          return (
-            <div style={{ textAlign: 'right' }}>
-              <div
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {text}
+        {
+          id: 'period3m',
+          header: '近3月',
+          size: 88,
+          minSize: 72,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = code ? periodReturnsByCode[code]?.month3 : null;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
+            return (
+              <div style={{ textAlign: 'right' }}>
+                <div
+                  className={cls}
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {text}
+                </div>
               </div>
-            </div>
-          );
+            );
+          },
+          meta: { align: 'right', cellClassName: 'period-return-cell' }
         },
-        meta: { align: 'right', cellClassName: 'period-return-cell' }
-      },
-      {
-        id: 'period6m',
-        header: '近6月',
-        size: 88,
-        minSize: 72,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = code ? periodReturnsByCode[code]?.month6 : null;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
-          return (
-            <div style={{ textAlign: 'right' }}>
-              <div
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {text}
+        {
+          id: 'period6m',
+          header: '近6月',
+          size: 88,
+          minSize: 72,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = code ? periodReturnsByCode[code]?.month6 : null;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
+            return (
+              <div style={{ textAlign: 'right' }}>
+                <div
+                  className={cls}
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {text}
+                </div>
               </div>
-            </div>
-          );
+            );
+          },
+          meta: { align: 'right', cellClassName: 'period-return-cell' }
         },
-        meta: { align: 'right', cellClassName: 'period-return-cell' }
-      },
-      {
-        id: 'period1y',
-        header: '近1年',
-        size: 88,
-        minSize: 72,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const code = original.code;
-          const value = code ? periodReturnsByCode[code]?.year1 : null;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
-          return (
-            <div style={{ textAlign: 'right' }}>
-              <div
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {text}
+        {
+          id: 'period1y',
+          header: '近1年',
+          size: 88,
+          minSize: 72,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const value = code ? periodReturnsByCode[code]?.year1 : null;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = value != null && Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(2)}%` : '—';
+            return (
+              <div style={{ textAlign: 'right' }}>
+                <div
+                  className={cls}
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {text}
+                </div>
               </div>
-            </div>
-          );
+            );
+          },
+          meta: { align: 'right', cellClassName: 'period-return-cell' }
         },
-        meta: { align: 'right', cellClassName: 'period-return-cell' }
-      },
-      {
-        accessorKey: 'latestNav',
-        header: '最新净值',
-        size: 100,
-        minSize: 80,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const rawDate = original.latestNavDate ?? '-';
-          const date = isString(rawDate) && rawDate.length > 5 ? rawDate.slice(5) : rawDate;
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-              <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {info.getValue() ?? '—'}
-              </div>
-              <span className="muted" style={{ fontSize: '11px' }}>
-                {date}
-              </span>
-            </div>
-          );
-        },
-        meta: {
-          align: 'right',
-          cellClassName: 'value-cell'
-        }
-      },
-      {
-        accessorKey: 'estimateNav',
-        header: '估算净值',
-        size: 100,
-        minSize: 80,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const rawDate = original.estimateNavDate ?? '-';
-          const date = isString(rawDate) && rawDate.length > 5 ? rawDate.slice(5) : rawDate;
-          const estimateNav = info.getValue();
-          const hasEstimateNav = estimateNav != null && estimateNav !== '—';
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-              <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {estimateNav ?? '—'}
-              </div>
-              {hasEstimateNav && date && date !== '-' ? (
+        {
+          accessorKey: 'latestNav',
+          header: '最新净值',
+          size: 100,
+          minSize: 80,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const rawDate = original.latestNavDate ?? '-';
+            const date = isString(rawDate) && rawDate.length > 5 ? rawDate.slice(5) : rawDate;
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {info.getValue() ?? '—'}
+                </div>
                 <span className="muted" style={{ fontSize: '11px' }}>
                   {date}
                 </span>
-              ) : null}
-            </div>
-          );
-        },
-        meta: {
-          align: 'right',
-          cellClassName: 'value-cell'
-        }
-      },
-      {
-        accessorKey: 'yesterdayChangePercent',
-        header: '最新涨幅',
-        size: 135,
-        minSize: 100,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.yesterdayChangeValue;
-          const rawDate = original.yesterdayDate ?? '-';
-          const date = isString(rawDate) && rawDate.length > 5 ? rawDate.slice(5) : rawDate;
-          const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-              <div
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {info.getValue() ?? '—'}
               </div>
-              <span className="muted" style={{ fontSize: '11px' }}>
-                {date}
-              </span>
-            </div>
-          );
+            );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'value-cell'
+          }
         },
-        meta: {
-          align: 'right',
-          cellClassName: 'change-cell'
-        }
-      },
-      {
-        accessorKey: 'estimateChangePercent',
-        header: '估算涨幅',
-        size: 135,
-        minSize: 100,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.estimateChangeValue;
-          const isMuted = original.estimateChangeMuted;
-          const rawTime = original.estimateTime ?? '-';
-          const time = isString(rawTime) && rawTime.length > 5 ? rawTime.slice(5) : rawTime;
-          const cls = isMuted ? 'muted' : value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const text = info.getValue();
-          const hasText = text != null && text !== '—';
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-              <div
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {text ?? '—'}
-              </div>
-              {hasText && time && time !== '-' ? (
-                <span className="muted" style={{ fontSize: '11px' }}>
-                  {time}
-                </span>
-              ) : null}
-            </div>
-          );
-        },
-        meta: {
-          align: 'right',
-          cellClassName: 'est-change-cell'
-        }
-      },
-      {
-        accessorKey: 'sinceAddedChangePercent',
-        header: '自添加来',
-        size: 135,
-        minSize: 100,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.sinceAddedChangeValue;
-          const cls = value == null ? 'muted' : value > 0 ? 'up' : value < 0 ? 'down' : '';
-          const rawDate = original.sinceAddedDateRaw ?? '';
-          const displayDate = original.sinceAddedDate ?? '';
-          const text = info.getValue();
-          const hasText = text != null && text !== '—';
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-              <div
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {text ?? '—'}
-              </div>
-              {hasText && displayDate ? (
-                <span
-                  className="muted"
-                  style={{ fontSize: '11px' }}
-                  title={rawDate && rawDate !== displayDate ? rawDate : undefined}
-                >
-                  {displayDate}
-                </span>
-              ) : null}
-            </div>
-          );
-        },
-        meta: {
-          align: 'right',
-          cellClassName: 'since-added-cell'
-        }
-      },
-      {
-        accessorKey: 'totalChangePercent',
-        header: '估算收益',
-        size: 135,
-        minSize: 100,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.estimateProfitValue;
-          const hasProfit = value != null;
-          const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
-          const amountStr = hasProfit ? (original.estimateProfit ?? '') : '—';
-          const percentStr = original.estimateProfitPercent ?? '';
-
-          return (
-            <div style={{ width: '100%' }}>
-              <span
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  display: 'block',
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
-              </span>
-              {hasProfit && percentStr && !masked ? (
-                <span
-                  className={`${cls} estimate-profit-percent`}
+        {
+          accessorKey: 'estimateNav',
+          header: '估算净值',
+          size: 100,
+          minSize: 80,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const rawDate = original.estimateNavDate ?? '-';
+            const date = isString(rawDate) && rawDate.length > 5 ? rawDate.slice(5) : rawDate;
+            const estimateNav = info.getValue();
+            const hasEstimateNav = estimateNav != null && estimateNav !== '—';
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
+                <div
                   style={{
-                    display: 'block',
-                    fontSize: 'clamp(9px, 0.9vw, 11px)',
-                    opacity: 0.9,
-                    fontWeight: 500,
+                    fontWeight: 700,
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  {percentStr}
-                </span>
-              ) : null}
-            </div>
-          );
+                  {estimateNav ?? '—'}
+                </div>
+                {hasEstimateNav && date && date !== '-' ? (
+                  <span className="muted" style={{ fontSize: '11px' }}>
+                    {date}
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'value-cell'
+          }
         },
-        meta: {
-          align: 'right',
-          cellClassName: 'total-change-cell'
-        }
-      },
-      {
-        accessorKey: 'holdingAmount',
-        header: '持仓金额',
-        size: 135,
-        minSize: 100,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const holdingLocked = (currentTab === 'all' || currentTab === 'fav') && !!original.isHoldingLinked;
-          const holdingLinkedTitle = '持仓来自自定义分组汇总，点击选择分组后操作';
-          if (original.holdingAmountValue == null) {
+        {
+          accessorKey: 'yesterdayChangePercent',
+          header: '最新涨幅',
+          size: 135,
+          minSize: 100,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.yesterdayChangeValue;
+            const rawDate = original.yesterdayDate ?? '-';
+            const date = isString(rawDate) && rawDate.length > 5 ? rawDate.slice(5) : rawDate;
+            const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
+                <div
+                  className={cls}
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {info.getValue() ?? '—'}
+                </div>
+                <span className="muted" style={{ fontSize: '11px' }}>
+                  {date}
+                </span>
+              </div>
+            );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'change-cell'
+          }
+        },
+        {
+          accessorKey: 'estimateChangePercent',
+          header: '估算涨幅',
+          size: 135,
+          minSize: 100,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.estimateChangeValue;
+            const isMuted = original.estimateChangeMuted;
+            const rawTime = original.estimateTime ?? '-';
+            const time = isString(rawTime) && rawTime.length > 5 ? rawTime.slice(5) : rawTime;
+            const cls = isMuted ? 'muted' : value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const text = info.getValue();
+            const hasText = text != null && text !== '—';
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
+                <div
+                  className={cls}
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {text ?? '—'}
+                </div>
+                {hasText && time && time !== '-' ? (
+                  <span className="muted" style={{ fontSize: '11px' }}>
+                    {time}
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'est-change-cell'
+          }
+        },
+        {
+          accessorKey: 'sinceAddedChangePercent',
+          header: '自添加来',
+          size: 135,
+          minSize: 100,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.sinceAddedChangeValue;
+            const cls = value == null ? 'muted' : value > 0 ? 'up' : value < 0 ? 'down' : '';
+            const rawDate = original.sinceAddedDateRaw ?? '';
+            const displayDate = original.sinceAddedDate ?? '';
+            const text = info.getValue();
+            const hasText = text != null && text !== '—';
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
+                <div
+                  className={cls}
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {text ?? '—'}
+                </div>
+                {hasText && displayDate ? (
+                  <span
+                    className="muted"
+                    style={{ fontSize: '11px' }}
+                    title={rawDate && rawDate !== displayDate ? rawDate : undefined}
+                  >
+                    {displayDate}
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'since-added-cell'
+          }
+        },
+        {
+          accessorKey: 'totalChangePercent',
+          header: '估算收益',
+          size: 135,
+          minSize: 100,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.estimateProfitValue;
+            const hasProfit = value != null;
+            const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
+            const amountStr = hasProfit ? (original.estimateProfit ?? '') : '—';
+            const percentStr = original.estimateProfitPercent ?? '';
+
+            return (
+              <div style={{ width: '100%' }}>
+                <span
+                  className={cls}
+                  style={{
+                    fontWeight: 700,
+                    display: 'block',
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
+                </span>
+                {hasProfit && percentStr && !masked ? (
+                  <span
+                    className={`${cls} estimate-profit-percent`}
+                    style={{
+                      display: 'block',
+                      fontSize: 'clamp(9px, 0.9vw, 11px)',
+                      opacity: 0.9,
+                      fontWeight: 500,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {percentStr}
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'total-change-cell'
+          }
+        },
+        {
+          accessorKey: 'holdingAmount',
+          header: '持仓金额',
+          size: 135,
+          minSize: 100,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const holdingLocked = (currentTab === 'all' || currentTab === 'fav') && !!original.isHoldingLinked;
+            const holdingLinkedTitle = '持仓来自自定义分组汇总，点击选择分组后操作';
+            if (original.holdingAmountValue == null) {
+              return (
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className="muted"
+                  title={holdingLocked ? holdingLinkedTitle : '编辑持仓'}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: '12px',
+                    cursor: 'pointer'
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation?.();
+                    onHoldingAmountClickRef.current?.(original, { hasHolding: false });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onHoldingAmountClickRef.current?.(original, { hasHolding: false });
+                    }
+                  }}
+                >
+                  未设置 <SettingsIcon width="12" height="12" />
+                </div>
+              );
+            }
             return (
               <div
-                role="button"
-                tabIndex={0}
-                className="muted"
                 title={holdingLocked ? holdingLinkedTitle : '编辑持仓'}
                 style={{
-                  display: 'inline-flex',
+                  display: 'flex',
                   alignItems: 'center',
-                  gap: 4,
-                  fontSize: '12px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  width: '100%',
+                  minWidth: 0
                 }}
                 onClick={(e) => {
                   e.stopPropagation?.();
-                  onHoldingAmountClickRef.current?.(original, { hasHolding: false });
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onHoldingAmountClickRef.current?.(original, { hasHolding: false });
-                  }
+                  onHoldingAmountClickRef.current?.(original, { hasHolding: true });
                 }}
               >
-                未设置 <SettingsIcon width="12" height="12" />
+                <div style={{ flex: '1 1 0', minWidth: 0 }}>
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      fontSize: 'clamp(10px, 1.2vw, 14px)',
+                      display: 'block',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {masked ? <span className="mask-text">******</span> : (info.getValue() ?? '—')}
+                  </span>
+                </div>
+                <button
+                  className="icon-button no-hover"
+                  onClick={(e) => {
+                    e.stopPropagation?.();
+                    onHoldingAmountClickRef.current?.(original, { hasHolding: true });
+                  }}
+                  style={{
+                    border: 'none',
+                    width: '28px',
+                    height: '28px',
+                    marginLeft: 4,
+                    flexShrink: 0,
+                    backgroundColor: 'transparent',
+                    color: holdingLocked ? 'var(--muted)' : undefined,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <SettingsIcon width="14" height="14" />
+                </button>
               </div>
             );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'holding-amount-cell'
           }
-          return (
-            <div
-              title={holdingLocked ? holdingLinkedTitle : '编辑持仓'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'pointer',
-                width: '100%',
-                minWidth: 0
-              }}
-              onClick={(e) => {
-                e.stopPropagation?.();
-                onHoldingAmountClickRef.current?.(original, { hasHolding: true });
-              }}
-            >
-              <div style={{ flex: '1 1 0', minWidth: 0 }}>
+        },
+        {
+          accessorKey: 'holdingRatio',
+          header: '持仓占比',
+          size: 100,
+          minSize: 80,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.holdingRatioValue;
+            if (value == null) {
+              return (
+                <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
+                  —
+                </div>
+              );
+            }
+            const text = `${(value * 100).toFixed(2)}%`;
+            return (
+              <span
+                style={{
+                  fontWeight: 700,
+                  display: 'block',
+                  textAlign: 'right',
+                  fontSize: 'clamp(10px, 1.2vw, 14px)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {masked ? <span className="mask-text">******</span> : text}
+              </span>
+            );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'holding-ratio-cell'
+          }
+        },
+        {
+          accessorKey: 'holdingCost',
+          header: '持仓成本',
+          size: 135,
+          minSize: 100,
+          cell: (info) => {
+            const original = info.row.original || {};
+            if (original.holdingCostValue == null) {
+              return (
+                <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
+                  —
+                </div>
+              );
+            }
+            return (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  width: '100%',
+                  minWidth: 0
+                }}
+              >
                 <span
                   style={{
                     fontWeight: 700,
@@ -2151,93 +2323,34 @@ const PcFundTable = memo(function PcFundTable({
                   {masked ? <span className="mask-text">******</span> : (info.getValue() ?? '—')}
                 </span>
               </div>
-              <button
-                className="icon-button no-hover"
-                onClick={(e) => {
-                  e.stopPropagation?.();
-                  onHoldingAmountClickRef.current?.(original, { hasHolding: true });
-                }}
-                style={{
-                  border: 'none',
-                  width: '28px',
-                  height: '28px',
-                  marginLeft: 4,
-                  flexShrink: 0,
-                  backgroundColor: 'transparent',
-                  color: holdingLocked ? 'var(--muted)' : undefined,
-                  cursor: 'pointer'
-                }}
-              >
-                <SettingsIcon width="14" height="14" />
-              </button>
-            </div>
-          );
-        },
-        meta: {
-          align: 'right',
-          cellClassName: 'holding-amount-cell'
-        }
-      },
-      {
-        accessorKey: 'holdingRatio',
-        header: '持仓占比',
-        size: 100,
-        minSize: 80,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.holdingRatioValue;
-          if (value == null) {
-            return (
-              <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
-                —
-              </div>
             );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'holding-cost-cell'
           }
-          const text = `${(value * 100).toFixed(2)}%`;
-          return (
-            <span
-              style={{
-                fontWeight: 700,
-                display: 'block',
-                textAlign: 'right',
-                fontSize: 'clamp(10px, 1.2vw, 14px)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {masked ? <span className="mask-text">******</span> : text}
-            </span>
-          );
         },
-        meta: {
-          align: 'right',
-          cellClassName: 'holding-ratio-cell'
-        }
-      },
-      {
-        accessorKey: 'holdingCost',
-        header: '持仓成本',
-        size: 135,
-        minSize: 100,
-        cell: (info) => {
-          const original = info.row.original || {};
-          if (original.holdingCostValue == null) {
+        {
+          accessorKey: 'costNav',
+          header: '成本净值',
+          size: 100,
+          minSize: 80,
+          cell: (info) => {
+            const original = info.row.original || {};
+            if (original.costNavValue == null) {
+              return (
+                <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
+                  —
+                </div>
+              );
+            }
             return (
-              <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
-                —
-              </div>
-            );
-          }
-          return (
-            <div
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%', minWidth: 0 }}
-            >
               <span
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
                   display: 'block',
+                  textAlign: 'right',
+                  fontSize: 'clamp(10px, 1.2vw, 14px)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -2245,290 +2358,254 @@ const PcFundTable = memo(function PcFundTable({
               >
                 {masked ? <span className="mask-text">******</span> : (info.getValue() ?? '—')}
               </span>
-            </div>
-          );
+            );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'cost-nav-cell'
+          }
         },
-        meta: {
-          align: 'right',
-          cellClassName: 'holding-cost-cell'
-        }
-      },
-      {
-        accessorKey: 'costNav',
-        header: '成本净值',
-        size: 100,
-        minSize: 80,
-        cell: (info) => {
-          const original = info.row.original || {};
-          if (original.costNavValue == null) {
+        {
+          accessorKey: 'holdingDays',
+          header: '持有天数',
+          size: 100,
+          minSize: 80,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.holdingDaysValue;
+            if (value == null) {
+              return (
+                <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
+                  —
+                </div>
+              );
+            }
+            return <div style={{ fontWeight: 700, textAlign: 'right' }}>{value}</div>;
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'holding-days-cell'
+          }
+        },
+        {
+          accessorKey: 'todayProfit',
+          header: '当日收益',
+          size: 135,
+          minSize: 100,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.todayProfitValue;
+            const hasProfit = value != null;
+            const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
+            const amountStr = hasProfit ? (info.getValue() ?? '') : '—';
+            const percentStr = original.todayProfitPercent ?? '';
+            const isUpdated = original.isUpdated;
             return (
-              <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
-                —
+              <div style={{ width: '100%' }}>
+                <span
+                  className={cls}
+                  style={{
+                    fontWeight: 700,
+                    display: 'block',
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
+                </span>
+                {percentStr && !masked ? (
+                  <span
+                    className={`${cls} today-profit-percent`}
+                    style={{
+                      display: 'block',
+                      fontSize: 'clamp(9px, 0.9vw, 11px)',
+                      opacity: 0.9,
+                      fontWeight: 500,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {percentStr}
+                  </span>
+                ) : null}
               </div>
             );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'profit-cell'
           }
-          return (
-            <span
-              style={{
-                fontWeight: 700,
-                display: 'block',
-                textAlign: 'right',
-                fontSize: 'clamp(10px, 1.2vw, 14px)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {masked ? <span className="mask-text">******</span> : (info.getValue() ?? '—')}
-            </span>
-          );
         },
-        meta: {
-          align: 'right',
-          cellClassName: 'cost-nav-cell'
-        }
-      },
-      {
-        accessorKey: 'holdingDays',
-        header: '持有天数',
-        size: 100,
-        minSize: 80,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.holdingDaysValue;
-          if (value == null) {
+        {
+          accessorKey: 'yesterdayProfit',
+          header: '昨日收益',
+          size: 135,
+          minSize: 100,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.yesterdayProfitValue;
+            const hasProfit = value != null;
+            const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
+            const amountStr = hasProfit ? (info.getValue() ?? '') : '—';
+            const percentStr = original.yesterdayProfitPercent ?? '';
+            const pctVal = original.yesterdaySecondLinePctValue;
+            const pctCls =
+              pctVal != null && Number.isFinite(pctVal) ? (pctVal > 0 ? 'up' : pctVal < 0 ? 'down' : '') : 'muted';
             return (
-              <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
-                —
+              <div style={{ width: '100%' }}>
+                <span
+                  className={cls}
+                  style={{
+                    fontWeight: 700,
+                    display: 'block',
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
+                </span>
+                {percentStr && !masked ? (
+                  <span
+                    className={`${pctCls} yesterday-profit-percent`}
+                    style={{
+                      display: 'block',
+                      fontSize: 'clamp(9px, 0.9vw, 11px)',
+                      opacity: 0.9,
+                      fontWeight: 500,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {percentStr}
+                  </span>
+                ) : null}
               </div>
             );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'yesterday-profit-cell'
           }
-          return <div style={{ fontWeight: 700, textAlign: 'right' }}>{value}</div>;
         },
-        meta: {
-          align: 'right',
-          cellClassName: 'holding-days-cell'
-        }
-      },
-      {
-        accessorKey: 'todayProfit',
-        header: '当日收益',
-        size: 135,
-        minSize: 100,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.todayProfitValue;
-          const hasProfit = value != null;
-          const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
-          const amountStr = hasProfit ? (info.getValue() ?? '') : '—';
-          const percentStr = original.todayProfitPercent ?? '';
-          const isUpdated = original.isUpdated;
-          return (
-            <div style={{ width: '100%' }}>
-              <span
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  display: 'block',
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
-              </span>
-              {percentStr && !masked ? (
+        {
+          accessorKey: 'holdingProfit',
+          header: '持有收益',
+          size: 135,
+          minSize: 100,
+          cell: (info) => {
+            const original = info.row.original || {};
+            const value = original.holdingProfitValue;
+            const hasTotal = value != null;
+            const cls = hasTotal ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
+            const amountStr = hasTotal ? (info.getValue() ?? '') : '—';
+            const percentStr = original.holdingProfitPercent ?? '';
+            return (
+              <div style={{ width: '100%' }}>
                 <span
-                  className={`${cls} today-profit-percent`}
+                  className={cls}
                   style={{
+                    fontWeight: 700,
                     display: 'block',
-                    fontSize: 'clamp(9px, 0.9vw, 11px)',
-                    opacity: 0.9,
-                    fontWeight: 500,
+                    fontSize: 'clamp(10px, 1.2vw, 14px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  {percentStr}
+                  {masked && hasTotal ? <span className="mask-text">******</span> : amountStr}
                 </span>
-              ) : null}
-            </div>
-          );
+                {percentStr && !masked ? (
+                  <span
+                    className={`${cls} holding-profit-percent`}
+                    style={{
+                      display: 'block',
+                      fontSize: 'clamp(9px, 0.9vw, 11px)',
+                      opacity: 0.9,
+                      fontWeight: 500,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {percentStr}
+                  </span>
+                ) : null}
+              </div>
+            );
+          },
+          meta: {
+            align: 'right',
+            cellClassName: 'holding-cell'
+          }
         },
-        meta: {
-          align: 'right',
-          cellClassName: 'profit-cell'
-        }
-      },
-      {
-        accessorKey: 'yesterdayProfit',
-        header: '昨日收益',
-        size: 135,
-        minSize: 100,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.yesterdayProfitValue;
-          const hasProfit = value != null;
-          const cls = hasProfit ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
-          const amountStr = hasProfit ? (info.getValue() ?? '') : '—';
-          const percentStr = original.yesterdayProfitPercent ?? '';
-          const pctVal = original.yesterdaySecondLinePctValue;
-          const pctCls =
-            pctVal != null && Number.isFinite(pctVal) ? (pctVal > 0 ? 'up' : pctVal < 0 ? 'down' : '') : 'muted';
-          return (
-            <div style={{ width: '100%' }}>
-              <span
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  display: 'block',
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {masked && hasProfit ? <span className="mask-text">******</span> : amountStr}
-              </span>
-              {percentStr && !masked ? (
-                <span
-                  className={`${pctCls} yesterday-profit-percent`}
-                  style={{
-                    display: 'block',
-                    fontSize: 'clamp(9px, 0.9vw, 11px)',
-                    opacity: 0.9,
-                    fontWeight: 500,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {percentStr}
-                </span>
-              ) : null}
-            </div>
-          );
-        },
-        meta: {
-          align: 'right',
-          cellClassName: 'yesterday-profit-cell'
-        }
-      },
-      {
-        accessorKey: 'holdingProfit',
-        header: '持有收益',
-        size: 135,
-        minSize: 100,
-        cell: (info) => {
-          const original = info.row.original || {};
-          const value = original.holdingProfitValue;
-          const hasTotal = value != null;
-          const cls = hasTotal ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : 'muted';
-          const amountStr = hasTotal ? (info.getValue() ?? '') : '—';
-          const percentStr = original.holdingProfitPercent ?? '';
-          return (
-            <div style={{ width: '100%' }}>
-              <span
-                className={cls}
-                style={{
-                  fontWeight: 700,
-                  display: 'block',
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {masked && hasTotal ? <span className="mask-text">******</span> : amountStr}
-              </span>
-              {percentStr && !masked ? (
-                <span
-                  className={`${cls} holding-profit-percent`}
-                  style={{
-                    display: 'block',
-                    fontSize: 'clamp(9px, 0.9vw, 11px)',
-                    opacity: 0.9,
-                    fontWeight: 500,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {percentStr}
-                </span>
-              ) : null}
-            </div>
-          );
-        },
-        meta: {
-          align: 'right',
-          cellClassName: 'holding-cell'
-        }
-      },
-      {
-        id: 'actions',
-        header: () => (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span>操作</span>
-            <button
-              className="icon-button"
-              title="个性化设置"
-              onClick={(e) => {
-                e.stopPropagation?.();
-                setSettingModalOpen(true);
-              }}
-              style={{
-                border: 'none',
-                width: '24px',
-                height: '24px',
-                backgroundColor: 'transparent',
-                color: 'var(--text)'
-              }}
-            >
-              <SettingsIcon width="14" height="14" />
-            </button>
-          </div>
-        ),
-        size: 80,
-        minSize: 80,
-        maxSize: 80,
-        enableResizing: false,
-        enablePinning: true,
-        meta: {
-          align: 'center',
-          isAction: true,
-          cellClassName: 'action-cell'
-        },
-        cell: (info) => {
-          const original = info.row.original || {};
-
-          const handleClick = (e) => {
-            e.stopPropagation?.();
-            onRemoveFundRef.current?.(original);
-          };
-
-          return (
-            <div className="row" style={{ justifyContent: 'center', gap: 4, padding: '8px 0' }}>
+        {
+          id: 'actions',
+          header: () => (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span>操作</span>
               <button
-                className="icon-button danger"
-                title="删除"
-                onClick={handleClick}
+                className="icon-button"
+                title="个性化设置"
+                onClick={(e) => {
+                  e.stopPropagation?.();
+                  setSettingModalOpen(true);
+                }}
                 style={{
-                  width: '28px',
-                  height: '28px',
-                  opacity: 1,
-                  cursor: 'pointer'
+                  border: 'none',
+                  width: '24px',
+                  height: '24px',
+                  backgroundColor: 'transparent',
+                  color: 'var(--text)'
                 }}
               >
-                <TrashIcon width="14" height="14" />
+                <SettingsIcon width="14" height="14" />
               </button>
             </div>
-          );
+          ),
+          size: 80,
+          minSize: 80,
+          maxSize: 80,
+          enableResizing: false,
+          enablePinning: true,
+          meta: {
+            align: 'center',
+            isAction: true,
+            cellClassName: 'action-cell'
+          },
+          cell: (info) => {
+            const original = info.row.original || {};
+
+            const handleClick = (e) => {
+              e.stopPropagation?.();
+              onRemoveFundRef.current?.(original);
+            };
+
+            return (
+              <div className="row" style={{ justifyContent: 'center', gap: 4, padding: '8px 0' }}>
+                <button
+                  className="icon-button danger"
+                  title="删除"
+                  onClick={handleClick}
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    opacity: 1,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <TrashIcon width="14" height="14" />
+                </button>
+              </div>
+            );
+          }
         }
-      }
-    ],
+      ] as any[],
     [
       currentTab,
       showFullFundName,
@@ -2640,7 +2717,7 @@ const PcFundTable = memo(function PcFundTable({
 
   const getCommonPinningStyles = useCallback((column, isHeader) => {
     const isPinned = column.getIsPinned();
-    const isNameColumn = column.id === 'fundName' || column.columnDef?.accessorKey === 'fundName';
+    const isNameColumn = column.id === 'fundName' || (column.columnDef as any)?.accessorKey === 'fundName';
     const style = {
       width: `var(--col-${column.id}, ${column.getSize()}px)`
     };
@@ -2656,7 +2733,7 @@ const PcFundTable = memo(function PcFundTable({
 
     return {
       ...style,
-      position: 'sticky',
+      position: 'sticky' as const,
       left: isLeft ? `var(--col-${column.id}-start, ${column.getStart('left')}px)` : undefined,
       right: isRight ? `var(--col-${column.id}-after, ${column.getAfter('right')}px)` : undefined,
       zIndex: isHeader ? 11 : 10,
@@ -2664,7 +2741,7 @@ const PcFundTable = memo(function PcFundTable({
       boxShadow: 'none',
       textAlign: isNameColumn ? 'left' : 'center',
       justifyContent: isNameColumn ? 'flex-start' : 'center'
-    };
+    } as React.CSSProperties;
   }, []);
 
   const getSortHeaderMeta = useCallback(
@@ -2709,11 +2786,12 @@ const PcFundTable = memo(function PcFundTable({
       <div className="table-header-row table-header-row-scroll">
         {headerGroup.headers.map((header) => {
           const style = getCommonPinningStyles(header.column, true);
-          const isNameColumn = header.column.id === 'fundName' || header.column.columnDef?.accessorKey === 'fundName';
+          const isNameColumn =
+            header.column.id === 'fundName' || (header.column.columnDef as any)?.accessorKey === 'fundName';
           const isRightAligned = NON_FROZEN_COLUMN_IDS.includes(header.column.id);
           const align = isNameColumn ? '' : isRightAligned ? 'text-right' : 'text-center';
 
-          const colId = header.column.id || header.column.columnDef?.accessorKey;
+          const colId = header.column.id || (header.column.columnDef as any)?.accessorKey;
           const { sortKey, isSorted, isSortEnabled } = getSortHeaderMeta(colId);
 
           return (
@@ -2918,10 +2996,12 @@ const PcFundTable = memo(function PcFundTable({
                       onDragEnd={handleDragEnd}
                       onDragCancel={handleDragCancel}
                       modifiers={[restrictToVerticalAxis]}
-                      dropAnimation={null}
                       autoScroll={false}
                     >
-                      <SortableContext items={data.map((item) => item.code)} strategy={verticalListSortingStrategy}>
+                      <SortableContext
+                        items={data.map((item: any) => item.code)}
+                        strategy={verticalListSortingStrategy}
+                      >
                         <div
                           ref={virtualScrollAnchorRef}
                           className="pc-fund-table-body-virtual"
@@ -2988,10 +3068,12 @@ const PcFundTable = memo(function PcFundTable({
                       onDragEnd={handleDragEnd}
                       onDragCancel={handleDragCancel}
                       modifiers={[restrictToVerticalAxis]}
-                      dropAnimation={null}
                       autoScroll={false}
                     >
-                      <SortableContext items={data.map((item) => item.code)} strategy={verticalListSortingStrategy}>
+                      <SortableContext
+                        items={data.map((item: any) => item.code)}
+                        strategy={verticalListSortingStrategy}
+                      >
                         {enableRowAnimation ? (
                           <AnimatePresence mode="popLayout">
                             {tableRows.map((row, index) => (
@@ -3104,10 +3186,11 @@ const PcFundTable = memo(function PcFundTable({
                             {headerGroup?.headers.map((header) => {
                               const style = getCommonPinningStyles(header.column, true);
                               const isNameColumn =
-                                header.column.id === 'fundName' || header.column.columnDef?.accessorKey === 'fundName';
+                                header.column.id === 'fundName' ||
+                                (header.column.columnDef as any)?.accessorKey === 'fundName';
                               const isRightAligned = NON_FROZEN_COLUMN_IDS.includes(header.column.id);
                               const align = isNameColumn ? '' : isRightAligned ? 'text-right' : 'text-center';
-                              const colId = header.column.id || header.column.columnDef?.accessorKey;
+                              const colId = header.column.id || (header.column.columnDef as any)?.accessorKey;
                               const { sortKey, isSorted, isSortEnabled } = getSortHeaderMeta(colId);
                               return (
                                 <div
@@ -3186,7 +3269,7 @@ const PcFundTable = memo(function PcFundTable({
                   onBlur={(e) => {
                     let val = parseInt(e.target.value, 10);
                     if (isNaN(val) || val < 1) val = 20;
-                    e.target.value = val;
+                    e.target.value = String(val);
                     if (val !== table.getState().pagination.pageSize) {
                       table.setPageSize(val);
                       if (typeof window !== 'undefined') {
