@@ -77,7 +77,7 @@ export default function SearchBar({
         <Button
           type="submit"
           onMouseDown={(e) => e.preventDefault()}
-          className="h-[38px] px-4 font-medium shrink-0 inline-flex"
+          className="h-[38px] px-4 font-medium shrink-0 hidden sm:inline-flex"
         >
           添加
         </Button>

@@ -100,8 +100,6 @@ export const Navbar = memo(function Navbar({
   setTutorialDrawerOpen,
   setUpdateLogOpen
 }: NavbarProps) {
-  const isSearchActive = isSearchFocused || selectedFunds.length > 0;
-
   return (
     <div className="navbar glass" ref={navbarRef}>
       {refreshing && <div className="loading-bar"></div>}
@@ -170,7 +168,7 @@ export const Navbar = memo(function Navbar({
         <span>基估宝</span>
       </div>
 
-      <div className="glass add-fund-section navbar-add-fund" role="region" aria-label="添加基金">
+      <div className="navbar-add-fund" role="region" aria-label="添加基金">
         <div className="search-container" ref={dropdownRef}>
           {selectedFunds.length > 0 && (
             <div className="selected-inline-chips" style={{ marginBottom: 8, marginLeft: 0 }}>
