@@ -1,29 +1,30 @@
 'use client';
-import { isArray, isBoolean, isNumber } from 'lodash';
-import { useIsMobile } from '@/app/hooks/useIsMobile';
+
 import { useMemo, useState, useCallback, useEffect } from 'react';
+import { isArray, isBoolean, isNumber } from 'lodash';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { zhCN } from 'date-fns/locale/zh-CN';
 import { Calendar, CalendarDayButton } from '@/components/ui/calendar';
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
 import { cn, formatMoney } from '@/lib/utils';
 import { supabase, isSupabaseConfigured } from '@/app/lib/supabase';
 import { calculateYtdReturnRate, mergeAllScopedDailyEarnings, mergeAllHoldings } from '@/app/lib/dailyEarnings';
 import { storageStore, useUserStore, useStorageStore } from '@/app/stores';
 import { searchFunds } from '@/app/api/fund';
-import { CloseIcon } from './Icons';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
 import FitText from './FitText';
 
 dayjs.locale('zh-cn');
 
 const SWIPE_THRESHOLD = 72;
 
-function formatEarnings(v, masked, isRate = false) {
+function formatEarnings(v: any, masked?: boolean, isRate = false): string {
   if (masked) return '***';
   if (!isNumber(v) || !Number.isFinite(v)) return '—';
   const sign = v > 0 ? '+' : v < 0 ? '-' : '';
@@ -31,7 +32,7 @@ function formatEarnings(v, masked, isRate = false) {
   return isRate ? `${sign}${formatted}%` : `${sign}${formatted}`;
 }
 
-function earningsClass(v) {
+function earningsClass(v: any): string {
   if (!isNumber(v) || !Number.isFinite(v)) return '';
   if (v > 0) return 'up';
   if (v < 0) return 'down';
@@ -174,7 +175,28 @@ function EarningsRankIllustration() {
   );
 }
 
-export default function MyEarningsCalendarPage({ open, onOpenChange, series = [], masked, onGoHome }) {
+export interface MyEarningsCalendarPageProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  series?: any[];
+  masked?: boolean;
+  onGoHome?: () => void;
+}
+
+interface FundEarningRow {
+  code: string;
+  name: string;
+  earnings: number;
+  rate: number | null;
+}
+
+export default function MyEarningsCalendarPage({
+  open,
+  onOpenChange,
+  series = [],
+  masked,
+  onGoHome
+}: MyEarningsCalendarPageProps) {
   const isMobile = useIsMobile();
   const reduceMotion = useReducedMotion();
   const user = useUserStore((state) => state.user);
@@ -183,20 +205,20 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
 
   const hasData = isArray(series) && series.length > 0;
 
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [resolvedNames, setResolvedNames] = useState({});
+  const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
 
   const mergedEarningsMapForDrawer = useMemo(() => {
     return mergeAllScopedDailyEarnings(fundDailyEarnings);
   }, [fundDailyEarnings]);
 
-  const selectedDateFunds = useMemo(() => {
+  const selectedDateFunds = useMemo<FundEarningRow[]>(() => {
     if (!selectedDate) return [];
-    const list = [];
+    const list: FundEarningRow[] = [];
     for (const [code, dates] of Object.entries(mergedEarningsMapForDrawer)) {
       if (!isArray(dates)) continue;
-      const dayData = dates.find((d) => d.date === selectedDate);
+      const dayData = (dates as any[]).find((d) => d.date === selectedDate);
       if (dayData && isNumber(dayData.earnings) && Number.isFinite(dayData.earnings)) {
         const fundObj = (funds || []).find((f) => f.code === code);
         const name = fundObj?.name || resolvedNames[code] || code;
@@ -234,7 +256,7 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
         codesToResolve.map(async (code) => {
           try {
             const results = await searchFunds(code);
-            const found = results.find((item) => item.CODE === code);
+            const found = results.find((item: any) => item.CODE === code);
             return [code, found ? found.NAME || found.SHORTNAME || code : code];
           } catch {
             return [code, code];
@@ -253,7 +275,7 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
     return () => {
       cancelled = true;
     };
-  }, [drawerOpen, selectedDateFunds, funds]);
+  }, [drawerOpen, selectedDateFunds, funds, resolvedNames]);
 
   const [viewTab, setViewTab] = useState('day');
   const [displayMode, setDisplayMode] = useState('amount');
@@ -262,8 +284,8 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
   const [cursorMonth, setCursorMonth] = useState(() => dayjs().startOf('month'));
   const [cursorYear, setCursorYear] = useState(() => dayjs().year());
 
-  const [percentile, setPercentile] = useState(null);
-  const [ytdRate, setYtdRate] = useState(null);
+  const [percentile, setPercentile] = useState<number | null>(null);
+  const [ytdRate, setYtdRate] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -309,10 +331,10 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
     return () => {
       cancelled = true;
     };
-  }, [open, user]);
+  }, [open, user, fundDailyEarnings]);
 
   const earningsByDate = useMemo(() => {
-    const map = new Map();
+    const map = new Map<string, { amount: number; rate: number | null }>();
     if (!isArray(series)) return map;
     for (const row of series) {
       if (row?.date && isNumber(row.earnings) && Number.isFinite(row.earnings)) {
@@ -343,9 +365,9 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
     return arr;
   }, [series, cursorYear]);
 
-  const yearTotals = useMemo(() => {
-    const map = new Map();
-    if (!isArray(series)) return map;
+  const yearTotals = useMemo<[number, number][]>(() => {
+    const map = new Map<number, number>();
+    if (!isArray(series)) return [];
     for (const row of series) {
       if (!row?.date || !isNumber(row.earnings) || !Number.isFinite(row.earnings)) continue;
       const y = parseInt(row.date.slice(0, 4), 10);
@@ -355,7 +377,6 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
     return [...map.entries()].sort((a, b) => b[0] - a[0]);
   }, [series]);
 
-  /** 按日视图：当前展示月的收益合计 */
   const dayViewMonthTotalAmount = useMemo(() => {
     const prefix = cursorMonth.format('YYYY-MM');
     let sum = 0;
@@ -408,7 +429,7 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
   }, [viewTab]);
 
   const onDragEnd = useCallback(
-    (_, info) => {
+    (_: any, info: any) => {
       if (info.offset.x > SWIPE_THRESHOLD) goPrev();
       else if (info.offset.x < -SWIPE_THRESHOLD) goNext();
     },
@@ -611,10 +632,11 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
                       formatters={{
                         formatWeekdayName: (date) => WEEKDAY_LABELS[date.getDay()]
                       }}
-                      style={{
-                        // 让 7 列宽度跟随父容器伸缩，而不是固定 cell-size
-                        '--cell-size': 'calc((100% - 12px) / 7)'
-                      }}
+                      style={
+                        {
+                          '--cell-size': 'calc((100% - 12px) / 7)'
+                        } as any
+                      }
                       className="w-full bg-transparent p-0"
                       classNames={{
                         root: 'w-full',
@@ -635,9 +657,9 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
                         today: 'bg-transparent text-inherit'
                       }}
                       components={{
-                        DayButton: ({ children, modifiers, day, ...props }) => {
+                        DayButton: ({ children, modifiers, day, ...props }: any) => {
                           const key = dayjs(day.date).format('YYYY-MM-DD');
-                          const isOutside = !!modifiers?.outside;
+                          const isOutside = Boolean(modifiers?.outside);
                           const isToday = !isOutside && dayjs(day.date).isSame(dayjs(), 'day');
                           const isFutureDay = dayjs(day.date).startOf('day').isAfter(dayjs().startOf('day'));
 
@@ -651,14 +673,15 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
                           const val = activeDisplayMode === 'rate' ? dayRate : dayAmount;
                           const hasVal = activeDisplayMode === 'rate' ? hasRate : hasAmount;
 
-                          const earningsTone = hasVal && val > 0 ? 'up' : hasVal && val < 0 ? 'down' : 'zero';
+                          const earningsTone =
+                            hasVal && (val as number) > 0 ? 'up' : hasVal && (val as number) < 0 ? 'down' : 'zero';
 
                           const showEarningsRow = !isFutureDay;
                           const bgToneClass = showEarningsRow
                             ? hasVal
-                              ? val > 0
+                              ? (val as number) > 0
                                 ? '!bg-[color-mix(in_srgb,var(--danger)_18%,transparent)] hover:!bg-[color-mix(in_srgb,var(--danger)_24%,transparent)]'
-                                : val < 0
+                                : (val as number) < 0
                                   ? '!bg-[color-mix(in_srgb,var(--success)_18%,transparent)] hover:!bg-[color-mix(in_srgb,var(--success)_24%,transparent)]'
                                   : '!bg-[color-mix(in_srgb,var(--muted-foreground)_8%,transparent)] hover:!bg-[color-mix(in_srgb,var(--muted-foreground)_12%,transparent)]'
                               : '!bg-[color-mix(in_srgb,var(--muted-foreground)_8%,transparent)] hover:!bg-[color-mix(in_srgb,var(--muted-foreground)_12%,transparent)]'
@@ -787,7 +810,6 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
                       xmlns="http://www.w3.org/2000/svg"
                       className="text-[var(--primary)]"
                     >
-                      {/* Trophy cup body */}
                       <path
                         d="M8 4h8v6a4 4 0 0 1-8 0V4Z"
                         stroke="currentColor"
@@ -796,7 +818,6 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
                         strokeLinejoin="round"
                         fill="none"
                       />
-                      {/* Left handle */}
                       <path
                         d="M8 6H6a2 2 0 0 0 0 4h2"
                         stroke="currentColor"
@@ -804,7 +825,6 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
-                      {/* Right handle */}
                       <path
                         d="M16 6h2a2 2 0 0 1 0 4h-2"
                         stroke="currentColor"
@@ -812,9 +832,7 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
-                      {/* Stem */}
                       <path d="M12 14v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                      {/* Base */}
                       <path d="M9 20h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                       <path
                         d="M12 17l-3 3h6l-3-3Z"
@@ -823,7 +841,6 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
                         strokeLinejoin="round"
                         fill="none"
                       />
-                      {/* Star on cup */}
                       <path
                         d="M12 6.5l.7 1.4 1.5.2-1.1 1.1.3 1.5L12 9.9l-1.4.8.3-1.5-1.1-1.1 1.5-.2L12 6.5Z"
                         fill="currentColor"
@@ -859,7 +876,6 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
                       className="absolute top-0 bottom-0 right-0 bg-transparent transition-all duration-500"
                       style={{ width: `${100 - percentile}%` }}
                     />
-                    {/* Slanted divider */}
                     {percentile > 0 && percentile < 100 && (
                       <div
                         className="absolute top-[-4px] bottom-[-4px] w-[6px] bg-background z-10 transition-all duration-500"
@@ -1041,11 +1057,10 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
           <DrawerTitle className="text-base font-semibold text-[var(--text)] flex-1 min-w-0">
             {renderDrawerTitle()}
           </DrawerTitle>
-          <DrawerClose
-            className="icon-button border-none bg-transparent p-1"
-            style={{ borderColor: 'transparent', backgroundColor: 'transparent' }}
-          >
-            <CloseIcon width="20" height="20" />
+          <DrawerClose asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]">
+              <X className="h-4 w-4" />
+            </Button>
           </DrawerClose>
         </DrawerHeader>
         {detailsContent}
@@ -1084,14 +1099,15 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                       <span className="text-base font-semibold">{renderDrawerTitle()}</span>
                     </div>
-                    <button
-                      className="icon-button"
-                      title="关闭"
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]"
                       onClick={() => setDrawerOpen(false)}
-                      style={{ border: 'none', background: 'transparent' }}
                     >
-                      <CloseIcon width="20" height="20" />
-                    </button>
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
                   {detailsContent}
                 </motion.aside>
@@ -1107,7 +1123,7 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
   if (resolvedIsMobile) {
     return (
       <>
-        <Drawer open={!!open} onOpenChange={onOpenChange}>
+        <Drawer open={Boolean(open)} onOpenChange={onOpenChange}>
           <DrawerContent
             className={cn('my-earnings-drawer-content flex max-h-[96vh] flex-col gap-0 p-0')}
             defaultHeight="92vh"
@@ -1116,11 +1132,10 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
           >
             <DrawerHeader className="flex-shrink-0 flex flex-row items-center justify-between gap-2 space-y-0 px-5 pb-3 pt-2 text-left">
               <DrawerTitle className="text-base font-semibold text-[var(--text)]">我的收益</DrawerTitle>
-              <DrawerClose
-                className="icon-button border-none bg-transparent p-1"
-                style={{ borderColor: 'transparent', backgroundColor: 'transparent' }}
-              >
-                <CloseIcon width="20" height="20" />
+              <DrawerClose asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]">
+                  <X className="h-4 w-4" />
+                </Button>
               </DrawerClose>
             </DrawerHeader>
             {content}
@@ -1133,7 +1148,7 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
 
   return (
     <>
-      <Dialog open={!!open} onOpenChange={onOpenChange}>
+      <Dialog open={Boolean(open)} onOpenChange={onOpenChange}>
         <DialogContent
           showCloseButton={false}
           className={cn(
@@ -1147,11 +1162,10 @@ export default function MyEarningsCalendarPage({ open, onOpenChange, series = []
         >
           <DialogHeader className="flex-shrink-0 flex flex-row items-center justify-between gap-2 space-y-0 px-5 pb-3 pt-4 text-left">
             <DialogTitle className="text-base font-semibold text-[var(--text)]">我的收益</DialogTitle>
-            <DialogClose
-              className="icon-button border-none bg-transparent p-1"
-              style={{ borderColor: 'transparent', backgroundColor: 'transparent' }}
-            >
-              <CloseIcon width="20" height="20" />
+            <DialogClose asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]">
+                <X className="h-4 w-4" />
+              </Button>
             </DialogClose>
           </DialogHeader>
           {content}
