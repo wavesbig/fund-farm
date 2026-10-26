@@ -742,9 +742,8 @@ body::before {
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
-  transition: flex 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .brand.search-focused-sibling {
@@ -752,31 +751,35 @@ body::before {
 }
 
 .navbar-add-fund {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   width: 100%;
-  min-width: 260px;
-  max-width: 280px;
+  max-width: 480px;
+  min-width: 240px;
+  margin: 0 auto;
   padding: 0;
   background: transparent;
   border: none;
   box-shadow: none;
   backdrop-filter: none;
-  transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .navbar-add-fund.search-focused {
-  max-width: 800px;
-  min-width: 320px;
-  flex: 1;
+  max-width: 480px;
+  min-width: 240px;
+  flex: 1 1 auto;
 }
 
 .navbar-add-fund .form {
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .navbar-add-fund .search-input-wrapper {
   position: relative;
   flex: 1;
+  min-width: 0;
 }
 
 .navbar-add-fund .input {
@@ -787,7 +790,9 @@ body::before {
 
 .navbar-search-icon {
   position: absolute;
-  left: 14px;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -800,120 +805,33 @@ body::before {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-left: 40px;
-  padding-right: 12px;
-  padding-top: 6px !important;
-  padding-bottom: 6px !important;
-  min-height: 44px;
-  flex-wrap: wrap;
+  padding-left: 36px;
+  padding-right: 8px;
+  min-height: 38px;
+  height: 38px;
+  flex-wrap: nowrap !important;
   position: relative;
   z-index: 1;
-  height: auto;
-}
-
-/* PC 端聚焦搜索时禁止换行，避免导航栏高度变化 */
-@media (min-width: 641px) {
-  .navbar-add-fund.search-focused .search-input-wrapper {
-    flex-wrap: nowrap !important;
-  }
-  .navbar-add-fund.search-focused .navbar-input-shell {
-    flex-wrap: nowrap !important;
-    min-width: 0;
-  }
-}
-
-/* Mobile Search Logic */
-@media (max-width: 640px) {
-  /* Default: Search hidden, Trigger visible */
-  .navbar-add-fund {
-    display: flex;
-    width: 0 !important;
-    min-width: 0 !important;
-    flex: 0 0 0 !important;
-    opacity: 0;
-    overflow: hidden;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    pointer-events: none;
-  }
-
-  .mobile-search-btn {
-    display: inline-flex !important;
-  }
-
-  /* When search focused/active */
-  .brand {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    opacity: 1;
-    transform: translateX(0);
-    width: auto;
-    white-space: nowrap;
-  }
-
-  .brand.search-focused-sibling {
-    width: 0 !important;
-    opacity: 0;
-    overflow: hidden;
-    padding: 0 !important;
-    margin: 0 !important;
-    transform: translateX(-20px);
-    pointer-events: none;
-  }
-
-  .actions {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    opacity: 1;
-    transform: translateX(0);
-    width: auto;
-    white-space: nowrap;
-  }
-
-  .actions.search-focused-sibling {
-    width: 0 !important;
-    opacity: 0;
-    overflow: hidden;
-    padding: 0 !important;
-    margin: 0 !important;
-    transform: translateX(20px);
-    pointer-events: none;
-  }
-
-  .navbar-add-fund.search-focused {
-    display: flex !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    flex: 1 !important;
-    margin-top: 0 !important;
-    opacity: 1;
-    pointer-events: auto;
-    overflow: visible !important;
-  }
-}
-
-/* Desktop: Trigger hidden */
-.mobile-search-btn {
-  display: none;
+  box-sizing: border-box;
 }
 
 .navbar-input-field {
   flex: 1;
-  min-width: 120px;
-  height: 24px;
+  min-width: 0;
+  height: 100%;
   border: none;
   outline: none;
   background: transparent;
   color: var(--text);
   font-size: 14px;
-  margin-left: 20px;
+  margin-left: 0;
 }
 
 .navbar-input-field::placeholder {
   color: var(--muted);
 }
 
-.navbar-add-fund .button {
+.mobile-search-btn {
   display: none;
 }
 
@@ -921,9 +839,10 @@ body::before {
   /*padding-top: 100px;*/
 }
 
+/* Mobile Search Logic */
 @media (max-width: 640px) {
   .content {
-    padding-top: 140px;
+    padding-top: 100px;
     overflow-x: clip;
   }
 
@@ -931,26 +850,46 @@ body::before {
     top: 0;
     left: 0;
     right: 0;
-    padding-left: 12px;
-    padding-right: 4px;
+    padding: 8px 12px;
     border-radius: 0;
     border-top: none;
     border-left: none;
     border-right: none;
-    flex-wrap: wrap;
-    gap: 12px;
+    flex-wrap: nowrap;
+    gap: 8px;
+    min-height: 56px;
   }
 
+  .mobile-search-btn {
+    display: inline-flex !important;
+  }
+
+  /* 移动端默认隐藏搜索框，展示品牌与操作区 */
   .navbar-add-fund {
-    order: 3;
-    width: 100%;
-    min-width: 0;
-    max-width: none;
-    margin-top: 8px;
+    display: none;
+    margin: 0;
   }
 
-  .navbar-add-fund .button {
-    display: inline-flex;
+  /* 移动端激活搜索时：隐藏品牌和操作区，展开全宽搜索输入框 */
+  .brand.search-focused-sibling {
+    display: none;
+  }
+
+  .actions.search-focused-sibling {
+    display: none;
+  }
+
+  .navbar-add-fund.search-focused {
+    display: flex !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    flex: 1 1 100% !important;
+    margin: 0 !important;
+  }
+
+  .navbar-input-field {
+    font-size: 16px;
+    /* 防止 iOS 在输入时自动放大 */
   }
 }
 
@@ -1274,10 +1213,9 @@ input[type='number'] {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   justify-content: flex-end;
   min-width: 0;
-  transition: flex 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .actions.search-focused-sibling {
