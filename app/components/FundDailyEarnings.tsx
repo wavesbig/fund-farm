@@ -8,13 +8,17 @@ import {
   PointElement,
   LineElement,
   Tooltip as ChartTooltip,
-  Filler
+  Filler,
+  ChartData,
+  ChartOptions,
+  Plugin
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { isArray, isNumber } from 'lodash';
 import FundDailyEarningsDetailModal from './FundDailyEarningsDetailModal';
-import { Tooltip as UITooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
 import { formatMoney } from '@/lib/utils';
+import type { DailyEarningItem } from '@/types';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ChartTooltip, Filler);
 
@@ -39,18 +43,33 @@ const CHART_COLORS = {
   }
 };
 
-function getChartThemeColors(theme) {
-  return CHART_COLORS[theme] || CHART_COLORS.dark;
+function getChartThemeColors(theme?: string) {
+  if (theme && theme in CHART_COLORS) {
+    return CHART_COLORS[theme as keyof typeof CHART_COLORS];
+  }
+  return CHART_COLORS.dark;
 }
 
-export default function FundDailyEarnings({ series = [], theme = 'dark', masked = false }) {
+export interface FundDailyEarningsProps {
+  series?: DailyEarningItem[];
+  theme?: string;
+  masked?: boolean;
+}
+
+interface RangeOption {
+  label: string;
+  value: string;
+  days?: number;
+}
+
+export default function FundDailyEarnings({ series = [], theme = 'dark', masked = false }: FundDailyEarningsProps) {
   const [range, setRange] = useState('3m');
   const [detailOpen, setDetailOpen] = useState(false);
-  const chartRef = useRef(null);
-  const hoverTimeoutRef = useRef(null);
+  const chartRef = useRef<any>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const chartColors = useMemo(() => getChartThemeColors(theme), [theme]);
 
-  const ranges = useMemo(
+  const ranges = useMemo<RangeOption[]>(
     () => [
       { label: '近1月', value: '1m', days: 31 },
       { label: '近3月', value: '3m', days: 93 },
@@ -99,23 +118,22 @@ export default function FundDailyEarnings({ series = [], theme = 'dark', masked 
     return [...filteredSeries].reverse().slice(0, 5);
   }, [filteredSeries]);
 
-  const chartData = useMemo(() => {
+  const chartData = useMemo<ChartData<'line'>>(() => {
     if (!filteredSeries.length) return { labels: [], datasets: [] };
 
     const labels = filteredSeries.map((d) => d.date.slice(5));
     const values = filteredSeries.map((d) => d.earnings);
-    const lastValue = values[values.length - 1];
+    const lastValue = values[values.length - 1] ?? 0;
     const lineColor = lastValue >= 0 ? chartColors.danger : chartColors.success;
 
     return {
       labels,
       datasets: [
         {
-          type: 'line',
           label: '每日收益',
           data: values,
           borderColor: lineColor,
-          backgroundColor: (ctx) => {
+          backgroundColor: (ctx: any) => {
             if (!ctx.chart.ctx) return lineColor + '33';
             const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 120);
             gradient.addColorStop(0, lineColor + '33');
@@ -132,7 +150,7 @@ export default function FundDailyEarnings({ series = [], theme = 'dark', masked 
     };
   }, [filteredSeries, chartColors.danger, chartColors.success]);
 
-  const options = useMemo(() => {
+  const options = useMemo<ChartOptions<'line'>>(() => {
     const colors = getChartThemeColors(theme);
     return {
       responsive: true,
@@ -160,11 +178,11 @@ export default function FundDailyEarnings({ series = [], theme = 'dark', masked 
         y: {
           display: true,
           position: 'left',
-          grid: { color: colors.border, drawBorder: false },
+          grid: { color: colors.border },
           ticks: {
             color: colors.muted,
             font: { size: 10 },
-            callback: (v) => {
+            callback: (v: any) => {
               if (!isNumber(v)) return v;
               if (masked) return '***';
               const prefix = v >= 0 ? '+' : '';
@@ -173,7 +191,7 @@ export default function FundDailyEarnings({ series = [], theme = 'dark', masked 
           }
         }
       },
-      onHover: (event, chartElement, chart) => {
+      onHover: (event: any, chartElement: any[], chart: any) => {
         const target = event?.native?.target;
         const currentChart = chart || chartRef.current;
         if (!currentChart) return;
@@ -220,12 +238,12 @@ export default function FundDailyEarnings({ series = [], theme = 'dark', masked 
     };
   }, []);
 
-  const plugins = useMemo(() => {
+  const plugins = useMemo<Plugin<'line'>[]>(() => {
     const colors = getChartThemeColors(theme);
     return [
       {
         id: 'crosshair',
-        afterDraw: (chart) => {
+        afterDraw: (chart: any) => {
           const ctx = chart.ctx;
           const activeElements = chart.tooltip?._active?.length ? chart.tooltip._active : chart.getActiveElements();
           if (!activeElements?.length) return;
@@ -412,36 +430,24 @@ export default function FundDailyEarnings({ series = [], theme = 'dark', masked 
       </div>
 
       <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center' }}>
-        <button
+        <Button
           type="button"
-          className="muted"
-          style={{
-            fontSize: 12,
-            padding: 0,
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer'
-          }}
+          variant="ghost"
+          size="sm"
+          className="h-auto p-0 text-xs font-normal text-[var(--muted)] hover:text-[var(--text)] hover:bg-transparent"
           onClick={() => setDetailOpen(true)}
         >
           加载更多收益明细
-        </button>
+        </Button>
       </div>
 
       {detailOpen && (
-        <UITooltip>
-          <TooltipTrigger asChild>
-            <FundDailyEarningsDetailModal
-              open={detailOpen}
-              onOpenChange={setDetailOpen}
-              series={filteredSeries}
-              masked={masked}
-            />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{`${rangeLabel}收益明细`}</p>
-          </TooltipContent>
-        </UITooltip>
+        <FundDailyEarningsDetailModal
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+          series={filteredSeries}
+          masked={masked}
+        />
       )}
     </div>
   );

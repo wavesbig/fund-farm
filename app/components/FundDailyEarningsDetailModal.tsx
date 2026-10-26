@@ -1,15 +1,25 @@
 'use client';
-import { isArray, isNumber } from 'lodash';
-import { useIsMobile } from '@/app/hooks/useIsMobile';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { CloseIcon } from './Icons';
+import { isArray, isNumber } from 'lodash';
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { X } from 'lucide-react';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
 import { formatMoney } from '@/lib/utils';
+import type { DailyEarningItem } from '@/types';
 
-function buildTableRows(series) {
+export interface FundDailyEarningsDetailModalProps {
+  open: boolean;
+  onOpenChange?: (open: boolean) => void;
+  series?: DailyEarningItem[];
+  title?: string;
+  masked?: boolean;
+}
+
+function buildTableRows(series?: DailyEarningItem[]): DailyEarningItem[] {
   if (!isArray(series) || series.length === 0) return [];
   return [...series].reverse();
 }
@@ -20,10 +30,10 @@ export default function FundDailyEarningsDetailModal({
   series = [],
   title = '收益明细',
   masked = false
-}) {
+}: FundDailyEarningsDetailModalProps) {
   const isMobile = useIsMobile();
   const [visibleCount, setVisibleCount] = useState(30);
-  const scrollRef = useRef(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) setVisibleCount(30);
@@ -31,22 +41,22 @@ export default function FundDailyEarningsDetailModal({
 
   const data = useMemo(() => buildTableRows(series), [series]);
 
-  const columns = useMemo(
+  const columns = useMemo<ColumnDef<DailyEarningItem>[]>(
     () => [
       {
         accessorKey: 'date',
         header: '日期',
-        cell: (info) => info.getValue() || '—',
+        cell: (info) => (info.getValue() as string) || '—',
         meta: { align: 'left' }
       },
       {
         accessorKey: 'earnings',
         header: '收益',
         cell: (info) => {
-          const v = info.getValue();
+          const v = info.getValue() as number | undefined;
           const isValid = isNumber(v) && Number.isFinite(v);
           if (masked) return '***';
-          if (!isValid) return '—';
+          if (!isValid || v === undefined) return '—';
           const sign = v > 0 ? '+' : v < 0 ? '-' : '';
           const cls = v > 0 ? 'up' : v < 0 ? 'down' : '';
           return (
@@ -62,7 +72,7 @@ export default function FundDailyEarningsDetailModal({
         accessorKey: 'rate',
         header: '收益率',
         cell: (info) => {
-          const v = info.getValue();
+          const v = info.getValue() as number | undefined;
           const row = info.row?.original;
           const earnings = Number(row?.earnings);
           const baseCostAmount = Number(row?.baseCostAmount);
@@ -97,11 +107,11 @@ export default function FundDailyEarningsDetailModal({
   const rows = table.getRowModel().rows.slice(0, visibleCount);
   const hasMore = table.getRowModel().rows.length > visibleCount;
 
-  const handleOpenChange = (next) => {
+  const handleOpenChange = (next: boolean) => {
     if (!next) onOpenChange?.(false);
   };
 
-  const handleScroll = (e) => {
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
     if (!target || !hasMore) return;
     const distance = target.scrollHeight - target.scrollTop - target.clientHeight;
@@ -119,14 +129,15 @@ export default function FundDailyEarningsDetailModal({
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span>{title}</span>
       </div>
-      <button
+      <Button
         type="button"
-        className="icon-button"
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]"
         onClick={() => onOpenChange?.(false)}
-        style={{ border: 'none', background: 'transparent' }}
       >
-        <CloseIcon width="20" height="20" />
-      </button>
+        <X className="h-4 w-4" />
+      </Button>
     </div>
   );
 
@@ -176,25 +187,28 @@ export default function FundDailyEarningsDetailModal({
                     boxShadow: '0 1px 0 0 var(--border)'
                   }}
                 >
-                  {hg.headers.map((h, index) => (
-                    <th
-                      key={h.id}
-                      style={{
-                        padding: '8px 12px',
-                        fontWeight: 600,
-                        color: 'var(--muted)',
-                        textAlign: h.column.columnDef.meta?.align || 'left',
-                        background: 'var(--table-row-alt-bg)',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 1,
-                        borderTopLeftRadius: index === 0 ? 'var(--radius)' : undefined,
-                        borderTopRightRadius: index === hg.headers.length - 1 ? 'var(--radius)' : undefined
-                      }}
-                    >
-                      {flexRender(h.column.columnDef.header, h.getContext())}
-                    </th>
-                  ))}
+                  {hg.headers.map((h, index) => {
+                    const align = (h.column.columnDef.meta as { align?: string } | undefined)?.align || 'left';
+                    return (
+                      <th
+                        key={h.id}
+                        style={{
+                          padding: '8px 12px',
+                          fontWeight: 600,
+                          color: 'var(--muted)',
+                          textAlign: align as any,
+                          background: 'var(--table-row-alt-bg)',
+                          position: 'sticky',
+                          top: 0,
+                          zIndex: 1,
+                          borderTopLeftRadius: index === 0 ? 'var(--radius)' : undefined,
+                          borderTopRightRadius: index === hg.headers.length - 1 ? 'var(--radius)' : undefined
+                        }}
+                      >
+                        {flexRender(h.column.columnDef.header, h.getContext())}
+                      </th>
+                    );
+                  })}
                 </tr>
               ))}
             </thead>
@@ -206,19 +220,22 @@ export default function FundDailyEarningsDetailModal({
                     borderBottom: '1px solid var(--border)'
                   }}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      style={{
-                        padding: '8px 12px',
-                        color: 'var(--text)',
-                        textAlign: cell.column.columnDef.meta?.align || 'left',
-                        fontVariantNumeric: 'tabular-nums'
-                      }}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const align = (cell.column.columnDef.meta as { align?: string } | undefined)?.align || 'left';
+                    return (
+                      <td
+                        key={cell.id}
+                        style={{
+                          padding: '8px 12px',
+                          color: 'var(--text)',
+                          textAlign: align as any,
+                          fontVariantNumeric: 'tabular-nums'
+                        }}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>
@@ -245,14 +262,10 @@ export default function FundDailyEarningsDetailModal({
             <DrawerTitle className="flex items-center gap-2.5 text-left">
               <span>{title}</span>
             </DrawerTitle>
-            <DrawerClose
-              className="icon-button border-none bg-transparent p-1"
-              style={{
-                borderColor: 'transparent',
-                backgroundColor: 'transparent'
-              }}
-            >
-              <CloseIcon width="20" height="20" />
+            <DrawerClose asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]">
+                <X className="h-4 w-4" />
+              </Button>
             </DrawerClose>
           </DrawerHeader>
           <div className="flex-1 px-4 pb-4">{body}</div>

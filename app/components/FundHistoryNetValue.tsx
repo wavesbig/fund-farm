@@ -1,22 +1,36 @@
 'use client';
-import { isArray } from 'lodash';
 
 import { useMemo, useState } from 'react';
+import { isArray } from 'lodash';
 import { useQuery } from '@tanstack/react-query';
-import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { fetchFundHistory } from '../api/fund';
 import * as qk from '../lib/query-keys';
 import FundHistoryNetValueModal from './FundHistoryNetValueModal';
+import { Button } from '@/components/ui/button';
+
+export interface FundHistoryRow {
+  date: string;
+  unitNetValue: number | null;
+  accumulatedNetValue: number | null;
+  dailyChange: number | null;
+}
+
+export interface FundHistoryNetValueProps {
+  code: string;
+  range?: string;
+  theme?: string;
+}
 
 /**
  * 历史净值表格行：日期、单位净值、累计净值、日涨幅（按日期降序，涨红跌绿）
  */
-function buildRows(history) {
+function buildRows(history?: any[]): FundHistoryRow[] {
   if (!isArray(history) || history.length === 0) return [];
   const reversed = [...history].reverse();
   return reversed.map((item, i) => {
     const prev = reversed[i + 1];
-    const unitNetValue = item.unitNetValue ?? item.value;
+    const unitNetValue = item.unitNetValue ?? item.value ?? null;
     let dailyChange = item.equityReturn ?? null;
     if (
       dailyChange == null &&
@@ -30,24 +44,24 @@ function buildRows(history) {
     return {
       date: item.date,
       unitNetValue,
-      accumulatedNetValue: item.accumulatedNetValue,
+      accumulatedNetValue: item.accumulatedNetValue ?? null,
       dailyChange
     };
   });
 }
 
-const columns = [
+const columns: ColumnDef<FundHistoryRow>[] = [
   {
     accessorKey: 'date',
     header: '日期',
-    cell: (info) => info.getValue(),
+    cell: (info) => (info.getValue() as string) || '—',
     meta: { align: 'left' }
   },
   {
     accessorKey: 'unitNetValue',
     header: '单位净值',
     cell: (info) => {
-      const v = info.getValue();
+      const v = info.getValue() as number | null;
       return v != null && Number.isFinite(v) ? Number(v).toFixed(4) : '—';
     },
     meta: { align: 'center' }
@@ -56,7 +70,7 @@ const columns = [
     accessorKey: 'accumulatedNetValue',
     header: '累计净值',
     cell: (info) => {
-      const v = info.getValue();
+      const v = info.getValue() as number | null;
       return v != null && Number.isFinite(v) ? Number(v).toFixed(4) : '—';
     },
     meta: { align: 'center' }
@@ -65,7 +79,7 @@ const columns = [
     accessorKey: 'dailyChange',
     header: '日涨幅',
     cell: (info) => {
-      const v = info.getValue();
+      const v = info.getValue() as number | null;
       if (v == null || !Number.isFinite(v)) return '—';
       const sign = v > 0 ? '+' : '';
       const cls = v > 0 ? 'up' : v < 0 ? 'down' : '';
@@ -80,7 +94,7 @@ const columns = [
   }
 ];
 
-export default function FundHistoryNetValue({ code, range = '1m', theme }) {
+export default function FundHistoryNetValue({ code, range = '1m', theme }: FundHistoryNetValueProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   const {
@@ -154,19 +168,22 @@ export default function FundHistoryNetValue({ code, range = '1m', theme }) {
                   background: 'var(--table-row-alt-bg)'
                 }}
               >
-                {hg.headers.map((h) => (
-                  <th
-                    key={h.id}
-                    style={{
-                      padding: '8px 12px',
-                      fontWeight: 600,
-                      color: 'var(--muted)',
-                      textAlign: h.column.columnDef.meta?.align || 'left'
-                    }}
-                  >
-                    {flexRender(h.column.columnDef.header, h.getContext())}
-                  </th>
-                ))}
+                {hg.headers.map((h) => {
+                  const align = (h.column.columnDef.meta as { align?: string } | undefined)?.align || 'left';
+                  return (
+                    <th
+                      key={h.id}
+                      style={{
+                        padding: '8px 12px',
+                        fontWeight: 600,
+                        color: 'var(--muted)',
+                        textAlign: align as any
+                      }}
+                    >
+                      {flexRender(h.column.columnDef.header, h.getContext())}
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>
@@ -178,18 +195,22 @@ export default function FundHistoryNetValue({ code, range = '1m', theme }) {
                   borderBottom: '1px solid var(--border)'
                 }}
               >
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    style={{
-                      padding: '8px 12px',
-                      color: 'var(--text)',
-                      textAlign: cell.column.columnDef.meta?.align || 'left'
-                    }}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+                {row.getVisibleCells().map((cell) => {
+                  const align = (cell.column.columnDef.meta as { align?: string } | undefined)?.align || 'left';
+                  return (
+                    <td
+                      key={cell.id}
+                      style={{
+                        padding: '8px 12px',
+                        color: 'var(--text)',
+                        textAlign: align as any,
+                        fontVariantNumeric: 'tabular-nums'
+                      }}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
@@ -197,20 +218,15 @@ export default function FundHistoryNetValue({ code, range = '1m', theme }) {
       </div>
 
       <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center' }}>
-        <button
+        <Button
           type="button"
-          className="muted"
-          style={{
-            fontSize: 12,
-            padding: 0,
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer'
-          }}
+          variant="ghost"
+          size="sm"
+          className="h-auto p-0 text-xs font-normal text-[var(--muted)] hover:text-[var(--text)] hover:bg-transparent"
           onClick={() => setModalOpen(true)}
         >
           加载更多历史净值
-        </button>
+        </Button>
       </div>
 
       {modalOpen && <FundHistoryNetValueModal open={modalOpen} onOpenChange={setModalOpen} code={code} theme={theme} />}

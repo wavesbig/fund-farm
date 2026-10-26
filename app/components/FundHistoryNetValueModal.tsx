@@ -1,22 +1,37 @@
 'use client';
-import { isArray } from 'lodash';
-import { useIsMobile } from '@/app/hooks/useIsMobile';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { isArray } from 'lodash';
 import { useQuery } from '@tanstack/react-query';
-import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { X } from 'lucide-react';
 import { fetchFundHistory } from '../api/fund';
 import * as qk from '../lib/query-keys';
-import { CloseIcon } from './Icons';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
 
-function buildRows(history) {
+export interface FundHistoryNetValueRow {
+  date: string;
+  unitNetValue: number | null;
+  accumulatedNetValue: number | null;
+  dailyChange: number | null;
+}
+
+export interface FundHistoryNetValueModalProps {
+  open: boolean;
+  onOpenChange?: (open: boolean) => void;
+  code: string;
+  theme?: string;
+}
+
+function buildRows(history?: any[]): FundHistoryNetValueRow[] {
   if (!isArray(history) || history.length === 0) return [];
   const reversed = [...history].reverse();
   return reversed.map((item, i) => {
     const prev = reversed[i + 1];
-    const unitNetValue = item.unitNetValue ?? item.value;
+    const unitNetValue = item.unitNetValue ?? item.value ?? null;
     let dailyChange = item.equityReturn ?? null;
     if (
       dailyChange == null &&
@@ -30,24 +45,24 @@ function buildRows(history) {
     return {
       date: item.date,
       unitNetValue,
-      accumulatedNetValue: item.accumulatedNetValue,
+      accumulatedNetValue: item.accumulatedNetValue ?? null,
       dailyChange
     };
   });
 }
 
-const columns = [
+const columns: ColumnDef<FundHistoryNetValueRow>[] = [
   {
     accessorKey: 'date',
     header: '日期',
-    cell: (info) => info.getValue(),
+    cell: (info) => (info.getValue() as string) || '—',
     meta: { align: 'left' }
   },
   {
     accessorKey: 'unitNetValue',
     header: '单位净值',
     cell: (info) => {
-      const v = info.getValue();
+      const v = info.getValue() as number | null;
       return v != null && Number.isFinite(v) ? Number(v).toFixed(4) : '—';
     },
     meta: { align: 'center' }
@@ -56,7 +71,7 @@ const columns = [
     accessorKey: 'accumulatedNetValue',
     header: '累计净值',
     cell: (info) => {
-      const v = info.getValue();
+      const v = info.getValue() as number | null;
       return v != null && Number.isFinite(v) ? Number(v).toFixed(4) : '—';
     },
     meta: { align: 'center' }
@@ -65,7 +80,7 @@ const columns = [
     accessorKey: 'dailyChange',
     header: '日涨幅',
     cell: (info) => {
-      const v = info.getValue();
+      const v = info.getValue() as number | null;
       if (v == null || !Number.isFinite(v)) return '—';
       const sign = v > 0 ? '+' : '';
       const cls = v > 0 ? 'up' : v < 0 ? 'down' : '';
@@ -80,10 +95,10 @@ const columns = [
   }
 ];
 
-export default function FundHistoryNetValueModal({ open, onOpenChange, code, theme }) {
+export default function FundHistoryNetValueModal({ open, onOpenChange, code }: FundHistoryNetValueModalProps) {
   const [visibleCount, setVisibleCount] = useState(30);
   const isMobile = useIsMobile();
-  const scrollRef = useRef(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -112,13 +127,13 @@ export default function FundHistoryNetValueModal({ open, onOpenChange, code, the
   const rows = table.getRowModel().rows.slice(0, visibleCount);
   const hasMore = table.getRowModel().rows.length > visibleCount;
 
-  const handleOpenChange = (next) => {
+  const handleOpenChange = (next: boolean) => {
     if (!next) {
       onOpenChange?.(false);
     }
   };
 
-  const handleScroll = (e) => {
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
     if (!target || !hasMore) return;
     const distance = target.scrollHeight - target.scrollTop - target.clientHeight;
@@ -136,14 +151,15 @@ export default function FundHistoryNetValueModal({ open, onOpenChange, code, the
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span>历史净值</span>
       </div>
-      <button
+      <Button
         type="button"
-        className="icon-button"
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]"
         onClick={() => onOpenChange?.(false)}
-        style={{ border: 'none', background: 'transparent' }}
       >
-        <CloseIcon width="20" height="20" />
-      </button>
+        <X className="h-4 w-4" />
+      </Button>
     </div>
   );
 
@@ -200,25 +216,28 @@ export default function FundHistoryNetValueModal({ open, onOpenChange, code, the
                     boxShadow: '0 1px 0 0 var(--border)'
                   }}
                 >
-                  {hg.headers.map((h, index) => (
-                    <th
-                      key={h.id}
-                      style={{
-                        padding: '8px 12px',
-                        fontWeight: 600,
-                        color: 'var(--muted)',
-                        textAlign: h.column.columnDef.meta?.align || 'left',
-                        background: 'var(--table-row-alt-bg)',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 1,
-                        borderTopLeftRadius: index === 0 ? 'var(--radius)' : undefined,
-                        borderTopRightRadius: index === hg.headers.length - 1 ? 'var(--radius)' : undefined
-                      }}
-                    >
-                      {flexRender(h.column.columnDef.header, h.getContext())}
-                    </th>
-                  ))}
+                  {hg.headers.map((h, index) => {
+                    const align = (h.column.columnDef.meta as { align?: string } | undefined)?.align || 'left';
+                    return (
+                      <th
+                        key={h.id}
+                        style={{
+                          padding: '8px 12px',
+                          fontWeight: 600,
+                          color: 'var(--muted)',
+                          textAlign: align as any,
+                          background: 'var(--table-row-alt-bg)',
+                          position: 'sticky',
+                          top: 0,
+                          zIndex: 1,
+                          borderTopLeftRadius: index === 0 ? 'var(--radius)' : undefined,
+                          borderTopRightRadius: index === hg.headers.length - 1 ? 'var(--radius)' : undefined
+                        }}
+                      >
+                        {flexRender(h.column.columnDef.header, h.getContext())}
+                      </th>
+                    );
+                  })}
                 </tr>
               ))}
             </thead>
@@ -230,18 +249,22 @@ export default function FundHistoryNetValueModal({ open, onOpenChange, code, the
                     borderBottom: '1px solid var(--border)'
                   }}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      style={{
-                        padding: '8px 12px',
-                        color: 'var(--text)',
-                        textAlign: cell.column.columnDef.meta?.align || 'left'
-                      }}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const align = (cell.column.columnDef.meta as { align?: string } | undefined)?.align || 'left';
+                    return (
+                      <td
+                        key={cell.id}
+                        style={{
+                          padding: '8px 12px',
+                          color: 'var(--text)',
+                          textAlign: align as any,
+                          fontVariantNumeric: 'tabular-nums'
+                        }}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>
@@ -268,14 +291,10 @@ export default function FundHistoryNetValueModal({ open, onOpenChange, code, the
             <DrawerTitle className="flex items-center gap-2.5 text-left">
               <span>历史净值</span>
             </DrawerTitle>
-            <DrawerClose
-              className="icon-button border-none bg-transparent p-1"
-              style={{
-                borderColor: 'transparent',
-                backgroundColor: 'transparent'
-              }}
-            >
-              <CloseIcon width="20" height="20" />
+            <DrawerClose asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]">
+                <X className="h-4 w-4" />
+              </Button>
             </DrawerClose>
           </DrawerHeader>
           <div className="flex-1 px-4 pb-4">{body}</div>
