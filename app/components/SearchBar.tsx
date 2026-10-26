@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Check } from 'lucide-react';
 import ScanButton from './ScanButton';
 import { Button } from '@/components/ui/button';
@@ -78,64 +77,53 @@ export default function SearchBar({
         <Button
           type="submit"
           onMouseDown={(e) => e.preventDefault()}
-          className={`h-[38px] px-4 font-medium shrink-0 ${
-            isSearchFocused || selectedFunds.length > 0 ? 'inline-flex' : 'hidden md:inline-flex'
-          }`}
+          className="h-[38px] px-4 font-medium shrink-0 inline-flex"
         >
           添加
         </Button>
       </form>
 
-      <AnimatePresence>
-        {showDropdown && (String(searchTerm ?? '').trim() || searchResults.length > 0) && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="search-dropdown glass scrollbar-y-styled"
-          >
-            {searchResults.length > 0 ? (
-              <div className="search-results">
-                {searchResults.map((fund) => {
-                  const isSelected = selectedFunds.some((f) => f.CODE === fund.CODE);
-                  return (
-                    <div
-                      key={fund.CODE}
-                      className={`search-item flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors ${
-                        isSelected ? 'selected bg-primary/10' : 'hover:bg-white/5'
-                      }`}
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
-                        toggleSelectFund(fund);
-                      }}
-                    >
-                      <div className="fund-info min-w-0">
-                        <span className="fund-name font-medium block truncate text-foreground text-sm">
-                          {fund.NAME}
-                        </span>
-                        <span className="fund-code text-xs text-muted-foreground tabular-nums">
-                          #{fund.CODE} {fund.TYPE ? `| ${fund.TYPE}` : ''}
-                        </span>
-                      </div>
-                      <div
-                        className={`w-5 h-5 rounded flex items-center justify-center border transition-colors shrink-0 ml-3 ${
-                          isSelected
-                            ? 'bg-primary border-primary text-primary-foreground'
-                            : 'border-border bg-transparent'
-                        }`}
-                      >
-                        {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                      </div>
+      {showDropdown && (String(searchTerm ?? '').trim() || searchResults.length > 0) && (
+        <div className="search-dropdown glass scrollbar-y-styled">
+          {searchResults.length > 0 ? (
+            <div className="search-results">
+              {searchResults.map((fund) => {
+                const isSelected = selectedFunds.some((f) => f.CODE === fund.CODE);
+                return (
+                  <div
+                    key={fund.CODE}
+                    className={`search-item flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors ${
+                      isSelected ? 'selected bg-primary/10' : 'hover:bg-white/5'
+                    }`}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      toggleSelectFund(fund);
+                    }}
+                  >
+                    <div className="fund-info min-w-0">
+                      <span className="fund-name font-medium block truncate text-foreground text-sm">{fund.NAME}</span>
+                      <span className="fund-code text-xs text-muted-foreground tabular-nums">
+                        #{fund.CODE} {fund.TYPE ? `| ${fund.TYPE}` : ''}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            ) : String(searchTerm ?? '').trim() && !isSearching ? (
-              <div className="no-results text-center py-6 text-xs text-muted-foreground">未找到相关基金</div>
-            ) : null}
-          </motion.div>
-        )}
-      </AnimatePresence>
+                    <div
+                      className={`w-5 h-5 rounded flex items-center justify-center border transition-colors shrink-0 ml-3 ${
+                        isSelected
+                          ? 'bg-primary border-primary text-primary-foreground'
+                          : 'border-border bg-transparent'
+                      }`}
+                    >
+                      {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : String(searchTerm ?? '').trim() && !isSearching ? (
+            <div className="no-results text-center py-6 text-xs text-muted-foreground">未找到相关基金</div>
+          ) : null}
+        </div>
+      )}
     </>
   );
 }

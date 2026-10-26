@@ -744,29 +744,24 @@ body::before {
   font-weight: 600;
   flex: 0 0 auto;
   min-width: 0;
-}
-
-.brand.search-focused-sibling {
-  flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
 }
 
 .navbar-add-fund {
-  flex: 1 1 auto;
-  width: 100%;
-  max-width: 480px;
-  min-width: 240px;
-  margin: 0 auto;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 440px;
+  max-width: calc(100% - 320px);
+  margin: 0;
   padding: 0;
   background: transparent;
   border: none;
   box-shadow: none;
   backdrop-filter: none;
-}
-
-.navbar-add-fund.search-focused {
-  max-width: 480px;
-  min-width: 240px;
-  flex: 1 1 auto;
+  z-index: 10;
 }
 
 .navbar-add-fund .form {
@@ -839,7 +834,7 @@ body::before {
   /*padding-top: 100px;*/
 }
 
-/* Mobile Search Logic */
+/* Mobile Layout */
 @media (max-width: 640px) {
   .content {
     padding-top: 100px;
@@ -860,31 +855,13 @@ body::before {
     min-height: 56px;
   }
 
-  .mobile-search-btn {
-    display: inline-flex !important;
-  }
-
-  /* 移动端默认隐藏搜索框，展示品牌与操作区 */
   .navbar-add-fund {
-    display: none;
-    margin: 0;
-  }
-
-  /* 移动端激活搜索时：隐藏品牌和操作区，展开全宽搜索输入框 */
-  .brand.search-focused-sibling {
-    display: none;
-  }
-
-  .actions.search-focused-sibling {
-    display: none;
-  }
-
-  .navbar-add-fund.search-focused {
-    display: flex !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    flex: 1 1 100% !important;
-    margin: 0 !important;
+    position: static;
+    transform: none;
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+    margin: 0 4px;
   }
 
   .navbar-input-field {
@@ -1216,10 +1193,8 @@ input[type='number'] {
   flex: 0 0 auto;
   justify-content: flex-end;
   min-width: 0;
-}
-
-.actions.search-focused-sibling {
-  flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
 }
 
 .icon-button {
