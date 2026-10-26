@@ -1,38 +1,45 @@
 'use client';
-import { isArray, isObject } from 'lodash';
-import { useIsMobile } from '@/app/hooks/useIsMobile';
 
+import * as React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { isArray, isObject } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
-import { Plus, Tag, X, Pencil, Sparkles } from 'lucide-react';
+import { Plus, Tag, X, Pencil, Sparkles, RefreshCw } from 'lucide-react';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { supabase, isSupabaseConfigured } from '@/app/lib/supabase';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import ConfirmModal from './ConfirmModal';
-import { CloseIcon, RefreshIcon } from './Icons';
 import { cn } from '@/lib/utils';
-import AddTagDialog from './AddTagDialog';
-import EditTagDialog from './EditTagDialog';
-import SyncFundTagsModal from './SyncFundTagsModal';
+import AddTagDialog, { type AddTagDialogPayload } from './AddTagDialog';
+import EditTagDialog, { type EditTagDialogPayload } from './EditTagDialog';
+import SyncFundTagsModal, { type FundTagOption } from './SyncFundTagsModal';
 import { TAG_THEME_OPTIONS } from '@/app/constants';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 const DEFAULT_TAG_THEME = 'default';
-const ALLOWED_THEMES = new Set(TAG_THEME_OPTIONS.map((x) => x.key));
+const ALLOWED_THEMES = new Set((TAG_THEME_OPTIONS as any[]).map((x) => x.key));
 
-function normalizeTagDraft(raw) {
+export interface FundTagDraft {
+  id: string;
+  name: string;
+  theme: string;
+}
+
+function normalizeTagDraft(raw: any): FundTagDraft[] {
   if (!isArray(raw)) return [];
-  const out = [];
-  const usedIds = new Set();
+  const out: FundTagDraft[] = [];
+  const usedIds = new Set<string>();
   for (const item of raw) {
     if (!item || !isObject(item)) continue;
-    const name = String(item.name ?? '').trim();
+    const name = String((item as any).name ?? '').trim();
     if (!name || name.length > 24) continue;
-    let id = String(item.id ?? '').trim();
+    let id = String((item as any).id ?? '').trim();
     if (!id || usedIds.has(id)) id = uuidv4();
     usedIds.add(id);
-    const theme = String(item.theme ?? DEFAULT_TAG_THEME).trim();
+    const theme = String((item as any).theme ?? DEFAULT_TAG_THEME).trim();
     const normalizedTheme = ALLOWED_THEMES.has(theme) ? theme : DEFAULT_TAG_THEME;
     out.push({ id, name, theme: normalizedTheme });
     if (out.length >= 30) break;
@@ -40,14 +47,22 @@ function normalizeTagDraft(raw) {
   return out;
 }
 
-/**
- * 编辑基金标签：PC 使用 Dialog，移动端使用底部 Drawer。
- * @param {Object} props
- * @param {{ id?: string, name: string, theme: string }[]} [props.recommendedTagItems]
- * @param {(payload: { theme: string, name?: string, names?: string[] }) => void} [props.onAddPoolTag]
- * @param {(tagId: string) => void} [props.onDeleteGlobalTag]
- * @param {(tagId: string) => string[]} [props.getTagUsageLabels]
- */
+export interface FundTagsEditDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  fundCode?: string;
+  fundName?: string;
+  tags?: any[];
+  onSave?: (code: string, tags: FundTagDraft[]) => void;
+  recommendedTagItems?: Array<{ id?: string; name: string; theme: string }>;
+  onAddPoolTag?: (payload: { theme: string; name?: string; names?: string[] }) => void;
+  onDeleteGlobalTag?: (tagId: string) => void;
+  onUpdateGlobalTag?: (tagId: string, payload: { name: string; theme: string }) => void;
+  getTagUsageLabels?: (tagId: string) => string[];
+  allFunds?: any[];
+  fundTagListsByCode?: Record<string, any[]>;
+}
+
 export default function FundTagsEditDialog({
   open,
   onOpenChange,
@@ -62,29 +77,29 @@ export default function FundTagsEditDialog({
   getTagUsageLabels,
   allFunds = [],
   fundTagListsByCode = {}
-}) {
+}: FundTagsEditDialogProps) {
   const isMobile = useIsMobile();
-  const [draft, setDraft] = useState(() => normalizeTagDraft(tags));
+  const [draft, setDraft] = useState<FundTagDraft[]>(() => normalizeTagDraft(tags));
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editTagData, setEditTagData] = useState(null);
+  const [editTagData, setEditTagData] = useState<{ id?: string; name: string; theme: string } | null>(null);
   /** 'fund'：加到当前基金已选；'pool'：仅写入全局可选池 */
-  const [addDialogPurpose, setAddDialogPurpose] = useState('fund');
+  const [addDialogPurpose, setAddDialogPurpose] = useState<'fund' | 'pool'>('fund');
   const [optionalEditMode, setOptionalEditMode] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ tagId: string; name: string; labels: string[] } | null>(null);
   /** 防止快速连点可选标签，连续两次 setDraft 都基于旧 draft 导致重复添加 */
   const optionalPickLockRef = useRef(false);
 
   const [syncModalOpen, setSyncModalOpen] = useState(false);
-  const [suggestedTags, setSuggestedTags] = useState([]);
+  const [suggestedTags, setSuggestedTags] = useState<FundTagDraft[]>([]);
 
-  const syncOptions = useMemo(() => {
+  const syncOptions: FundTagOption[] = useMemo(() => {
     if (!allFunds || allFunds.length === 0) return [];
     return allFunds
       .filter((f) => f.code && f.code !== fundCode)
       .map((f) => {
         const fc = String(f.code).trim();
         const fTags = isArray(fundTagListsByCode[fc])
-          ? fundTagListsByCode[fc].map(({ name, theme }) => ({
+          ? fundTagListsByCode[fc].map(({ name, theme }: any) => ({
               id: uuidv4(),
               name: String(name ?? '').trim(),
               theme: String(theme ?? '').trim()
@@ -99,21 +114,19 @@ export default function FundTagsEditDialog({
   }, [allFunds, fundCode, fundTagListsByCode]);
 
   const handleSyncConfirm = useCallback(
-    (targetCodes) => {
+    (targetCodes: string[]) => {
       if (!targetCodes || targetCodes.length === 0) return;
       targetCodes.forEach((fc) => {
         onSave?.(fc, draft);
       });
       setSyncModalOpen(false);
-      // Optional: show toast. But we don't have showToast passed here.
-      // It's okay, it syncs immediately.
     },
     [draft, onSave]
   );
 
   const themeClassByKey = useMemo(() => {
-    const map = new Map();
-    for (const opt of TAG_THEME_OPTIONS) {
+    const map = new Map<string, string>();
+    for (const opt of TAG_THEME_OPTIONS as any[]) {
       map.set(opt.key, opt.badgeClassName || '');
     }
     return map;
@@ -121,7 +134,7 @@ export default function FundTagsEditDialog({
 
   /** 禁止在 setState updater 内同步调用 onSave（会触发父组件 setState，违反 React 规则） */
   const persistDraft = useCallback(
-    (next) => {
+    (next: FundTagDraft[]) => {
       if (!fundCode) return;
       const code = fundCode;
       const save = onSave;
@@ -133,12 +146,11 @@ export default function FundTagsEditDialog({
   );
 
   const addTagsToFund = useCallback(
-    (rawNames, theme = DEFAULT_TAG_THEME, preferredId) => {
+    (rawNames: string[], theme = DEFAULT_TAG_THEME, preferredId?: string) => {
       const normalizedTheme = ALLOWED_THEMES.has(theme) ? theme : DEFAULT_TAG_THEME;
       const single = isArray(rawNames) && rawNames.length === 1;
       const poolId = single && String(preferredId ?? '').trim() ? String(preferredId).trim() : '';
-      /** id 必须在 setState updater 外生成：Strict Mode 会重复执行 updater，内部 uuid 会产生两个 id、两次 persist，全局 tags 出现两条 */
-      const rowsToAdd = [];
+      const rowsToAdd: FundTagDraft[] = [];
       for (const raw of rawNames) {
         const name = String(raw ?? '').trim();
         if (!name || name.length > 24) continue;
@@ -151,7 +163,7 @@ export default function FundTagsEditDialog({
       if (!rowsToAdd.length) return;
 
       setDraft((prev) => {
-        let next = [...prev];
+        const next = [...prev];
         for (const row of rowsToAdd) {
           if (next.length >= 30) break;
           if (next.some((x) => x.id === row.id)) continue;
@@ -166,7 +178,7 @@ export default function FundTagsEditDialog({
   );
 
   const addTagToFund = useCallback(
-    (rawName, theme = DEFAULT_TAG_THEME, poolTagId) => {
+    (rawName: string, theme = DEFAULT_TAG_THEME, poolTagId?: string) => {
       addTagsToFund([rawName], theme, poolTagId);
     },
     [addTagsToFund]
@@ -180,7 +192,6 @@ export default function FundTagsEditDialog({
     setEditTagData(null);
     setAddDialogPurpose('fund');
     optionalPickLockRef.current = false;
-    // 仅在打开或切换基金时从 props 同步；不把 tags 列入依赖，避免父级刷新覆盖未提交的编辑
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, fundCode]);
 
@@ -199,21 +210,21 @@ export default function FundTagsEditDialog({
           setSuggestedTags([]);
           return;
         }
-        const tags = data.flatMap((row) => {
+        const foundTags = data.flatMap((row: any) => {
           const topicStr = String(row?.topic ?? '').trim();
           const sectorIdStr = String(row?.sector_id ?? '').trim();
           if (!topicStr || !sectorIdStr) return [];
 
           const topics = topicStr
             .split(';')
-            .map((t) => t.trim())
+            .map((t: string) => t.trim())
             .filter(Boolean);
           const sectorIds = sectorIdStr
             .split(';')
-            .map((t) => t.trim())
+            .map((t: string) => t.trim())
             .filter(Boolean);
 
-          const result = [];
+          const result: FundTagDraft[] = [];
           for (let i = 0; i < topics.length; i++) {
             const t = topics[i];
             const s = sectorIds[i];
@@ -223,7 +234,7 @@ export default function FundTagsEditDialog({
           }
           return result;
         });
-        setSuggestedTags(tags);
+        setSuggestedTags(foundTags);
       } catch {
         if (!cancelled) setSuggestedTags([]);
       }
@@ -234,7 +245,7 @@ export default function FundTagsEditDialog({
   }, [open, fundCode]);
 
   const removeTagFromFund = useCallback(
-    (instanceId) => {
+    (instanceId: string) => {
       const id = String(instanceId ?? '').trim();
       if (!id) return;
       setDraft((prev) => {
@@ -247,7 +258,7 @@ export default function FundTagsEditDialog({
   );
 
   const addBadgeClassName = useMemo(() => {
-    return cn('cursor-pointer font-normal text-[13px]', 'border-dashed text-muted-foreground hover:text-foreground');
+    return cn('cursor-pointer font-normal text-xs', 'border-dashed text-muted-foreground hover:text-foreground');
   }, []);
 
   const openAddFundDialog = () => {
@@ -261,14 +272,9 @@ export default function FundTagsEditDialog({
   };
 
   const handleAddDialogAdd = useCallback(
-    (payload) => {
+    (payload: AddTagDialogPayload) => {
       const theme = payload?.theme ?? DEFAULT_TAG_THEME;
-      const names =
-        isArray(payload?.names) && payload.names.length
-          ? payload.names
-          : payload?.name != null
-            ? [String(payload.name).trim()].filter(Boolean)
-            : [];
+      const names = isArray(payload?.names) && payload.names.length ? payload.names : [];
       if (!names.length) return;
       if (addDialogPurpose === 'pool') {
         onAddPoolTag?.({ names, theme });
@@ -279,9 +285,8 @@ export default function FundTagsEditDialog({
     [addDialogPurpose, onAddPoolTag, addTagsToFund]
   );
 
-  /** 删除全局可选池中的某条记录后，从当前草稿中移除同 id 的已选标签（支持可选池重名） */
   const removeDraftTagByPoolId = useCallback(
-    (poolTagId) => {
+    (poolTagId: string) => {
       const pid = String(poolTagId ?? '').trim();
       if (!pid) return;
       setDraft((prev) => {
@@ -295,7 +300,7 @@ export default function FundTagsEditDialog({
   );
 
   const requestDeleteOptionalTag = useCallback(
-    (tagId, displayName) => {
+    (tagId?: string, displayName?: string) => {
       const id = String(tagId ?? '').trim();
       if (!id) return;
       const name = String(displayName ?? '').trim();
@@ -344,14 +349,8 @@ export default function FundTagsEditDialog({
     <div className="flex min-w-0 flex-col gap-4">
       {fundName ? (
         <div>
-          <div className="fund-name" style={{ fontWeight: 600, fontSize: '16px', marginBottom: 4 }}>
-            {fundName}
-          </div>
-          {fundCode ? (
-            <div className="muted" style={{ fontSize: '12px' }}>
-              #{fundCode}
-            </div>
-          ) : null}
+          <div className="font-semibold text-base text-foreground mb-1">{fundName}</div>
+          {fundCode ? <div className="text-xs text-[var(--muted)] tabular-nums">#{fundCode}</div> : null}
         </div>
       ) : null}
 
@@ -376,11 +375,11 @@ export default function FundTagsEditDialog({
                   }}
                 >
                   <Badge
-                    className={cn('cursor-pointer font-normal text-[13px]', themeClass)}
+                    className={cn('cursor-pointer font-normal text-xs gap-1', themeClass)}
                     variant={isDefault ? 'outline' : 'default'}
                   >
-                    {name}
-                    {!optionalEditMode && <X data-icon="inline-end" className="h-3 w-3 shrink-0" />}
+                    <span>{name}</span>
+                    {!optionalEditMode && <X className="h-3 w-3 shrink-0 opacity-70 hover:opacity-100" />}
                   </Badge>
                 </button>
               );
@@ -393,7 +392,7 @@ export default function FundTagsEditDialog({
                 variant="outline"
                 className={cn(addBadgeClassName, draft.length >= 30 && 'pointer-events-none opacity-45')}
               >
-                <Plus className="h-3 w-3" />
+                <Plus className="h-3 w-3 mr-0.5" />
                 添加标签
               </Badge>
             </button>
@@ -403,7 +402,7 @@ export default function FundTagsEditDialog({
 
       <div className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="pc-table-setting-subtitle !mb-0">可选标签</h3>
+          <h3 className="text-sm font-semibold text-foreground m-0">可选标签</h3>
           <button
             type="button"
             className="text-primary hover:text-primary/90 shrink-0 cursor-pointer text-sm font-medium underline-offset-4 hover:underline"
@@ -429,7 +428,7 @@ export default function FundTagsEditDialog({
               return (
                 <div key={poolTagId || `opt-${itemIndex}`} className="inline-flex">
                   <Badge
-                    className={cn('font-normal text-[13px] gap-1 px-2.5', themeClass)}
+                    className={cn('font-normal text-xs gap-1 px-2.5', themeClass)}
                     variant={isDefault ? 'outline' : 'default'}
                   >
                     <Tooltip>
@@ -487,7 +486,7 @@ export default function FundTagsEditDialog({
               >
                 <Badge
                   className={cn(
-                    'cursor-pointer font-normal text-[13px]',
+                    'cursor-pointer font-normal text-xs',
                     themeClass,
                     disabledPick && 'pointer-events-none opacity-45'
                   )}
@@ -501,8 +500,8 @@ export default function FundTagsEditDialog({
 
           {optionalEditMode && (
             <button type="button" className="inline-flex" onClick={openAddPoolDialog}>
-              <Badge variant="outline" className={cn('font-normal text-[13px]', addBadgeClassName)}>
-                <Plus className="h-3 w-3" />
+              <Badge variant="outline" className={cn('font-normal text-xs', addBadgeClassName)}>
+                <Plus className="h-3 w-3 mr-0.5" />
                 添加标签
               </Badge>
             </button>
@@ -514,8 +513,8 @@ export default function FundTagsEditDialog({
       {suggestedTags.length > 0 && (
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
-            <h3 className="pc-table-setting-subtitle !mb-0">推荐标签</h3>
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground m-0">推荐标签</h3>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {suggestedTags.map((item) => {
@@ -544,7 +543,7 @@ export default function FundTagsEditDialog({
                 >
                   <Badge
                     className={cn(
-                      'cursor-pointer font-normal text-[13px]',
+                      'cursor-pointer font-normal text-xs',
                       themeClass,
                       disabledPick && 'pointer-events-none opacity-45'
                     )}
@@ -561,13 +560,13 @@ export default function FundTagsEditDialog({
 
       <AddTagDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} onAdd={handleAddDialogAdd} />
       <EditTagDialog
-        open={!!editTagData}
+        open={Boolean(editTagData)}
         onOpenChange={(v) => {
           if (!v) setEditTagData(null);
         }}
         initialName={editTagData?.name || ''}
         initialTheme={editTagData?.theme || 'default'}
-        onEdit={(payload) => {
+        onEdit={(payload: EditTagDialogPayload) => {
           if (editTagData?.id) {
             onUpdateGlobalTag?.(editTagData.id, payload);
             setDraft((prev) =>
@@ -590,110 +589,77 @@ export default function FundTagsEditDialog({
 
   if (isMobile) {
     return (
-      <>
-        <Drawer open={open} onOpenChange={onOpenChange} direction="bottom">
-          <DrawerContent className="glass max-h-[90vh]" defaultHeight="77vh" minHeight="36vh" maxHeight="90vh">
-            <DrawerHeader className="flex flex-row items-center justify-between gap-2 border-b border-[var(--border)] py-4 text-left">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <DrawerTitle className="text-base font-semibold">编辑标签</DrawerTitle>
-                {allFunds.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setSyncModalOpen(true)}
-                    className="button secondary"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      height: 28,
-                      padding: '0 10px',
-                      borderRadius: 999,
-                      fontSize: 12,
-                      background: 'rgba(255,255,255,0.06)',
-                      color: 'var(--primary)',
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap',
-                      border: 'none'
-                    }}
-                  >
-                    <RefreshIcon width="14" height="14" />
-                    同步
-                  </button>
-                )}
-              </div>
-              <DrawerClose
-                className="icon-button border-none bg-transparent p-1"
-                title="关闭"
-                style={{ border: 'none', background: 'transparent' }}
-              >
-                <CloseIcon width="20" height="20" />
-              </DrawerClose>
-            </DrawerHeader>
-            <div className="scrollbar-y-styled flex-1 overflow-y-auto px-4 pb-6 pt-2">{body}</div>
-          </DrawerContent>
-        </Drawer>
-      </>
+      <Drawer open={open} onOpenChange={onOpenChange} direction="bottom">
+        <DrawerContent className="glass max-h-[90vh]" defaultHeight="77vh" minHeight="36vh" maxHeight="90vh">
+          <DrawerHeader className="flex flex-row items-center justify-between gap-2 border-b border-[var(--border)] py-4 px-4 text-left">
+            <div className="flex items-center gap-2.5">
+              <DrawerTitle className="text-base font-semibold text-foreground">编辑标签</DrawerTitle>
+              {allFunds.length > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSyncModalOpen(true)}
+                  className="h-7 px-2.5 rounded-full text-xs gap-1 text-primary bg-white/5 border-primary/30 shrink-0"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>同步</span>
+                </Button>
+              )}
+            </div>
+            <DrawerClose
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:text-foreground transition-colors"
+              title="关闭"
+            >
+              <X className="w-4 h-4" />
+            </DrawerClose>
+          </DrawerHeader>
+          <div className="scrollbar-y-styled flex-1 overflow-y-auto px-4 pb-6 pt-3">{body}</div>
+        </DrawerContent>
+      </Drawer>
     );
   }
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          showCloseButton={false}
-          className="glass card modal trade-modal flex max-h-[min(85vh,640px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[420px]"
-          overlayClassName="modal-overlay"
-          style={{ maxWidth: '420px', width: '90vw', zIndex: 99 }}
-        >
-          <DialogTitle className="sr-only">编辑标签</DialogTitle>
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            <div
-              className="title shrink-0 border-b border-[var(--border)] px-4 py-3"
-              style={{ justifyContent: 'space-between' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Tag width={20} height={20} aria-hidden className="shrink-0 text-[var(--foreground)]" />
-                <span className="text-[var(--foreground)]">编辑标签</span>
-                {allFunds.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setSyncModalOpen(true)}
-                    className="button secondary"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      height: 28,
-                      padding: '0 10px',
-                      borderRadius: 999,
-                      fontSize: 12,
-                      background: 'rgba(255,255,255,0.06)',
-                      color: 'var(--primary)',
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap',
-                      border: 'none'
-                    }}
-                  >
-                    <RefreshIcon width="14" height="14" />
-                    同步
-                  </button>
-                )}
-              </div>
-              <button
-                type="button"
-                className="icon-button shrink-0"
-                aria-label="关闭"
-                title="关闭"
-                onClick={() => onOpenChange(false)}
-                style={{ border: 'none', background: 'transparent' }}
-              >
-                <CloseIcon width={20} height={20} />
-              </button>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="glass card modal trade-modal flex max-h-[min(85vh,640px)] flex-col gap-0 overflow-hidden p-0 max-w-[420px] w-[90vw] z-[99]"
+        overlayClassName="modal-overlay"
+      >
+        <DialogTitle className="sr-only">编辑标签</DialogTitle>
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="title shrink-0 border-b border-[var(--border)] px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <Tag className="w-5 h-5 text-primary shrink-0" />
+              <span className="font-semibold text-base text-foreground">编辑标签</span>
+              {allFunds.length > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSyncModalOpen(true)}
+                  className="h-7 px-2.5 rounded-full text-xs gap-1 text-primary bg-white/5 border-primary/30 shrink-0"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>同步</span>
+                </Button>
+              )}
             </div>
-            <div className="scrollbar-y-styled min-h-0 flex-1 overflow-y-auto px-4 py-4">{body}</div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-8 h-8 rounded-full text-[var(--muted)] hover:text-foreground"
+              aria-label="关闭"
+              title="关闭"
+              onClick={() => onOpenChange(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
+          <div className="scrollbar-y-styled min-h-0 flex-1 overflow-y-auto px-4 py-4">{body}</div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
