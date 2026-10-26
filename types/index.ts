@@ -93,6 +93,8 @@ export interface FundGroup {
   pcTableColumnPinned?: string[];
 }
 
+export type Group = FundGroup;
+
 /**
  * 交易记录类型
  */

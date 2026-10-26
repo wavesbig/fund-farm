@@ -1,13 +1,33 @@
 'use client';
+
+import * as React from 'react';
 import { isArray, isFunction } from 'lodash';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { formatMoney } from '@/lib/utils';
 
-/**
- * 分组账户汇总卡片（只读展示，不包含任何持仓编辑/交易入口）
- */
-function formatSignedAmount(value, decimals = 2) {
+export interface SparklinePoint {
+  earnings?: number | string;
+  value?: number | string;
+  [key: string]: any;
+}
+
+export interface GroupAccountSummaryCardProps {
+  onActivate?: () => void;
+  groupName?: string;
+  totalAsset?: number | null;
+  holdingReturn?: number | null;
+  holdingReturnPercent?: number;
+  accountReturn?: number | null;
+  accountReturnPercent?: number;
+  hasAnyTodayData?: boolean;
+  upCount?: number;
+  downCount?: number;
+  sparkSeries?: SparklinePoint[];
+  masked?: boolean;
+}
+
+function formatSignedAmount(value: number | null | undefined, decimals = 2) {
   if (value == null || !Number.isFinite(value)) return '—';
   const r = Number(value.toFixed(decimals));
   const abs = formatMoney(Math.abs(r), decimals);
@@ -16,8 +36,8 @@ function formatSignedAmount(value, decimals = 2) {
   return abs;
 }
 
-function formatSignedPercent(pct, decimals = 2) {
-  if (!Number.isFinite(pct)) return '—';
+function formatSignedPercent(pct: number | undefined, decimals = 2) {
+  if (pct == null || !Number.isFinite(pct)) return '—';
   const r = Number(pct.toFixed(decimals));
   const abs = Math.abs(r).toFixed(decimals);
   if (r > 0) return `+${abs}%`;
@@ -25,19 +45,17 @@ function formatSignedPercent(pct, decimals = 2) {
   return `${abs}%`;
 }
 
-function formatAmountPlain(value, decimals = 2) {
+function formatAmountPlain(value: number | null | undefined, decimals = 2) {
   if (value == null || !Number.isFinite(value)) return '—';
   return formatMoney(Math.abs(value), decimals);
 }
 
-/** 与 formatSignedAmount / 百分比展示相同小数位对齐，避免显示为 0.00 却仍按微正负着色 */
-function roundedForDisplayTone(v, decimals = 2) {
+function roundedForDisplayTone(v: number | null | undefined, decimals = 2) {
   if (v == null || !Number.isFinite(v)) return null;
   return Number(v.toFixed(decimals));
 }
 
-/** 返回 className + 内联 color，避免 Tailwind 等覆盖 .muted/.up/.down 导致「改色无效」 */
-function toneSignedAmount(v, decimals = 2) {
+function toneSignedAmount(v: number | null | undefined, decimals = 2) {
   const r = roundedForDisplayTone(v, decimals);
   if (r == null || r === 0) {
     return { className: 'muted', color: 'var(--muted)' };
@@ -48,7 +66,7 @@ function toneSignedAmount(v, decimals = 2) {
   return { className: 'down', color: 'var(--success)' };
 }
 
-function tonePercent(pct, decimals = 2) {
+function tonePercent(pct: number | undefined, decimals = 2) {
   const r = roundedForDisplayTone(pct, decimals);
   if (r == null || r === 0) {
     return { className: 'muted', color: 'var(--muted)' };
@@ -59,8 +77,7 @@ function tonePercent(pct, decimals = 2) {
   return { className: 'down', color: 'var(--success)' };
 }
 
-/** 分组汇总卡片标题左侧：账本轮廓 + 迷你走势，颜色跟随主题 --primary */
-function GroupCardTitleIcon({ size = 22 }) {
+function GroupCardTitleIcon({ size = 22 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <path
@@ -86,9 +103,9 @@ function GroupCardTitleIcon({ size = 22 }) {
   );
 }
 
-function Sparkline({ series, className = '' }) {
+function Sparkline({ series, className = '' }: { series?: SparklinePoint[]; className?: string }) {
   if (!isArray(series) || series.length < 2) return null;
-  const values = series.map((p) => Number(p?.earnings)).filter((n) => Number.isFinite(n));
+  const values = series.map((p) => Number(p?.earnings ?? p?.value)).filter((n) => Number.isFinite(n));
   if (values.length < 2) return null;
   let min = Math.min(...values);
   let max = Math.max(...values);
@@ -102,7 +119,7 @@ function Sparkline({ series, className = '' }) {
   const innerW = w - 2 * pad;
   const innerH = h - 2 * pad;
   const pts = series.map((p, i) => {
-    const v = Number(p?.earnings);
+    const v = Number(p?.earnings ?? p?.value);
     const t = series.length > 1 ? i / (series.length - 1) : 0;
     const x = pad + t * innerW;
     const y = pad + (1 - (v - min) / (max - min)) * innerH;
@@ -119,8 +136,6 @@ function Sparkline({ series, className = '' }) {
 }
 
 export default function GroupAccountSummaryCard({
-  /** 与首页 `` 一致：true 为移动布局，false 为 PC */
-  /** 点击整张卡片时回调（如切换到对应分组 / 「全部」） */
   onActivate,
   groupName,
   totalAsset,
@@ -128,12 +143,12 @@ export default function GroupAccountSummaryCard({
   holdingReturnPercent,
   accountReturn,
   accountReturnPercent,
-  hasAnyTodayData,
+  hasAnyTodayData = false,
   upCount = 0,
   downCount = 0,
   sparkSeries = [],
   masked = false
-}) {
+}: GroupAccountSummaryCardProps) {
   const isMobile = useIsMobile();
   const holdingTone = toneSignedAmount(holdingReturn, 2);
   const holdingPctTone = tonePercent(holdingReturnPercent, 2);
@@ -172,38 +187,19 @@ export default function GroupAccountSummaryCard({
         outlineOffset: interactive ? 2 : undefined
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 8, minWidth: 0 }}>
-          <span style={{ display: 'flex', flexShrink: 0, lineHeight: 0 }} aria-hidden>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
+          <span className="flex shrink-0 leading-none" aria-hidden>
             <GroupCardTitleIcon size={isMobile ? 20 : 22} />
           </span>
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: 15,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {groupName}
-          </span>
+          <span className="font-bold text-[15px] truncate text-foreground">{groupName}</span>
         </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            flexShrink: 0,
-            fontSize: 13,
-            fontVariantNumeric: 'tabular-nums'
-          }}
-        >
+        <div className="flex items-center gap-2.5 shrink-0 text-[13px] tabular-nums font-mono">
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="up">
                 {upCount}
-                <span style={{ marginLeft: 2 }}>▲</span>
+                <span className="ml-0.5">▲</span>
               </span>
             </TooltipTrigger>
             <TooltipContent>
@@ -214,7 +210,7 @@ export default function GroupAccountSummaryCard({
             <TooltipTrigger asChild>
               <span className="down">
                 {downCount}
-                <span style={{ marginLeft: 2 }}>▼</span>
+                <span className="ml-0.5">▼</span>
               </span>
             </TooltipTrigger>
             <TooltipContent>
@@ -224,54 +220,42 @@ export default function GroupAccountSummaryCard({
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 8 }}>
+      <div className="flex justify-between items-end mb-2">
         <div>
-          <div className="muted" style={{ fontSize: 12, marginBottom: 2 }}>
-            账户资产
-          </div>
-          <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
+          <div className="text-xs text-muted-foreground mb-0.5">账户资产</div>
+          <div className="text-[22px] font-bold font-mono tabular-nums text-foreground">
             {masked ? <span className="mask-text">******</span> : formatAmountPlain(totalAsset ?? 0, 2)}
           </div>
         </div>
         <Sparkline series={sparkSeries} />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: isMobile ? 10 : 16 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="muted" style={{ fontSize: 12, marginBottom: 2 }}>
-            持有收益
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+      <div className="flex justify-between gap-2.5 md:gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="text-xs text-muted-foreground mb-0.5">持有收益</div>
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span
-              className={holdingTone.className}
-              style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-mono)', color: holdingTone.color }}
+              className={`${holdingTone.className} text-base font-bold font-mono tabular-nums`}
+              style={{ color: holdingTone.color }}
             >
               {masked ? <span className="mask-text">******</span> : formatSignedAmount(holdingReturn ?? 0, 2)}
             </span>
             {!masked && (
               <span
-                className={holdingPctTone.className}
-                style={{
-                  fontSize: 11,
-                  padding: '2px 6px',
-                  borderRadius: 6,
-                  background: 'rgba(255,255,255,0.06)',
-                  color: holdingPctTone.color
-                }}
+                className={`${holdingPctTone.className} text-[11px] px-1.5 py-0.5 rounded-md bg-white/5 tabular-nums font-mono`}
+                style={{ color: holdingPctTone.color }}
               >
                 {formatSignedPercent(holdingReturnPercent, 2)}
               </span>
             )}
           </div>
         </div>
-        <div style={{ flex: 1, minWidth: 0, textAlign: 'right' }}>
-          <div className="muted" style={{ fontSize: 12, marginBottom: 2 }}>
-            当日收益
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        <div className="flex-1 min-w-0 text-right">
+          <div className="text-xs text-muted-foreground mb-0.5">当日收益</div>
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
             <span
-              className={accountTone.className}
-              style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-mono)', color: accountTone.color }}
+              className={`${accountTone.className} text-base font-bold font-mono tabular-nums`}
+              style={{ color: accountTone.color }}
             >
               {masked ? (
                 <span className="mask-text">******</span>
@@ -283,14 +267,8 @@ export default function GroupAccountSummaryCard({
             </span>
             {!masked && hasAnyTodayData && (
               <span
-                className={accountPctTone.className}
-                style={{
-                  fontSize: 11,
-                  padding: '2px 6px',
-                  borderRadius: 6,
-                  background: 'rgba(255,255,255,0.06)',
-                  color: accountPctTone.color
-                }}
+                className={`${accountPctTone.className} text-[11px] px-1.5 py-0.5 rounded-md bg-white/5 tabular-nums font-mono`}
+                style={{ color: accountPctTone.color }}
               >
                 {formatSignedPercent(accountReturnPercent, 2)}
               </span>

@@ -561,9 +561,10 @@ export function MoonIcon(props) {
   );
 }
 
-export function SwitchIcon({ props }) {
+export function SwitchIcon(props) {
   return (
     <svg
+      {...props}
       t="1772945896369"
       className="icon"
       viewBox="0 0 1024 1024"
