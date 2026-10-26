@@ -68,7 +68,7 @@ export function ConsecutiveTrendBadge({ trend }) {
   );
 }
 
-export function DatePicker({ value, onChange, position = 'bottom', minDate }) {
+export function DatePicker({ value, onChange, position = 'bottom', minDate = undefined }) {
   const [open, setOpen] = useState(false);
   const today = nowInTz().startOf('day');
   const selected = value ? toTz(value).toDate() : undefined;
@@ -199,23 +199,32 @@ export function NumericInput({ value, onChange, step = 1, min = 0, placeholder }
     onChange(fmt(next));
   };
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative flex items-center">
       <input
         type="number"
         inputMode="decimal"
         step="any"
-        className="input no-zoom"
+        className="input no-zoom tabular-nums text-[16PX] md:text-sm w-full pr-14"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        style={{ width: '100%', paddingRight: 56 }}
       />
-      <div style={{ position: 'absolute', right: 6, top: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <button className="icon-button" type="button" onClick={inc} style={{ width: 44, height: 16, padding: 0 }}>
-          <PlusIcon width="14" height="14" />
+      <div className="absolute right-1 top-1 bottom-1 flex flex-col justify-center gap-1">
+        <button
+          className="icon-button flex items-center justify-center w-10 h-5 hover:bg-white/10 active:scale-95 transition-all rounded cursor-pointer"
+          type="button"
+          onClick={inc}
+          aria-label="增加数值"
+        >
+          <PlusIcon width="12" height="12" />
         </button>
-        <button className="icon-button" type="button" onClick={dec} style={{ width: 44, height: 16, padding: 0 }}>
-          <MinusIcon width="14" height="14" />
+        <button
+          className="icon-button flex items-center justify-center w-10 h-5 hover:bg-white/10 active:scale-95 transition-all rounded cursor-pointer"
+          type="button"
+          onClick={dec}
+          aria-label="减少数值"
+        >
+          <MinusIcon width="12" height="12" />
         </button>
       </div>
     </div>
@@ -232,7 +241,7 @@ export function Stat({ label, value, delta }) {
       >
         {label}
       </span>
-      <span className={`value ${dir}`} style={{ fontSize: '15px', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+      <span className={`value ${dir} tabular-nums`} style={{ fontSize: '15px', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
         {value}
       </span>
     </div>

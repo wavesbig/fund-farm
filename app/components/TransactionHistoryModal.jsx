@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { History } from 'lucide-react';
 import { CloseIcon } from './Icons';
 import ConfirmModal from './ConfirmModal';
 import { Button } from '@/components/ui/button';
@@ -99,7 +100,7 @@ export default function TransactionHistoryModal({
 
         <div className="title" style={{ marginBottom: 20, justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: '20px' }}>📜</span>
+            <History className="w-5 h-5 text-primary" />
             <span>交易记录</span>
             {canMergeAllGroups && (
               <button

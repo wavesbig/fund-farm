@@ -188,7 +188,7 @@ export default function LoginModal({ onClose, showToast, isExplicitLoginRef, ini
               </div>
               <input
                 style={{ width: '100%' }}
-                className="input"
+                className="input text-[16PX] md:text-sm"
                 type="email"
                 placeholder="your@email.com"
                 value={loginEmail}

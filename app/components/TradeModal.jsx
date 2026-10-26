@@ -10,7 +10,7 @@ import { fetchFundPingzhongdata, fetchSmartFundNetValue } from '../api/fund';
 import { DatePicker, NumericInput } from './Common';
 import ConfirmModal from './ConfirmModal';
 import { CloseIcon } from './Icons';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import PendingTradesModal from './PendingTradesModal';
@@ -238,7 +238,11 @@ export default function TradeModal({ type, fund, holding, onClose, onConfirm, pe
         <DialogTitle className="sr-only">{isBuy ? '加仓' : '减仓'}</DialogTitle>
         <div className="title" style={{ marginBottom: 20, justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: '20px' }}>{isBuy ? '📥' : '📤'}</span>
+            {isBuy ? (
+              <ArrowDownLeft className="w-5 h-5 text-cyan-400" />
+            ) : (
+              <ArrowUpRight className="w-5 h-5 text-red-400" />
+            )}
             <span>{showConfirm ? (isBuy ? '买入确认' : '卖出确认') : isBuy ? '加仓' : '减仓'}</span>
           </div>
           <button className="icon-button" onClick={onClose} style={{ border: 'none', background: 'transparent' }}>

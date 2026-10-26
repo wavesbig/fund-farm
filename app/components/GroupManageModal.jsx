@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { AnimatePresence, Reorder, useDragControls } from 'framer-motion';
+import { Folder } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '../../components/ui/dialog';
 import ConfirmModal from './ConfirmModal';
 import { DragIcon, PlusIcon, SettingsIcon, TrashIcon } from './Icons';
@@ -71,7 +72,7 @@ function GroupManageReorderItem({ item, onRename, onDeleteClick }) {
         </div>
       ) : (
         <input
-          className={`input group-rename-input ${!item.name.trim() ? 'error' : ''}`}
+          className={`input group-rename-input text-[16PX] md:text-sm ${!item.name.trim() ? 'error' : ''}`}
           value={item.name}
           onChange={(e) => onRename(item.id, e.target.value, e.nativeEvent.isComposing || isComposingRef.current)}
           onCompositionStart={() => {
@@ -209,7 +210,7 @@ export default function GroupManageModal({ groups, onClose, onSave }) {
           >
             {items.length === 0 ? (
               <div className="empty-state muted" style={{ textAlign: 'center', padding: '40px 0' }}>
-                <div style={{ fontSize: '32px', marginBottom: 12, opacity: 0.5 }}>📂</div>
+                <Folder className="w-10 h-10 mx-auto mb-3 opacity-40 text-muted-foreground" />
                 <p>暂无自定义分组</p>
               </div>
             ) : (

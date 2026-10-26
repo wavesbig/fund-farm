@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import dayjs from 'dayjs';
 import { CloseIcon } from './Icons';
-import { Info } from 'lucide-react';
+import { Info, ArrowLeftRight } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DatePicker, NumericInput } from './Common';
 import { fetchSmartFundNetValueBackward } from '../api/fund';
@@ -157,7 +157,7 @@ export default function FundConvertModal({
 
         <div className="title" style={{ marginBottom: 20, justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: '20px' }}>🔄</span>
+            <ArrowLeftRight className="w-5 h-5 text-purple-400" />
             <span>转换</span>
           </div>
           <button className="icon-button" onClick={onClose} style={{ border: 'none', background: 'transparent' }}>

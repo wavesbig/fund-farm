@@ -25,6 +25,7 @@ html {
 }
 
 :root {
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --bg: #0f172a;
   --card: #111827;
   --text: #e5e7eb;
@@ -209,9 +210,23 @@ body {
     Arial,
     'Apple Color Emoji',
     'Segoe UI Emoji';
+  font-feature-settings: 'tnum' 1;
+  font-variant-numeric: tabular-nums;
   background: var(--bg);
   color: var(--text);
   position: relative;
+}
+
+/* 金融等宽数字类，彻底解决实时估值跳动抖动问题 */
+.tabular-nums,
+.table-cell,
+.stat .value,
+.profit-cell,
+.holding-cell,
+.up,
+.down {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 /* 渐变层固定为视口大小，随宽高变化自动重绘，保证任意尺寸下都连贯 */
@@ -2193,10 +2208,14 @@ html::-webkit-scrollbar-thumb:active,
   }
 }
 
-/* 禁止移动端输入框自动缩放 */
+/* 禁止移动端输入框自动缩放（Safari 防缩放规范：计算字号 >= 16PX 且使用大写 PX 防转换） */
 @media (max-width: 640px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea,
+  .input,
   .input.no-zoom {
-    font-size: 16px !important;
+    font-size: 16PX !important;
   }
 }
 

@@ -104,3 +104,7 @@ cli/
 # Local SQLite Database
 /data/*
 !/data/.gitkeep
+
+# Python cache
+__pycache__/
+*.py[cod]

@@ -97,11 +97,13 @@ export default function FitText({
     >
       <span
         ref={contentRef}
+        className="tabular-nums"
         style={{
           display: 'inline-block',
           whiteSpace: 'nowrap',
           fontWeight: 'inherit',
-          fontSize: `${maxFontSize}px`
+          fontSize: `${maxFontSize}px`,
+          fontVariantNumeric: 'tabular-nums'
         }}
       >
         {children}

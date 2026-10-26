@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { Inbox } from 'lucide-react';
 import { CloseIcon } from './Icons';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,7 @@ export default function PendingTradesModal({ open, trades = [], onClose, onRevok
 
         <div className="flex items-center justify-between mb-5 font-semibold text-base">
           <div className="flex items-center gap-2.5">
-            <span className="text-xl">📥</span>
+            <Inbox className="w-5 h-5 text-primary" />
             <span>待交易队列</span>
           </div>
           <Button

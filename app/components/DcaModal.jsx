@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Repeat } from 'lucide-react';
 import { DatePicker, NumericInput } from './Common';
 import { isBoolean, isNumber } from 'lodash';
 import { CloseIcon } from './Icons';
@@ -255,7 +255,7 @@ export default function DcaModal({ fund, plan, onClose, onConfirm, onReset }) {
           >
             <div className="title" style={{ marginBottom: 20, justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: '20px' }}>🔁</span>
+                <Repeat className="w-5 h-5 text-primary" />
                 <span>定投</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

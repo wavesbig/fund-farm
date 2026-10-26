@@ -197,14 +197,13 @@ export default function LockScreen() {
               }}
               placeholder={isInitialized ? '请输入访问密码...' : '设置管理员密码 (>=4位)'}
               autoFocus
-              className="input"
+              className="input text-[16PX] md:text-sm"
               style={{
                 width: '100%',
                 paddingLeft: '38px',
                 paddingRight: '40px',
                 height: '42px',
-                borderRadius: '10px',
-                fontSize: '15px'
+                borderRadius: '10px'
               }}
             />
             <button
@@ -253,14 +252,13 @@ export default function LockScreen() {
                   setLocalError('');
                 }}
                 placeholder="请再次确认新密码"
-                className="input"
+                className="input text-[16PX] md:text-sm"
                 style={{
                   width: '100%',
                   paddingLeft: '38px',
                   paddingRight: '40px',
                   height: '42px',
-                  borderRadius: '10px',
-                  fontSize: '15px'
+                  borderRadius: '10px'
                 }}
               />
             </div>

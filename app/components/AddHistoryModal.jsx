@@ -201,7 +201,7 @@ export default function AddHistoryModal({ fund, onClose, onConfirm }) {
           <input
             type="number"
             inputMode="decimal"
-            className="input"
+            className="input text-[16PX] md:text-sm tabular-nums"
             value={amount}
             onChange={handleAmountChange}
             placeholder="0.00"

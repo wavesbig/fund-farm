@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { PartyPopper } from 'lucide-react';
 import { CloseIcon, SettingsIcon } from './Icons';
 import { submitFeedback } from '../api/fund';
 
@@ -69,7 +70,7 @@ export default function FeedbackModal({ onClose, user, onOpenWeChat }) {
 
         {succeeded ? (
           <div className="success-message" style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ fontSize: '48px', marginBottom: 16 }}>🎉</div>
+            <PartyPopper className="w-12 h-12 text-primary mx-auto mb-4" />
             <h3 style={{ marginBottom: 8 }}>感谢您的反馈！</h3>
             <p className="muted">我们已收到您的建议，会尽快查看。</p>
             <button className="button" onClick={onClose} style={{ marginTop: 24, width: '100%' }}>
@@ -90,7 +91,7 @@ export default function FeedbackModal({ onClose, user, onOpenWeChat }) {
                 id="nickname"
                 type="text"
                 name="nickname"
-                className="input"
+                className="input text-[16PX] md:text-sm"
                 placeholder="匿名"
                 style={{ width: '100%' }}
               />
@@ -107,7 +108,7 @@ export default function FeedbackModal({ onClose, user, onOpenWeChat }) {
               <textarea
                 id="message"
                 name="message"
-                className="input"
+                className="input text-[16PX] md:text-sm"
                 required
                 placeholder="请描述您遇到的问题或建议..."
                 style={{ width: '100%', minHeight: '120px', padding: '12px', resize: 'vertical' }}

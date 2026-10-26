@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Coins } from 'lucide-react';
 import { CloseIcon } from './Icons';
 import { useStorageStore } from '../stores/storageStore';
 import { useModalStore } from '../stores';
@@ -82,7 +83,7 @@ export default function DividendMethodModal({ fund, groupId, onClose, showToast 
 
         <div className="title" style={{ marginBottom: 20, justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: '20px' }}>💰</span>
+            <Coins className="w-5 h-5 text-amber-400" />
             <span>分红方式</span>
           </div>
           <button className="icon-button" onClick={onClose} style={{ border: 'none', background: 'transparent' }}>
