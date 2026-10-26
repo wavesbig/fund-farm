@@ -2,38 +2,30 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Star,
-  Filter,
-  ChevronDown,
-  ChevronRight,
-  LogIn,
-  Lock,
-  TrendingUp,
-  BarChart3,
-  Activity,
-  CheckCircle,
-  PlusCircle
-} from 'lucide-react';
+import { ChevronRight, LogIn, Lock, TrendingUp, BarChart3, Activity, CheckCircle, PlusCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
+import { useReactTable, getCoreRowModel, flexRender, ColumnDef } from '@tanstack/react-table';
 import { fetchFundValuationRanking, fetchFundPeriodReturns } from '../api/fund';
 import { cn } from '@/lib/utils';
 import { useStorageStore, useUserStore, useModalStore } from '../stores';
 import { supabase } from '../lib/supabase';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Empty, EmptyTitle, EmptyDescription, EmptyContent, EmptyMedia } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import MobileFundCardDrawer from './MobileFundCardDrawer';
 import FundCard from './FundCard';
-import { Spinner } from '@/components/ui/spinner';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/components/ui/pagination';
 
-function FundDetailDialog({ cardDialogRow, getFundCardProps, setCardDialogRow }) {
+interface FundDetailDialogProps {
+  cardDialogRow: any;
+  getFundCardProps: (row: any) => any;
+  setCardDialogRow: (row: any) => void;
+}
+
+function FundDetailDialog({ cardDialogRow, getFundCardProps, setCardDialogRow }: FundDetailDialogProps) {
   const isAnySubModalOpen = useModalStore(
     (s) =>
       s.dataSourceModal.open ||
@@ -75,9 +67,15 @@ function FundDetailDialog({ cardDialogRow, getFundCardProps, setCardDialogRow })
   );
 }
 
-export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
-  const [detailFund, setDetailFund] = useState(null);
-  const [detailFundExtra, setDetailFundExtra] = useState(null);
+export interface MarketTabProps {
+  onAddFund?: (fund: { code: string; name: string }) => void;
+  getFundCardProps?: (row: any) => any;
+  isActive?: boolean;
+}
+
+export default function MarketTab({ onAddFund, getFundCardProps, isActive }: MarketTabProps) {
+  const [detailFund, setDetailFund] = useState<any>(null);
+  const [detailFundExtra, setDetailFundExtra] = useState<any>(null);
   const [pageIndex, setPageIndex] = useState(1);
 
   useEffect(() => {
@@ -91,16 +89,13 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
     }
   }, [detailFund]);
 
-  const [activeTab, setActiveTab] = useState('increase'); // increase, decrease, hot
-  const [sectorFilter, setSectorFilter] = useState('industry'); // industry, concept
-  const [sectorSort, setSectorSort] = useState('change_pct'); // change_pct, net_inflow
-  const [sectorSortOrder, setSectorSortOrder] = useState('desc'); // desc, asc
+  const [activeTab, setActiveTab] = useState<'increase' | 'decrease' | 'hot' | 'actual'>('increase');
+  const [sectorFilter, setSectorFilter] = useState<'industry' | 'concept' | 'all'>('industry');
+  const [sectorSort, setSectorSort] = useState<'change_pct' | 'net_inflow'>('change_pct');
+  const [sectorSortOrder, setSectorSortOrder] = useState<'desc' | 'asc'>('desc');
   const user = useUserStore((s) => s.user);
   const isMobile = useIsMobile();
 
-  // Storage for favorites and funds
-  const favorites = useStorageStore((s) => s.favorites);
-  const toggleFavorite = useStorageStore((s) => s.toggleFavorite);
   const funds = useStorageStore((s) => s.funds);
 
   // Queries for Hot Sectors (Supabase)
@@ -109,7 +104,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
     queryFn: async () => {
       try {
         if (!supabase) return [];
-        const { data, error } = await supabase.from('fund_topic').select('*');
+        const { data, error } = await (supabase.from('fund_topic') as any).select('*');
         if (error) throw error;
         return data || [];
       } catch (e) {
@@ -117,14 +112,14 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
         return [];
       }
     },
-    enabled: !!isActive,
+    enabled: Boolean(isActive),
     staleTime: 120000
   });
 
   const filteredAndSortedSectors = useMemo(() => {
     if (!sectorEstimates) return [];
 
-    let result = sectorEstimates;
+    let result = sectorEstimates as any[];
     if (sectorFilter !== 'all') {
       result = result.filter((s) => s.sector_type === sectorFilter);
     }
@@ -149,7 +144,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
         sort = 3;
         order = 'asc';
       } else if (activeTab === 'hot') {
-        sort = 4; // Using sort=4 for pseudo trading volume
+        sort = 4;
         order = 'desc';
       } else if (activeTab === 'actual') {
         sort = 5;
@@ -159,25 +154,25 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
       const res = await fetchFundValuationRanking(sort, order, pageIndex, 20);
       return res?.Data?.list || [];
     },
-    enabled: !!isActive,
+    enabled: Boolean(isActive),
     staleTime: 120000
   });
 
-  const formatPercent = (val) => {
+  const formatPercent = (val: any) => {
     if (val === undefined || val === null || val === '---' || val === '') return '--';
     const num = parseFloat(val);
     if (!Number.isFinite(num)) return '0.00%';
     return `${num > 0 ? '+' : ''}${num.toFixed(2)}%`;
   };
 
-  const getColorClass = (val) => {
+  const getColorClass = (val: any) => {
     const num = parseFloat(val);
     if (!Number.isFinite(num) || num === 0) return 'text-[var(--foreground)]';
     return num > 0 ? 'text-[var(--danger)]' : 'text-[var(--success)]';
   };
 
-  const rankingTableColumns = useMemo(() => {
-    const columns = [
+  const rankingTableColumns = useMemo<ColumnDef<any>[]>(() => {
+    const columns: ColumnDef<any>[] = [
       {
         accessorKey: 'bzdm',
         header: '基金名称',
@@ -191,6 +186,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (!isAdded && onAddFund) {
@@ -244,22 +240,21 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
             </div>
           );
         }
+      },
+      {
+        accessorKey: 'gszzl',
+        header: '估算涨幅',
+        meta: { align: 'text-right', flex: 1 },
+        cell: (info) => {
+          const fund = info.row.original;
+          return (
+            <div className="flex flex-col items-end justify-center w-full">
+              <span className={cn('text-sm font-bold', getColorClass(fund.gszzl))}>{formatPercent(fund.gszzl)}</span>
+            </div>
+          );
+        }
       }
     ];
-
-    columns.push({
-      accessorKey: 'gszzl',
-      header: '估算涨幅',
-      meta: { align: 'text-right', flex: 1 },
-      cell: (info) => {
-        const fund = info.row.original;
-        return (
-          <div className="flex flex-col items-end justify-center w-full">
-            <span className={cn('text-sm font-bold', getColorClass(fund.gszzl))}>{formatPercent(fund.gszzl)}</span>
-          </div>
-        );
-      }
-    });
 
     return columns;
   }, [funds, onAddFund]);
@@ -280,8 +275,6 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
             transition={{ duration: 0.4, ease: 'easeOut' }}
             className="glass max-w-md w-full p-6 sm:p-8 flex flex-col items-center text-center relative overflow-hidden"
           >
-            {/* Removed background decorative blurs per user request */}
-
             <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 shadow-inner ring-1 ring-primary/20 relative z-10">
               <Lock className="size-8" strokeWidth={1.5} />
             </div>
@@ -294,7 +287,6 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
               登录后即可查看实时热门板块、资金流入排行及大盘估值数据，快来探索更多专属功能吧。
             </p>
 
-            {/* Feature list */}
             <div className="w-full flex flex-col gap-3 mb-8 relative z-10 text-left">
               <div className="flex items-center gap-3 text-sm text-muted-foreground bg-foreground/5 p-3 rounded-xl border border-border/50">
                 <div className="bg-background/80 p-1.5 rounded-lg shadow-sm border border-border/50">
@@ -329,7 +321,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
       ) : (
         <>
           {/* 热门板块 */}
-          {(sectorsLoading || (sectorEstimates && sectorEstimates.length > 0)) && (
+          {(sectorsLoading || (sectorEstimates && (sectorEstimates as any[]).length > 0)) && (
             <div className="market-section">
               <div className="market-section-header">
                 <div className="flex items-center gap-2 sm:gap-3">
@@ -337,7 +329,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
                   <ToggleGroup
                     type="single"
                     value={sectorFilter}
-                    onValueChange={(v) => v && setSectorFilter(v)}
+                    onValueChange={(v) => v && setSectorFilter(v as any)}
                     className="bg-black/5 dark:bg-white/10 p-0.5 rounded-md border border-black/5 dark:border-white/5 gap-0 shadow-inner"
                   >
                     <ToggleGroupItem
@@ -361,7 +353,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
                       if (!v) {
                         setSectorSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
                       } else {
-                        setSectorSort(v);
+                        setSectorSort(v as any);
                         setSectorSortOrder('desc');
                       }
                     }}
@@ -418,6 +410,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
                   </ToggleGroup>
                 </div>
                 <button
+                  type="button"
                   className="market-section-more"
                   onClick={() =>
                     useModalStore.setState({
@@ -453,11 +446,8 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
                           </div>
                         </motion.div>
                       ))
-                    : filteredAndSortedSectors?.map((sector) => {
+                    : filteredAndSortedSectors?.map((sector: any) => {
                         const pctStr = sector.change_pct != null ? String(sector.change_pct) : '0.00';
-                        const pctNum = parseFloat(pctStr);
-                        const isUp = pctNum > 0;
-                        const isDown = pctNum < 0;
 
                         return (
                           <motion.div
@@ -614,8 +604,9 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
               {rankingTable.getHeaderGroups().map((hg) => (
                 <div key={hg.id} className="table-header-row market-ranking-table-header">
                   {hg.headers.map((header) => {
-                    const align = header.column.columnDef.meta?.align || 'text-center';
-                    const flex = header.column.columnDef.meta?.flex || 1;
+                    const meta = header.column.columnDef.meta as { align?: string; flex?: number } | undefined;
+                    const align = meta?.align || 'text-center';
+                    const flex = meta?.flex || 1;
                     const isRight = align === 'text-right';
 
                     return (
@@ -707,8 +698,9 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
                       className={`table-row market-ranking-table-row ${index % 2 === 1 ? 'row-even' : ''}`}
                     >
                       {row.getVisibleCells().map((cell) => {
-                        const align = cell.column.columnDef.meta?.align || 'text-center';
-                        const flex = cell.column.columnDef.meta?.flex || 1;
+                        const meta = cell.column.columnDef.meta as { align?: string; flex?: number } | undefined;
+                        const align = meta?.align || 'text-center';
+                        const flex = meta?.flex || 1;
                         const isRight = align === 'text-right';
 
                         return (
@@ -744,23 +736,18 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
                             e.preventDefault();
                             if (pageIndex !== p) {
                               setPageIndex(p);
-                              // 延迟一点等待数据请求开始，同时滚动到表头
                               setTimeout(() => {
                                 const el = document.getElementById('market-ranking-section');
                                 if (el) {
-                                  // 动态获取固定导航栏的高度，如果找不到则降级使用默认值 68px
                                   const navbar = document.querySelector('.navbar');
                                   const navHeight = navbar ? navbar.getBoundingClientRect().height : 68;
 
-                                  // 动态获取大盘指数组件的高度
                                   const indexAccordion = document.querySelector('.market-index-accordion-root');
                                   const indexHeight = indexAccordion
                                     ? indexAccordion.getBoundingClientRect().height
                                     : 0;
 
-                                  // 精准偏移：导航栏高度 + 指数组件高度 + 16px 的视觉留白
                                   const offset = navHeight + indexHeight + 16;
-
                                   const y = el.getBoundingClientRect().top + window.scrollY - offset;
                                   window.scrollTo({ top: y, behavior: 'smooth' });
                                 }
@@ -780,7 +767,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
           </div>
         </>
       )}
-      {/* 基金详情弹框 */}
+
       {(() => {
         const mappedFund = detailFund
           ? {
@@ -803,7 +790,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }) {
           detailCardProps &&
           (isMobile ? (
             <MobileFundCardDrawer
-              open={!!detailFund}
+              open={Boolean(detailFund)}
               onOpenChange={(open) => !open && setDetailFund(null)}
               getFundCardProps={() => detailCardProps}
               cardSheetRow={mappedFund}

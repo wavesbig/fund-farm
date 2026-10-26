@@ -2,22 +2,32 @@
 
 import Image from 'next/image';
 import { ChevronRight } from 'lucide-react';
-import { LoginIcon } from './Icons';
 import { useAuthStore } from '../stores/authStore';
+
+export interface MineTabProps {
+  visible?: boolean;
+  user?: any;
+  userAvatar?: string;
+  lastSyncDisplay?: string;
+  onLogin?: () => void;
+  onMyEarnings?: () => void;
+  onTutorial?: () => void;
+  onUpdateLog?: () => void;
+  onFeedback?: () => void;
+  onSponsorSupport?: () => void;
+  onOpenWeChat?: () => void;
+}
 
 export default function MineTab({
   visible = true,
   user,
   userAvatar,
   lastSyncDisplay,
-  onLogin,
   onMyEarnings,
   onTutorial,
   onUpdateLog,
-  onFeedback,
-  onSponsorSupport,
-  onOpenWeChat
-}) {
+  onFeedback
+}: MineTabProps) {
   return (
     <div className="mine-tab" style={{ display: visible ? undefined : 'none' }} aria-hidden={!visible || undefined}>
       <section className="mine-profile-card glass" aria-label="个人信息" style={{ position: 'relative' }}>

@@ -1,11 +1,81 @@
 'use client';
-import { isArray } from 'lodash';
 
 import React from 'react';
+import { isArray } from 'lodash';
 import { AnimatePresence, motion } from 'framer-motion';
 import PcFundTable from './PcFundTable';
 import MobileFundTable from './MobileFundTable';
 import FundCard from './FundCard';
+
+const TablePc = PcFundTable as React.ComponentType<any>;
+const TableMobile = MobileFundTable as React.ComponentType<any>;
+const CardFund = FundCard as React.ComponentType<any>;
+
+export interface FundListViewProps {
+  viewMode: 'list' | 'card' | string;
+  isMobile: boolean;
+  isGroupSummarySticky?: boolean;
+  navbarHeight: number;
+  filterBarHeight: number;
+  pcFundTableData: any[];
+  userId?: string;
+  currentTab: string;
+  groups: any[];
+  favorites: string[];
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+  sortRules: any[];
+  setSortBy: (sortBy: string) => void;
+  setSortOrder: React.Dispatch<React.SetStateAction<'asc' | 'desc'>>;
+  startTransition: (fn: () => void) => void;
+  handleReorder: (newList: any[]) => void;
+  handleRemoveFundEntry: (fund: any) => void;
+  removeFundsFromCurrentTabHandler: (funds: any[]) => void;
+  handleMoveFunds: (funds: any[], targetGroupId: string) => void;
+  pcBatchClearSelectionRef?: React.MutableRefObject<any>;
+  handleToggleFavoriteRow: (code: string) => void;
+  handleHoldingAmountClickRow: (row: any) => void;
+  handleHoldingProfitClickRow: (row: any) => void;
+  triggerCustomSettingsSync: () => void;
+  fundDetailDialogCloseRef?: React.MutableRefObject<any>;
+  maskAmounts?: boolean;
+  getFundCardPropsForRow: (row: any) => any;
+  openFundTagsEdit: (code: string) => void;
+  fundExtraDataByCode?: Record<string, any>;
+  fundDetailDrawerCloseRef?: React.MutableRefObject<any>;
+  mobileBatchClearSelectionRef?: React.MutableRefObject<any>;
+  handleFundCardDrawerOpenChange: (open: boolean) => void;
+  handleMobileSettingModalOpenChange: (open: boolean) => void;
+  displayFunds: any[];
+  linkedHoldingsForAllFav: any;
+  todayStr: string;
+  dcaPlansForTab: any[];
+  holdingsForTabWithLinked: Record<string, any>;
+  percentModes: Record<string, any>;
+  todayPercentModes: Record<string, any>;
+  currentFundDailyEarnings: Record<string, any>;
+  valuationSeries: Record<string, any>;
+  collapsedCodes: Record<string, any>;
+  collapsedTrends: Record<string, any>;
+  collapsedValuationTrends: Record<string, any>;
+  collapsedEarnings: Record<string, any>;
+  transactionsForTab: any[];
+  theme: string;
+  isTradingDay: boolean;
+  getHoldingProfitForTab: (fund: any) => any;
+  toggleFavorite: (code: string) => void;
+  openHoldingModal: (fund: any) => void;
+  openActionModal: (fund: any) => void;
+  openDataSourceModal: (fund: any) => void;
+  togglePercentMode: (code: string) => void;
+  toggleTodayPercentMode: (code: string) => void;
+  toggleCollapse: (code: string) => void;
+  toggleTrendCollapse: (code: string) => void;
+  toggleValuationTrendCollapse: (code: string) => void;
+  toggleEarningsCollapse: (code: string) => void;
+  fundTagListsByCode: Record<string, any>;
+  groupTotalHoldingAmount?: number;
+}
 
 const FundListView = React.memo(function FundListView({
   viewMode,
@@ -71,7 +141,7 @@ const FundListView = React.memo(function FundListView({
   toggleEarningsCollapse,
   fundTagListsByCode,
   groupTotalHoldingAmount
-}) {
+}: FundListViewProps) {
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -89,7 +159,7 @@ const FundListView = React.memo(function FundListView({
         >
           {/* PC 列表：使用 PcFundTable + 右侧冻结操作列 */}
           {viewMode === 'list' && !isMobile && (
-            <PcFundTable
+            <TablePc
               stickyTop={navbarHeight + filterBarHeight}
               data={pcFundTableData}
               relatedSectorSessionKey={userId ?? ''}
@@ -99,7 +169,7 @@ const FundListView = React.memo(function FundListView({
               sortBy={sortBy}
               sortOrder={sortOrder}
               sortRules={sortRules}
-              onSortChange={(id) => {
+              onSortChange={(id: string) => {
                 startTransition(() => {
                   if (sortBy === id) {
                     setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -128,7 +198,7 @@ const FundListView = React.memo(function FundListView({
 
           {/* 移动端列表：使用 MobileFundTable */}
           {viewMode === 'list' && isMobile && (
-            <MobileFundTable
+            <TableMobile
               data={pcFundTableData}
               relatedSectorSessionKey={userId ?? ''}
               currentTab={currentTab}
@@ -138,7 +208,7 @@ const FundListView = React.memo(function FundListView({
               sortBy={sortBy}
               sortOrder={sortOrder}
               sortRules={sortRules}
-              onSortChange={(id) => {
+              onSortChange={(id: string) => {
                 startTransition(() => {
                   if (sortBy === id) {
                     setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -180,7 +250,7 @@ const FundListView = React.memo(function FundListView({
                   transition={{ duration: 0.15 }}
                   style={{ position: 'relative', overflow: 'hidden' }}
                 >
-                  <FundCard
+                  <CardFund
                     fundCode={f.code}
                     isHoldingLinked={
                       (currentTab === 'all' || currentTab === 'fav') && linkedHoldingsForAllFav.linked?.has?.(f?.code)
@@ -216,7 +286,7 @@ const FundListView = React.memo(function FundListView({
                     masked={maskAmounts}
                     fundTags={isArray(fundTagListsByCode[f.code]) ? fundTagListsByCode[f.code] : []}
                     onFundTagsClick={openFundTagsEdit}
-                    fundExtraData={fundExtraDataByCode[f.code]}
+                    fundExtraData={fundExtraDataByCode?.[f.code]}
                     groupTotalHoldingAmount={groupTotalHoldingAmount}
                     hasDca={f.hasDca}
                     hasPending={f.hasPending}
