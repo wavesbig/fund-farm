@@ -1,12 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { cva } from 'class-variance-authority';
+import { cva, type VariantProps } from 'class-variance-authority';
 import { Tabs as TabsPrimitive } from 'radix-ui';
 
 import { cn } from '@/lib/utils';
 
-function Tabs({ className, orientation = 'horizontal', ...props }) {
+export interface TabsProps extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root> {}
+
+function Tabs({ className, orientation = 'horizontal', ...props }: TabsProps) {
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
@@ -33,7 +35,10 @@ const tabsListVariants = cva(
   }
 );
 
-function TabsList({ className, variant = 'default', ...props }) {
+export interface TabsListProps
+  extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>, VariantProps<typeof tabsListVariants> {}
+
+function TabsList({ className, variant = 'default', ...props }: TabsListProps) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
@@ -44,7 +49,9 @@ function TabsList({ className, variant = 'default', ...props }) {
   );
 }
 
-function TabsTrigger({ className, ...props }) {
+export interface TabsTriggerProps extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> {}
+
+function TabsTrigger({ className, ...props }: TabsTriggerProps) {
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
@@ -66,7 +73,9 @@ function TabsTrigger({ className, ...props }) {
   );
 }
 
-function TabsContent({ className, ...props }) {
+export interface TabsContentProps extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content> {}
+
+function TabsContent({ className, ...props }: TabsContentProps) {
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"

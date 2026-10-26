@@ -1,53 +1,46 @@
 'use client';
-import { isFunction, isNumber } from 'lodash';
 
 import * as React from 'react';
 import { Drawer as DrawerPrimitive } from 'vaul';
+import { isFunction, isNumber } from 'lodash';
 
 import { cn } from '@/lib/utils';
 
-const DrawerScrollLockContext = React.createContext(null);
+interface DrawerScrollLockContextValue {
+  open: boolean;
+  [key: string]: any;
+}
 
-/**
- * 移动端滚动锁定：不再对 body 设置任何属性，
- * 仅在 Context 中提供 open 状态，然后在 DrawerOverlay 中处理禁止遮罩层的滚动。
- */
-function useScrollLock(open) {
+const DrawerScrollLockContext = React.createContext<DrawerScrollLockContextValue | null>(null);
+
+function useScrollLock(open?: boolean) {
   return React.useMemo(() => (open ? { open } : null), [open]);
 }
 
-/**
- * 缓存"正常"视口高度（无虚拟键盘时）。
- * 移动端聚焦输入框后键盘弹出会缩小 visualViewport.height，
- * 导致 Drawer 基于 vh 计算的高度异常偏小。
- * 通过缓存正常高度，Drawer 打开时使用缓存值而非被压缩的视口高度。
- */
-let _cachedNormalViewportHeight = null;
+let _cachedNormalViewportHeight: number | null = null;
 
-function getViewportHeight() {
+function getViewportHeight(): number | null {
   if (typeof window === 'undefined') return null;
   const innerHeight = window.innerHeight;
   const visualHeight = window.visualViewport?.height;
   const current =
-    Number.isFinite(visualHeight) && visualHeight > 0
-      ? visualHeight
+    Number.isFinite(visualHeight) && (visualHeight as number) > 0
+      ? (visualHeight as number)
       : Number.isFinite(innerHeight) && innerHeight > 0
         ? innerHeight
         : null;
-  // 更新缓存：首次赋值，或当前视口更大（键盘已收起）时刷新
   if (current != null && (_cachedNormalViewportHeight == null || current > _cachedNormalViewportHeight)) {
     _cachedNormalViewportHeight = current;
   }
   return current;
 }
 
-/** 获取用于 vh 计算的参考高度：优先使用缓存的正常视口高度，避免键盘弹出干扰 */
-function getReferenceHeight() {
-  getViewportHeight(); // 顺带刷新缓存
+function getReferenceHeight(): number | null {
+  getViewportHeight();
   return _cachedNormalViewportHeight ?? getViewportHeight();
 }
 
-function parseVhToPx(vhStr) {
+function parseVhToPx(vhStr: string | number): number | null {
   if (isNumber(vhStr)) return Number.isFinite(vhStr) && vhStr >= 0 ? vhStr : null;
   const match = String(vhStr).match(/^([\d.]+)\s*vh$/);
   if (!match) return null;
@@ -57,13 +50,9 @@ function parseVhToPx(vhStr) {
   return (viewportHeight * ratio) / 100;
 }
 
-/**
- * 将 style 对象中的 vh 值（如 height: '85vh'）转换为 px，
- * 使用缓存的正常视口高度，避免虚拟键盘弹出导致高度偏小。
- */
-function convertStyleVhToPx(style) {
+function convertStyleVhToPx(style?: React.CSSProperties): React.CSSProperties | undefined {
   if (!style || typeof style !== 'object') return style;
-  const result = { ...style };
+  const result: any = { ...style };
   const vhProps = ['height', 'maxHeight', 'minHeight', 'top', 'bottom'];
   for (const prop of vhProps) {
     const val = result[prop];
@@ -75,17 +64,11 @@ function convertStyleVhToPx(style) {
   return result;
 }
 
-/**
- * 将 className 中的 Tailwind vh 任意值类（如 h-[85vh]、max-h-[90vh]、min-h-[20vh]）
- * 转换为等价的 px 内联样式，避免 CSS vh 受虚拟键盘影响。
- * 返回 { cleanClassName, overrides } — cleanClassName 为去除已转换类后的字符串，
- * overrides 为需要合并到 style 中的 px 值。
- */
-function extractClassNameVhOverrides(className) {
+function extractClassNameVhOverrides(className?: string) {
   if (!className || typeof className !== 'string') return { cleanClassName: className, overrides: {} };
-  const overrides = {};
+  const overrides: Record<string, string> = {};
   const propMap = { h: 'height', 'max-h': 'maxHeight', 'min-h': 'minHeight' };
-  const cleanParts = [];
+  const cleanParts: string[] = [];
   for (const token of className.split(/\s+/)) {
     let matched = false;
     for (const [prefix, cssProp] of Object.entries(propMap)) {
@@ -103,49 +86,59 @@ function extractClassNameVhOverrides(className) {
   return { cleanClassName: cleanParts.join(' '), overrides };
 }
 
-function safePreventDefault(e) {
+function safePreventDefault(e: any) {
   if (isFunction(e?.preventDefault) && e?.cancelable !== false) e.preventDefault();
 }
 
-function stopEvent(e) {
+function stopEvent(e: any) {
   safePreventDefault(e);
   if (isFunction(e?.stopPropagation)) e.stopPropagation();
 }
 
-function getEventClientY(e) {
+function getEventClientY(e: any): number | null {
   const nativeEvent = e?.nativeEvent ?? e;
   const touches = e?.touches ?? nativeEvent?.touches ?? nativeEvent?.changedTouches;
   const clientY = e?.clientY ?? nativeEvent?.clientY ?? touches?.[0]?.clientY;
   return Number.isFinite(clientY) ? clientY : null;
 }
 
-function Drawer({ open, ...props }) {
+export type DrawerProps = React.ComponentProps<typeof DrawerPrimitive.Root>;
+
+function Drawer({ open, ...props }: DrawerProps) {
   const scrollLock = useScrollLock(open);
   const contextValue = React.useMemo(() => ({ ...scrollLock, open: !!open }), [scrollLock, open]);
   return (
     <DrawerScrollLockContext.Provider value={contextValue}>
-      <DrawerPrimitive.Root modal={false} data-slot="drawer" open={open} {...props} />
+      <DrawerPrimitive.Root modal={false} data-slot="drawer" open={open} {...(props as any)} />
     </DrawerScrollLockContext.Provider>
   );
 }
 
-function DrawerTrigger({ ...props }) {
+export interface DrawerTriggerProps extends React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Trigger> {}
+
+function DrawerTrigger({ ...props }: DrawerTriggerProps) {
   return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />;
 }
 
-function DrawerPortal({ ...props }) {
+export interface DrawerPortalProps extends React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Portal> {}
+
+function DrawerPortal({ ...props }: DrawerPortalProps) {
   return <DrawerPrimitive.Portal data-slot="drawer-portal" {...props} />;
 }
 
-function DrawerClose({ ...props }) {
+export interface DrawerCloseProps extends React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Close> {}
+
+function DrawerClose({ ...props }: DrawerCloseProps) {
   return <DrawerPrimitive.Close data-slot="drawer-close" {...props} />;
 }
 
-function DrawerOverlay({ className, style, ...props }) {
+export interface DrawerOverlayProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+function DrawerOverlay({ className, style, ...props }: DrawerOverlayProps) {
   const ctx = React.useContext(DrawerScrollLockContext);
   const { open = false, ...scrollLockProps } = ctx || {};
 
-  const overlayRef = React.useRef(null);
+  const overlayRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const el = overlayRef.current;
@@ -160,7 +153,6 @@ function DrawerOverlay({ className, style, ...props }) {
     };
   }, [open]);
 
-  // modal={false} 时 vaul 不渲染/隐藏 Overlay，用自定义遮罩 div 保证始终有遮罩；点击遮罩关闭
   return (
     <div
       ref={overlayRef}
@@ -181,6 +173,12 @@ function DrawerOverlay({ className, style, ...props }) {
   );
 }
 
+export interface DrawerContentProps extends React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> {
+  defaultHeight?: string | number;
+  minHeight?: string | number;
+  maxHeight?: string | number;
+}
+
 function DrawerContent({
   className,
   children,
@@ -189,13 +187,11 @@ function DrawerContent({
   maxHeight = '90vh',
   style: styleProp,
   ...props
-}) {
-  // 将 className 中的 Tailwind vh 类（如 h-[85vh]、max-h-[90vh]）转为 px 内联样式
+}: DrawerContentProps) {
   const classNameResult = React.useMemo(() => extractClassNameVhOverrides(className), [className]);
   const { cleanClassName, overrides: classNameVhOverrides } = classNameResult;
-  // 将 style prop 中的 vh 值（如 height: '85vh'）转为 px
   const convertedStyleProp = React.useMemo(() => convertStyleVhToPx(styleProp), [styleProp]);
-  const [heightPx, setHeightPx] = React.useState(() =>
+  const [heightPx, setHeightPx] = React.useState<number | null>(() =>
     typeof window !== 'undefined' ? parseVhToPx(defaultHeight) : null
   );
   const [isDragging, setIsDragging] = React.useState(false);
@@ -209,21 +205,15 @@ function DrawerContent({
     if (Number.isFinite(px)) setHeightPx(px);
   }, [defaultHeight]);
 
-  // 键盘出现/消失时自动补偿高度：
-  // - 键盘弹出（视口缩小）→ 保持基于正常视口的高度不变
-  // - 键盘收起（视口恢复）→ 重新按 defaultHeight 同步
   React.useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     const sync = () => {
-      // 刷新缓存（如果视口变大了说明键盘收起了）
       getViewportHeight();
       setHeightPx(() => {
         const fallback = parseVhToPx(defaultHeight);
         return Number.isFinite(fallback) ? fallback : null;
       });
     };
-    // 仅监听 window resize（键盘收起/横竖屏切换），不监听 visualViewport resize
-    // 因为 visualViewport resize 在键盘弹出时也会触发，会导致高度被压缩
     window.addEventListener('resize', sync);
     return () => {
       window.removeEventListener('resize', sync);
@@ -231,15 +221,19 @@ function DrawerContent({
   }, [defaultHeight, minHeight, maxHeight]);
 
   const handlePointerDown = React.useCallback(
-    (e) => {
+    (e: any) => {
       const startY = getEventClientY(e);
       if (!Number.isFinite(startY)) return;
       safePreventDefault(e);
       setIsDragging(true);
       const fallbackHeight = parseVhToPx(defaultHeight);
       dragRef.current = {
-        startY,
-        startHeight: Number.isFinite(heightPx) ? heightPx : Number.isFinite(fallbackHeight) ? fallbackHeight : 0
+        startY: startY as number,
+        startHeight: Number.isFinite(heightPx)
+          ? (heightPx as number)
+          : Number.isFinite(fallbackHeight)
+            ? (fallbackHeight as number)
+            : 0
       };
     },
     [heightPx, defaultHeight]
@@ -247,13 +241,13 @@ function DrawerContent({
 
   React.useEffect(() => {
     if (!isDragging) return;
-    const move = (e) => {
+    const move = (e: any) => {
       const clientY = getEventClientY(e);
       const { startY, startHeight } = dragRef.current;
       if (!Number.isFinite(clientY) || !Number.isFinite(startY) || !Number.isFinite(startHeight)) return;
-      const delta = startY - clientY;
-      const lower = Number.isFinite(minPx) ? minPx : 0;
-      const upper = Number.isFinite(maxPx) ? maxPx : Infinity;
+      const delta = startY - (clientY as number);
+      const lower = Number.isFinite(minPx) ? (minPx as number) : 0;
+      const upper = Number.isFinite(maxPx) ? (maxPx as number) : Infinity;
       const next = Math.min(upper, Math.max(lower, startHeight + delta));
       if (Number.isFinite(next)) setHeightPx(next);
     };
@@ -273,12 +267,10 @@ function DrawerContent({
   }, [isDragging, minPx, maxPx]);
 
   const contentStyle = React.useMemo(() => {
-    const base = {};
+    const base: any = {};
     if (Number.isFinite(heightPx)) base.height = `${heightPx}px`;
     if (Number.isFinite(maxPx)) base.maxHeight = `${maxPx}px`;
-    // className vh 转换的 px 值覆盖（优先级高于 defaultHeight 计算值）
     Object.assign(base, classNameVhOverrides);
-    // 调用者显式传入的 style 最后覆盖（最高优先级）
     if (convertedStyleProp) Object.assign(base, convertedStyleProp);
     return Object.keys(base).length > 0 ? base : undefined;
   }, [heightPx, maxPx, classNameVhOverrides, convertedStyleProp]);
@@ -317,7 +309,7 @@ function DrawerContent({
   );
 }
 
-function DrawerHeader({ className, ...props }) {
+function DrawerHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       data-slot="drawer-header"
@@ -331,11 +323,11 @@ function DrawerHeader({ className, ...props }) {
   );
 }
 
-function DrawerFooter({ className, ...props }) {
+function DrawerFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div data-slot="drawer-footer" className={cn('mt-auto flex flex-col gap-2 p-4', className)} {...props} />;
 }
 
-function DrawerTitle({ className, ...props }) {
+function DrawerTitle({ className, ...props }: React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>) {
   return (
     <DrawerPrimitive.Title
       data-slot="drawer-title"
@@ -345,7 +337,10 @@ function DrawerTitle({ className, ...props }) {
   );
 }
 
-function DrawerDescription({ className, ...props }) {
+function DrawerDescription({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Description>) {
   return (
     <DrawerPrimitive.Description
       data-slot="drawer-description"

@@ -5,7 +5,9 @@ import { Label as LabelPrimitive } from 'radix-ui';
 
 import { cn } from '@/lib/utils';
 
-function Label({ className, ...props }) {
+export interface LabelProps extends React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> {}
+
+function Label({ className, ...props }: LabelProps) {
   return (
     <LabelPrimitive.Root
       data-slot="label"

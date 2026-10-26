@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cva } from 'class-variance-authority';
+import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
@@ -21,17 +21,23 @@ const alertVariants = cva(
   }
 );
 
-function Alert({ className, variant, ...props }) {
+export interface AlertProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof alertVariants> {}
+
+function Alert({ className, variant, ...props }: AlertProps) {
   return <div data-slot="alert" role="alert" className={cn(alertVariants({ variant }), className)} {...props} />;
 }
 
-function AlertTitle({ className, ...props }) {
+export interface AlertTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
+
+function AlertTitle({ className, ...props }: AlertTitleProps) {
   return (
     <h5 data-slot="alert-title" className={cn('mb-1 font-medium leading-none tracking-tight', className)} {...props} />
   );
 }
 
-function AlertDescription({ className, ...props }) {
+export interface AlertDescriptionProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+function AlertDescription({ className, ...props }: AlertDescriptionProps) {
   return (
     <div
       data-slot="alert-description"

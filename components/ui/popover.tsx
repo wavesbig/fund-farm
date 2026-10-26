@@ -5,15 +5,21 @@ import { Popover as PopoverPrimitive } from 'radix-ui';
 
 import { cn } from '@/lib/utils';
 
-function Popover({ ...props }) {
+export interface PopoverProps extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Root> {}
+
+function Popover({ ...props }: PopoverProps) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />;
 }
 
-function PopoverTrigger({ ...props }) {
+export interface PopoverTriggerProps extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger> {}
+
+function PopoverTrigger({ ...props }: PopoverTriggerProps) {
   return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
 }
 
-function PopoverContent({ className, align = 'center', sideOffset = 4, ...props }) {
+export interface PopoverContentProps extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> {}
+
+function PopoverContent({ className, align = 'center', sideOffset = 4, ...props }: PopoverContentProps) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
@@ -30,19 +36,21 @@ function PopoverContent({ className, align = 'center', sideOffset = 4, ...props 
   );
 }
 
-function PopoverAnchor({ ...props }) {
+export interface PopoverAnchorProps extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Anchor> {}
+
+function PopoverAnchor({ ...props }: PopoverAnchorProps) {
   return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />;
 }
 
-function PopoverHeader({ className, ...props }) {
+function PopoverHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div data-slot="popover-header" className={cn('flex flex-col gap-1 text-sm', className)} {...props} />;
 }
 
-function PopoverTitle({ className, ...props }) {
+function PopoverTitle({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div data-slot="popover-title" className={cn('font-medium', className)} {...props} />;
 }
 
-function PopoverDescription({ className, ...props }) {
+function PopoverDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
   return <p data-slot="popover-description" className={cn('text-muted-foreground', className)} {...props} />;
 }
 

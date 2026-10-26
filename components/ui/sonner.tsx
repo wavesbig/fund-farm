@@ -1,16 +1,17 @@
 'use client';
 
+import * as React from 'react';
 import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon } from 'lucide-react';
-import { Toaster as Sonner } from 'sonner';
+import { Toaster as Sonner, type ToasterProps } from 'sonner';
 
 // App uses `data-theme` on <html> without ThemeProvider; read DOM directly
-function getTheme() {
+function getTheme(): 'light' | 'dark' {
   if (typeof document === 'undefined') return 'dark';
   const attr = document.documentElement.getAttribute('data-theme');
   return attr === 'light' ? 'light' : 'dark';
 }
 
-const Toaster = ({ ...props }) => {
+const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       position="top-center"
