@@ -1,11 +1,27 @@
 'use client';
 
+import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { RefreshIcon } from './Icons';
+import { RotateCw } from 'lucide-react';
 import { useModalStore } from '../stores';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
-export default function RefreshButton({ refreshCycleStartRef, refreshMs, manualRefresh, refreshing, fundsLength }) {
+export interface RefreshButtonProps {
+  refreshCycleStartRef: React.MutableRefObject<number>;
+  refreshMs: number;
+  manualRefresh: () => void;
+  refreshing: boolean;
+  fundsLength: number;
+}
+
+export default function RefreshButton({
+  refreshCycleStartRef,
+  refreshMs,
+  manualRefresh,
+  refreshing,
+  fundsLength
+}: RefreshButtonProps) {
   // 从 Zustand 读取设备冲突弹框状态，暂停刷新进度条；避免 page.jsx 订阅此状态导致全量重渲染
   const deviceConflictModal = useModalStore((s) => s.deviceConflictModal);
   const paused = deviceConflictModal.open;
@@ -29,8 +45,8 @@ export default function RefreshButton({ refreshCycleStartRef, refreshMs, manualR
     <Tooltip>
       <TooltipTrigger asChild>
         <div
-          className={`refresh-btn-wrap ${refreshing ? 'is-refreshing' : ''}`}
-          style={{ '--progress': refreshing ? 0 : refreshProgress }}
+          className={cn('refresh-btn-wrap', refreshing && 'is-refreshing')}
+          style={{ ['--progress' as any]: refreshing ? 0 : refreshProgress }}
         >
           <Tooltip>
             <TooltipTrigger asChild>
@@ -41,7 +57,7 @@ export default function RefreshButton({ refreshCycleStartRef, refreshMs, manualR
                 disabled={refreshing || fundsLength === 0}
                 aria-busy={refreshing}
               >
-                <RefreshIcon className={refreshing ? 'spin' : ''} width="18" height="18" />
+                <RotateCw className={cn('w-4 h-4', refreshing && 'animate-spin')} />
               </button>
             </TooltipTrigger>
             <TooltipContent>

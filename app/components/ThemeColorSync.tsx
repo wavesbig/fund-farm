@@ -2,18 +2,18 @@
 
 import { useEffect } from 'react';
 
-const THEME_COLORS = {
+const THEME_COLORS: Record<string, string> = {
   dark: '#0f172a',
   light: '#ffffff'
 };
 
-function getThemeColor() {
+function getThemeColor(): string {
   if (typeof document === 'undefined') return THEME_COLORS.dark;
-  const theme = document.documentElement.getAttribute('data-theme');
+  const theme = document.documentElement.getAttribute('data-theme') || 'dark';
   return THEME_COLORS[theme] ?? THEME_COLORS.dark;
 }
 
-function applyThemeColor() {
+function applyThemeColor(): void {
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', getThemeColor());
 }
