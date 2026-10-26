@@ -1,18 +1,32 @@
 'use client';
-import { isArray, isObject } from 'lodash';
-import { useIsMobile } from '@/app/hooks/useIsMobile';
 
 import { useEffect, useState, useRef } from 'react';
+import { isArray, isObject } from 'lodash';
+import { ChevronRight, Settings } from 'lucide-react';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
 import { fetchMarketIndices } from '@/app/api/fund';
-import { ChevronRightIcon } from 'lucide-react';
-import { SettingsIcon } from './Icons';
 import { cn } from '@/lib/utils';
 import MarketSettingModal from './MarketSettingModal';
 import { storageStore } from '../stores';
 
+export interface MarketIndexItem {
+  code: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+}
+
+interface MiniTrendLineProps {
+  changePercent: number;
+  code?: string;
+  className?: string;
+}
+
 /** 迷你走势：只展示当日分时数据，不支持时不展示 */
-function MiniTrendLine({ changePercent, code, className }) {
+function MiniTrendLine({ changePercent, code, className }: MiniTrendLineProps) {
   const width = 80;
   const height = 28;
   const pad = 3;
@@ -21,7 +35,7 @@ function MiniTrendLine({ changePercent, code, className }) {
   const isDown = changePercent <= 0;
 
   // 当日分时真实走势 path
-  const [realPath, setRealPath] = useState(null);
+  const [realPath, setRealPath] = useState<string | null>(null);
 
   useEffect(() => {
     if (!code || typeof window === 'undefined' || typeof document === 'undefined') {
@@ -38,6 +52,7 @@ function MiniTrendLine({ changePercent, code, className }) {
     script.async = true;
 
     let done = false;
+    let timer: NodeJS.Timeout | null = null;
     const cleanup = () => {
       done = true;
       if (timer) clearTimeout(timer);
@@ -45,15 +60,15 @@ function MiniTrendLine({ changePercent, code, className }) {
         document.body.removeChild(script);
       }
       try {
-        if (window[varName]) {
-          delete window[varName];
+        if ((window as any)[varName]) {
+          delete (window as any)[varName];
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     };
 
-    const timer = setTimeout(() => {
+    timer = setTimeout(() => {
       if (done) return;
       cleanup();
       if (!cancelled) {
@@ -67,7 +82,7 @@ function MiniTrendLine({ changePercent, code, className }) {
         return;
       }
       try {
-        const raw = window[varName];
+        const raw = (window as any)[varName];
         const series =
           raw && raw.data && raw.data[code] && raw.data[code].data && isArray(raw.data[code].data.data)
             ? raw.data[code].data.data
@@ -79,13 +94,13 @@ function MiniTrendLine({ changePercent, code, className }) {
 
         // 解析 "HHMM price volume amount" 行，只关心 price
         const points = series
-          .map((row) => {
+          .map((row: any) => {
             const parts = String(row).split(' ');
             const price = parseFloat(parts[1]);
             if (!Number.isFinite(price)) return null;
             return { price };
           })
-          .filter(Boolean);
+          .filter(Boolean) as { price: number }[];
 
         if (!points.length) {
           setRealPath(null);
@@ -145,7 +160,7 @@ function MiniTrendLine({ changePercent, code, className }) {
   );
 }
 
-function IndexCard({ item }) {
+function IndexCard({ item }: { item: MarketIndexItem }) {
   const isUp = item.change >= 0;
   const colorClass = isUp ? 'text-[var(--danger)]' : 'text-[var(--success)]';
   return (
@@ -166,22 +181,32 @@ function IndexCard({ item }) {
 // 默认展示：上证指数、深证成指、创业板指
 const DEFAULT_SELECTED_CODES = ['sh000001', 'sz399001', 'sz399006'];
 
-export default function MarketIndexAccordion({ navbarHeight = 0, onCustomSettingsChange, refreshing = false }) {
+export interface MarketIndexAccordionProps {
+  navbarHeight?: number;
+  onCustomSettingsChange?: () => void;
+  refreshing?: boolean;
+}
+
+export default function MarketIndexAccordion({
+  navbarHeight = 0,
+  onCustomSettingsChange,
+  refreshing = false
+}: MarketIndexAccordionProps) {
   const isMobile = useIsMobile();
-  const [indices, setIndices] = useState([]);
+  const [indices, setIndices] = useState<MarketIndexItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [openValue, setOpenValue] = useState('');
-  const [selectedCodes, setSelectedCodes] = useState([]);
+  const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
   const [settingOpen, setSettingOpen] = useState(false);
   const [tickerIndex, setTickerIndex] = useState(0);
-  const rootRef = useRef(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const hasInitializedSelectedCodes = useRef(false);
 
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
 
-    const updateCssVar = (val) => {
+    const updateCssVar = (val: number) => {
       document.documentElement.style.setProperty('--market-index-height', `${val}px`);
     };
 
@@ -205,7 +230,7 @@ export default function MarketIndexAccordion({ navbarHeight = 0, onCustomSetting
     let cancelled = false;
     setLoading(true);
     fetchMarketIndices()
-      .then((data) => {
+      .then((data: any) => {
         if (!cancelled) setIndices(isArray(data) ? data : []);
       })
       .catch(() => {
@@ -220,13 +245,11 @@ export default function MarketIndexAccordion({ navbarHeight = 0, onCustomSetting
   };
 
   useEffect(() => {
-    // 初次挂载时加载一次指数
     const cleanup = loadIndices();
     return cleanup;
   }, []);
 
   useEffect(() => {
-    // 跟随基金刷新节奏：每次开始刷新时重新拉取指数
     if (!refreshing) return;
     const cleanup = loadIndices();
     return cleanup;
@@ -241,7 +264,7 @@ export default function MarketIndexAccordion({ navbarHeight = 0, onCustomSetting
       const availableCodes = new Set(indices.map((it) => it.code));
       if (parsed) {
         if (isArray(parsed)) {
-          const filtered = parsed.filter((c) => availableCodes.has(c));
+          const filtered = parsed.filter((c: string) => availableCodes.has(c));
           if (filtered.length) {
             setSelectedCodes(filtered);
             hasInitializedSelectedCodes.current = true;
@@ -261,13 +284,9 @@ export default function MarketIndexAccordion({ navbarHeight = 0, onCustomSetting
     if (typeof window === 'undefined') return;
     if (!selectedCodes.length) return;
     try {
-      // 本地首选 key：独立存储，便于快速读取
       storageStore.setItem('marketIndexSelected', JSON.stringify(selectedCodes));
 
-      // 同步到 customSettings，便于云端同步
       const parsed = storageStore.getItem('customSettings') || {};
-
-      // Check if it actually changed to avoid unnecessary syncs on mount
       if (JSON.stringify(parsed.marketIndexSelected) === JSON.stringify(selectedCodes)) {
         return;
       }
@@ -281,20 +300,18 @@ export default function MarketIndexAccordion({ navbarHeight = 0, onCustomSetting
     } catch {
       // ignore
     }
-  }, [selectedCodes]);
-  // 用户已选择的指数列表（按 selectedCodes 顺序）
+  }, [selectedCodes, onCustomSettingsChange]);
+
   const visibleIndices = selectedCodes.length
-    ? selectedCodes.map((code) => indices.find((it) => it.code === code)).filter(Boolean)
+    ? (selectedCodes.map((code) => indices.find((it) => it.code === code)).filter(Boolean) as MarketIndexItem[])
     : indices;
 
-  // 重置 tickerIndex 确保索引合法
   useEffect(() => {
     if (tickerIndex >= visibleIndices.length) {
       setTickerIndex(0);
     }
   }, [visibleIndices.length, tickerIndex]);
 
-  // 收起状态下轮播展示指数
   useEffect(() => {
     if (!visibleIndices.length) return;
     if (openValue === 'indices') return;
@@ -313,7 +330,7 @@ export default function MarketIndexAccordion({ navbarHeight = 0, onCustomSetting
   const topMargin = Number(navbarHeight) || 0;
   const stickyStyle = {
     marginTop: topMargin,
-    position: 'sticky',
+    position: 'sticky' as const,
     top: topMargin,
     zIndex: 10,
     width: isMobile ? 'calc(100% + 24px)' : '100%',
@@ -389,42 +406,25 @@ export default function MarketIndexAccordion({ navbarHeight = 0, onCustomSetting
                 <span className="text-sm text-[var(--muted-foreground)]">暂无指数数据</span>
               )}
             </div>
-            <div className="flex items-center gap-4 shrink-0 pl-3">
-              <div
-                role="button"
+            <div className="flex items-center gap-2 shrink-0 pl-3">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 tabIndex={openValue === 'indices' ? 0 : -1}
-                className="icon-button"
-                style={{
-                  border: 'none',
-                  width: '28px',
-                  height: '28px',
-                  minWidth: '28px',
-                  backgroundColor: 'transparent',
-                  color: 'var(--text)',
-                  flexShrink: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: openValue === 'indices' ? 1 : 0,
-                  pointerEvents: openValue === 'indices' ? 'auto' : 'none',
-                  transition: 'opacity 0.2s ease'
-                }}
+                className={cn(
+                  'h-7 w-7 text-[var(--muted)] hover:text-[var(--text)] transition-opacity duration-200',
+                  openValue === 'indices' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                )}
                 onClick={(e) => {
                   e.stopPropagation();
                   setSettingOpen(true);
                 }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setSettingOpen(true);
-                  }
-                }}
                 aria-label="指数个性化设置"
               >
-                <SettingsIcon width="18" height="18" />
-              </div>
-              <ChevronRightIcon
+                <Settings className="h-4 w-4" />
+              </Button>
+              <ChevronRight
                 className={cn(
                   'w-4 h-4 text-[var(--muted-foreground)] transition-transform',
                   openValue === 'indices' ? 'rotate-90' : ''

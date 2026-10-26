@@ -5,6 +5,19 @@ import { AnimatePresence, motion } from 'framer-motion';
 import PcSideNav from './PcSideNav';
 import MobileBottomNav from './MobileBottomNav';
 
+export interface NavLayoutProps {
+  children: React.ReactNode;
+  mainTab: string;
+  setMainTab: (tab: string) => void;
+  isMobile: boolean;
+  containerRef?: React.Ref<HTMLDivElement>;
+  containerClassName?: string;
+  containerWidth?: string | number;
+  showThemeTransition?: boolean;
+  setShowThemeTransition: (show: boolean) => void;
+  mobileBottomNavHidden?: boolean;
+}
+
 export default function NavLayout({
   children,
   mainTab,
@@ -16,7 +29,7 @@ export default function NavLayout({
   showThemeTransition,
   setShowThemeTransition,
   mobileBottomNavHidden
-}) {
+}: NavLayoutProps) {
   return (
     <>
       <PcSideNav value={mainTab} onChange={setMainTab} />

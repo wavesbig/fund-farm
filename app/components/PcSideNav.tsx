@@ -1,16 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion, LayoutGroup, useReducedMotion } from 'framer-motion';
-import { Home, TrendingUp, ChevronRight } from 'lucide-react';
+import { motion, LayoutGroup, useReducedMotion, type Transition } from 'framer-motion';
+import { Home, TrendingUp, ChevronRight, LucideIcon } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
 
-const TABS = [
+interface TabItem {
+  id: string;
+  label: string;
+  Icon: LucideIcon;
+}
+
+const TABS: TabItem[] = [
   { id: 'home', label: '首页', Icon: Home },
   { id: 'market', label: '行情', Icon: TrendingUp }
 ];
 
-export default function PcSideNav({ value, onChange }) {
+export interface PcSideNavProps {
+  value: string;
+  onChange: (tab: string) => void;
+}
+
+export default function PcSideNav({ value, onChange }: PcSideNavProps) {
   const [mounted, setMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile();
@@ -20,9 +31,11 @@ export default function PcSideNav({ value, onChange }) {
 
   if (!mounted || isMobile) return null;
 
-  const spring = reduceMotion ? { duration: 0.2 } : { type: 'spring', stiffness: 420, damping: 34, mass: 0.8 };
+  const spring: Transition = reduceMotion
+    ? { duration: 0.2 }
+    : { type: 'spring', stiffness: 420, damping: 34, mass: 0.8 };
 
-  const tapSpring = reduceMotion ? { duration: 0.15 } : { type: 'spring', stiffness: 600, damping: 32 };
+  const tapSpring: Transition = reduceMotion ? { duration: 0.15 } : { type: 'spring', stiffness: 600, damping: 32 };
 
   return (
     <div

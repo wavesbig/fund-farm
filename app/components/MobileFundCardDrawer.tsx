@@ -1,19 +1,23 @@
 'use client';
 
+import React from 'react';
+import { X } from 'lucide-react';
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
 import FundCard from './FundCard';
-import { CloseIcon } from './Icons';
+
+export interface MobileFundCardDrawerProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  blockDrawerClose?: boolean;
+  ignoreNextDrawerCloseRef?: React.MutableRefObject<boolean>;
+  cardSheetRow?: any;
+  getFundCardProps?: (row: any) => any;
+  children?: React.ReactNode;
+}
 
 /**
  * 移动端基金详情底部 Drawer 弹框
- *
- * @param {Object} props
- * @param {boolean} props.open - 是否打开
- * @param {(open: boolean) => void} props.onOpenChange - 打开状态变化回调
- * @param {boolean} [props.blockDrawerClose] - 是否禁止关闭（如上层有弹框时）
- * @param {React.MutableRefObject<boolean>} [props.ignoreNextDrawerCloseRef] - 忽略下一次关闭（用于点击到内部 dialog 时）
- * @param {Object|null} props.cardSheetRow - 当前选中的行数据，用于 getFundCardProps
- * @param {(row: any) => Object} [props.getFundCardProps] - 根据行数据返回 FundCard 的 props
  */
 export default function MobileFundCardDrawer({
   open,
@@ -23,7 +27,7 @@ export default function MobileFundCardDrawer({
   cardSheetRow,
   getFundCardProps,
   children
-}) {
+}: MobileFundCardDrawerProps) {
   return (
     <Drawer
       open={open}
@@ -38,7 +42,7 @@ export default function MobileFundCardDrawer({
         }
       }}
     >
-      <DrawerTrigger asChild>{children}</DrawerTrigger>
+      {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
       <DrawerContent
         className="h-[85vh] max-h-[90vh] mt-0 flex flex-col"
         onPointerDownOutside={(e) => {
@@ -47,7 +51,7 @@ export default function MobileFundCardDrawer({
             e.preventDefault();
             return;
           }
-          if (e?.target?.closest?.('[data-slot="dialog-content"], [role="dialog"]')) {
+          if ((e?.target as HTMLElement)?.closest?.('[data-slot="dialog-content"], [role="dialog"]')) {
             if (ignoreNextDrawerCloseRef) ignoreNextDrawerCloseRef.current = true;
             return;
           }
@@ -61,11 +65,10 @@ export default function MobileFundCardDrawer({
       >
         <DrawerHeader className="flex-shrink-0 flex flex-row items-center justify-between gap-2 space-y-0 px-5 pb-4 pt-2 text-left">
           <DrawerTitle className="text-base font-semibold text-[var(--text)]">基金详情</DrawerTitle>
-          <DrawerClose
-            className="icon-button border-none bg-transparent p-1"
-            style={{ borderColor: 'transparent', backgroundColor: 'transparent' }}
-          >
-            <CloseIcon width="20" height="20" />
+          <DrawerClose asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]">
+              <X className="h-4 w-4" />
+            </Button>
           </DrawerClose>
         </DrawerHeader>
         <div

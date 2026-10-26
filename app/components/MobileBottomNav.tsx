@@ -2,16 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, LayoutGroup, useReducedMotion, AnimatePresence } from 'framer-motion';
-import { Home, User, TrendingUp } from 'lucide-react';
+import { motion, LayoutGroup, useReducedMotion, AnimatePresence, type Transition, type Variants } from 'framer-motion';
+import { Home, User, TrendingUp, LucideIcon } from 'lucide-react';
 
-const TABS = [
+interface TabItem {
+  id: string;
+  label: string;
+  Icon: LucideIcon;
+}
+
+const TABS: TabItem[] = [
   { id: 'home', label: '首页', Icon: Home },
   { id: 'market', label: '行情', Icon: TrendingUp },
   { id: 'mine', label: '我的', Icon: User }
 ];
 
-export default function MobileBottomNav({ value, onChange, hidden }) {
+export interface MobileBottomNavProps {
+  value: string;
+  onChange: (tab: string) => void;
+  hidden?: boolean;
+}
+
+export default function MobileBottomNav({ value, onChange, hidden }: MobileBottomNavProps) {
   const [mounted, setMounted] = useState(false);
   const reduceMotion = useReducedMotion();
 
@@ -19,11 +31,13 @@ export default function MobileBottomNav({ value, onChange, hidden }) {
 
   if (!mounted || typeof document === 'undefined') return null;
 
-  const spring = reduceMotion ? { duration: 0.2 } : { type: 'spring', stiffness: 420, damping: 34, mass: 0.8 };
+  const spring: Transition = reduceMotion
+    ? { duration: 0.2 }
+    : { type: 'spring', stiffness: 420, damping: 34, mass: 0.8 };
 
-  const tapSpring = reduceMotion ? { duration: 0.15 } : { type: 'spring', stiffness: 600, damping: 32 };
+  const tapSpring: Transition = reduceMotion ? { duration: 0.15 } : { type: 'spring', stiffness: 600, damping: 32 };
 
-  const slideVariants = {
+  const slideVariants: Variants = {
     visible: {
       y: 0,
       opacity: 1,
