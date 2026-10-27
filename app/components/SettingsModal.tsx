@@ -544,6 +544,8 @@ export default function SettingsModal({
         overlayClassName={cn(sliderDragging && 'opacity-20 backdrop-blur-none transition-opacity')}
         className="sm:max-w-[820px] md:max-w-[880px] w-[95vw] h-[85vh] max-h-[720px] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl"
         showCloseButton={true}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
       >
         {/* 顶部标题栏 Header */}
         <DialogHeader className="px-6 py-4 border-b border-border/60 shrink-0 text-left bg-muted/10">
