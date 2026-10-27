@@ -81,17 +81,17 @@ function SettingSwitchCard({
   ariaLabel
 }: SettingSwitchCardProps) {
   return (
-    <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] dark:bg-black/20 border border-border/40 hover:border-border/70 transition-colors">
-      <div className="flex items-start gap-3 min-w-0 pr-3">
+    <div className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] dark:bg-black/20 border border-border/40 hover:border-border/70 transition-colors">
+      <div className="flex items-start gap-3 flex-1 min-w-0 pr-3">
         <div className="mt-0.5 p-1.5 rounded-lg bg-primary/10 text-primary shrink-0">
           <Icon className="w-3.5 h-3.5" />
         </div>
-        <div className="min-w-0">
+        <div className="flex-1 min-w-0">
           <div className="text-xs font-medium text-foreground">{title}</div>
           <div className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{description}</div>
         </div>
       </div>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} aria-label={ariaLabel} className="shrink-0" />
+      <Switch checked={checked} onCheckedChange={onCheckedChange} aria-label={ariaLabel} className="shrink-0 ml-2" />
     </div>
   );
 }
@@ -401,7 +401,7 @@ export default function SettingsModal({
                 {/* 界面功能与视图偏好 */}
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-muted-foreground mb-1">界面功能与视图偏好</div>
-                  <div className="grid gap-2">
+                  <div className="flex flex-col gap-2.5">
                     <SettingSwitchCard
                       icon={LineChart}
                       title="显示大盘指数行情"
@@ -488,7 +488,7 @@ export default function SettingsModal({
                   </div>
                 </div>
 
-                <div className="grid gap-2.5">
+                <div className="flex flex-col gap-2.5">
                   <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] dark:bg-black/20 border border-border/40">
                     <div className="space-y-0.5 pr-3">
                       <div className="text-xs font-medium text-foreground flex items-center gap-1.5">
