@@ -9,6 +9,8 @@ import { getStoredToken } from '../lib/authClient';
 import { saveSqliteKey } from '../lib/sqliteClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 export interface AiConfig {
@@ -326,12 +328,12 @@ export default function AiConfigSection({
       </div>
 
       {/* 表单输入区域 */}
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-3">
         {/* API Key */}
-        <div>
-          <label className="block text-xs font-medium mb-1 text-foreground">
-            API Key <span className="text-[var(--danger)]">*</span>
-          </label>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium text-foreground">
+            API Key <span className="text-destructive">*</span>
+          </Label>
           <div className="relative flex items-center">
             <Input
               type={showKey ? 'text' : 'password'}
@@ -341,25 +343,25 @@ export default function AiConfigSection({
                 setTestResult(null);
               }}
               placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
-              className="w-full h-9 pr-9 text-[16PX] md:text-sm bg-black/20"
+              className="w-full h-9 pr-9 text-[16PX] md:text-sm bg-background/50"
             />
             <button
               type="button"
               onClick={() => setShowKey(!showKey)}
-              className="absolute right-2 text-[var(--muted)] hover:text-foreground p-1 transition-colors"
+              className="absolute right-2 text-muted-foreground hover:text-foreground p-1 transition-colors"
               title={showKey ? '隐藏 API Key' : '显示 API Key'}
             >
               {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
-          <div className="text-[11px] text-[var(--muted)] mt-1">
+          <div className="text-[11px] text-muted-foreground">
             本地私密存储于 SQLite 数据库，服务端官方 openai SDK 发送请求。
           </div>
         </div>
 
         {/* 接口地址 Base URL */}
-        <div>
-          <label className="block text-xs font-medium mb-1 text-foreground">接口地址 (Base URL)</label>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium text-foreground">接口地址 (Base URL)</Label>
           <Input
             type="text"
             value={baseURL}
@@ -368,16 +370,16 @@ export default function AiConfigSection({
               setTestResult(null);
             }}
             placeholder="https://api.deepseek.com/v1"
-            className="w-full h-9 text-[16PX] md:text-sm bg-black/20"
+            className="w-full h-9 text-[16PX] md:text-sm bg-background/50"
           />
         </div>
 
         {/* 模型名称 Model (支持通过 API Key 一键拉取) */}
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-xs font-medium text-foreground">
-              模型名称 (Model) <span className="text-[var(--danger)]">*</span>
-            </label>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-medium text-foreground">
+              模型名称 (Model) <span className="text-destructive">*</span>
+            </Label>
             <Button
               type="button"
               variant="outline"
@@ -394,26 +396,30 @@ export default function AiConfigSection({
 
           {modelList.length > 0 && !isManualInput ? (
             <div className="flex gap-1.5 items-center">
-              <select
-                className="input flex-1 h-9 rounded-xl border border-input bg-black/20 px-3 text-[16PX] md:text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              <Select
                 value={model}
-                onChange={(e) => {
-                  setModel(e.target.value);
+                onValueChange={(val) => {
+                  setModel(val);
                   setTestResult(null);
                 }}
               >
-                {modelList.map((m) => (
-                  <option key={m} value={m} className="bg-popover text-popover-foreground">
-                    {m}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="flex-1 h-9 bg-background/50 text-xs">
+                  <SelectValue placeholder="选择模型" />
+                </SelectTrigger>
+                <SelectContent className="z-[10001] max-h-56">
+                  {modelList.map((m) => (
+                    <SelectItem key={m} value={m} className="text-xs">
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setIsManualInput(true)}
-                className="h-9 px-2 text-xs shrink-0"
+                className="h-9 px-2.5 text-xs shrink-0"
                 title="切换为手动自由输入"
               >
                 自由输入
@@ -429,7 +435,7 @@ export default function AiConfigSection({
                   setTestResult(null);
                 }}
                 placeholder="deepseek-chat"
-                className="flex-1 h-9 text-[16PX] md:text-sm bg-black/20"
+                className="flex-1 h-9 text-[16PX] md:text-sm bg-background/50"
               />
               {modelList.length > 0 && (
                 <Button
