@@ -45,7 +45,7 @@ function MobileSettingReorderItem({
     <Reorder.Item
       key={item.id || `col-${index}`}
       value={item}
-      className="mobile-setting-item glass flex items-center gap-2 p-2.5 rounded-xl border border-[var(--border)] bg-[var(--card)]"
+      className="flex items-center gap-2 p-2.5 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 transition-all shadow-xs backdrop-blur-sm"
       layout
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -70,7 +70,7 @@ function MobileSettingReorderItem({
       dragControls={dragControls}
     >
       <div
-        className="drag-handle flex items-center px-2 cursor-grab text-[var(--muted)] hover:text-foreground touch-none select-none"
+        className="flex items-center px-1.5 cursor-grab text-muted-foreground/60 hover:text-foreground touch-none select-none"
         onPointerDown={(e) => {
           dragControls.start(e);
         }}
@@ -78,7 +78,7 @@ function MobileSettingReorderItem({
         tabIndex={0}
         aria-label="拖拽排序"
       >
-        <GripVertical className="w-4 h-4" />
+        <GripVertical className="size-4" />
       </div>
       {onMoveToTop && (
         <Button
@@ -87,17 +87,17 @@ function MobileSettingReorderItem({
           size="icon"
           onClick={() => onMoveToTop(item.id)}
           title="置顶"
-          className="w-7 h-7 p-0 text-[var(--muted)] hover:text-foreground shrink-0"
+          className="size-7 p-0 rounded-lg text-muted-foreground hover:text-foreground shrink-0"
         >
-          <ArrowUpToLine className="w-3.5 h-3.5" />
+          <ArrowUpToLine className="size-3.5" />
         </Button>
       )}
-      <div className="flex-1 flex flex-col gap-0.5 text-sm select-none">
-        <span className="font-medium text-foreground">{item.header}</span>
+      <div className="flex-1 flex flex-col gap-0.5 text-xs select-none min-w-0 pr-1">
+        <span className="font-semibold tracking-tight text-foreground truncate">{item.header}</span>
         {item.id === 'totalChangePercent' && (
-          <span className="text-xs text-[var(--muted)]">估值涨幅与持有收益的汇总</span>
+          <span className="text-[11px] text-muted-foreground">估值涨幅与持有收益的汇总</span>
         )}
-        {item.id === 'todayProfit' && <span className="text-xs text-[var(--muted)]">下方百分比数字为收益率</span>}
+        {item.id === 'todayProfit' && <span className="text-[11px] text-muted-foreground">下方百分比数字为收益率</span>}
       </div>
       {onToggleColumnVisibility && (
         <Switch
@@ -227,11 +227,13 @@ export default function MobileSettingModal({
         handleOnly={isReordering}
       >
         <DrawerContent className="glass" defaultHeight="77vh" minHeight="40vh" maxHeight="90vh">
-          <DrawerHeader className="mobile-setting-header flex-row items-center justify-between gap-2 py-4 px-4 text-base font-semibold border-b border-[var(--border)]">
+          <DrawerHeader className="flex-row items-center justify-between gap-2 py-3.5 px-4 text-base font-semibold border-b border-border/60 bg-muted/10 shrink-0">
             <div className="flex min-w-0 items-center gap-2.5">
-              <DrawerTitle className="flex items-center gap-2 text-left font-semibold text-base text-foreground">
-                <Settings2 className="w-5 h-5 text-primary" />
-                <span>个性化设置</span>
+              <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
+                <Settings2 className="size-4" />
+              </div>
+              <DrawerTitle className="text-left font-semibold text-base tracking-tight text-foreground truncate">
+                个性化设置
               </DrawerTitle>
               {onSyncSettings && (
                 <Button
@@ -239,28 +241,25 @@ export default function MobileSettingModal({
                   variant="outline"
                   size="sm"
                   onClick={() => setSyncModalOpen(true)}
-                  className="h-7 px-2.5 rounded-full text-xs gap-1 text-primary bg-white/5 border-primary/30 shrink-0"
+                  className="h-6.5 px-2.5 rounded-full text-[11px] gap-1 text-primary bg-primary/10 hover:bg-primary/20 border-primary/25 shrink-0 font-medium"
                 >
-                  <RefreshCw className="w-3 h-3" />
+                  <RefreshCw className="size-3" />
                   <span>同步</span>
                 </Button>
               )}
             </div>
             <DrawerClose
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:text-foreground transition-colors"
+              className="size-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
               title="关闭"
             >
-              <X className="w-4 h-4" />
+              <X className="size-4" />
             </DrawerClose>
           </DrawerHeader>
 
-          <div
-            className="mobile-setting-body flex flex-1 flex-col overflow-y-auto p-4 scrollbar-y-styled"
-            ref={scrollRef}
-          >
+          <div className="flex flex-1 flex-col overflow-y-auto p-4 scrollbar-y-styled" ref={scrollRef}>
             {onToggleShowFullFundName && (
-              <div className="flex items-center justify-between py-3 border-b border-[var(--border)] mb-4">
-                <span className="text-sm font-medium text-foreground">展示完整基金名称</span>
+              <div className="flex items-center justify-between py-3 border-b border-border/60 mb-4">
+                <span className="text-xs font-semibold tracking-tight text-foreground">展示完整基金名称</span>
                 <Switch
                   checked={Boolean(showFullFundName)}
                   onCheckedChange={(checked) => {
@@ -270,23 +269,23 @@ export default function MobileSettingModal({
                 />
               </div>
             )}
-            <h3 className="text-sm font-semibold text-foreground mb-2">表头设置</h3>
+            <h3 className="text-xs font-semibold tracking-tight text-foreground mb-2">表头设置</h3>
             <div className="flex items-center justify-between mb-3 gap-2">
-              <p className="text-xs text-[var(--muted)] m-0">拖拽调整列顺序</p>
+              <p className="text-xs text-muted-foreground m-0">拖拽调整列顺序</p>
               {(onResetColumnOrder || onResetColumnVisibility) && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-7 h-7 p-0 text-[var(--muted)] hover:text-foreground"
+                  className="size-7 p-0 rounded-lg text-muted-foreground hover:text-foreground"
                   onClick={() => setResetConfirmOpen(true)}
                   title="重置表头设置"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="size-3.5" />
                 </Button>
               )}
             </div>
             {localColumns.length === 0 ? (
-              <div className="text-[var(--muted)] text-center py-6 text-sm">暂无可配置列</div>
+              <div className="text-muted-foreground text-center py-6 text-xs">暂无可配置列</div>
             ) : (
               <Reorder.Group
                 axis="y"

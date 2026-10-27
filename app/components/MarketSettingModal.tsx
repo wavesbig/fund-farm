@@ -62,7 +62,7 @@ function SortableIndexItem({ item, canRemove, onRemove }: SortableIndexItemProps
       ref={setNodeRef}
       style={style}
       className={cn(
-        'glass card relative flex flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--card)] p-2.5 transition-all select-none'
+        'relative flex flex-col gap-1 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 p-2.5 transition-all select-none shadow-xs backdrop-blur-sm'
       )}
       {...attributes}
       {...listeners}
@@ -74,17 +74,17 @@ function SortableIndexItem({ item, canRemove, onRemove }: SortableIndexItemProps
             e.stopPropagation();
             onRemove(item.code);
           }}
-          className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[var(--danger)]/15 text-[var(--danger)] hover:bg-[var(--danger)]/25 flex items-center justify-center transition-colors"
+          className="absolute top-1.5 right-1.5 size-5 rounded-full bg-destructive/15 text-destructive hover:bg-destructive/25 flex items-center justify-center transition-colors cursor-pointer"
           aria-label={`移除 ${item.name}`}
         >
-          <Minus className="w-3 h-3" />
+          <Minus className="size-3" />
         </button>
       )}
-      <div className="text-xs font-semibold pr-4 truncate text-foreground">{item.name}</div>
-      <div className={cn('text-base font-bold tabular-nums', colorClass)}>
+      <div className="text-xs font-semibold tracking-tight pr-4 truncate text-foreground">{item.name}</div>
+      <div className={cn('text-base font-bold tabular-nums font-mono', colorClass)}>
         {typeof item.price === 'number' ? item.price.toFixed(2) : String(item.price ?? '-')}
       </div>
-      <div className={cn('text-xs font-medium tabular-nums flex items-center gap-1', colorClass)}>
+      <div className={cn('text-xs font-medium tabular-nums font-mono flex items-center gap-1', colorClass)}>
         <span>{((item.change ?? 0) >= 0 ? '+' : '') + (item.change ?? 0).toFixed(2)}</span>
         <span>{((item.changePercent ?? 0) >= 0 ? '+' : '') + (item.changePercent ?? 0).toFixed(2)}%</span>
       </div>
@@ -251,13 +251,17 @@ export default function MarketSettingModal({
         direction="bottom"
       >
         <DrawerContent className="glass" defaultHeight="77vh" minHeight="40vh" maxHeight="90vh">
-          <DrawerHeader className="flex flex-row items-center justify-between gap-2 py-4 px-4 border-b border-[var(--border)]">
-            <DrawerTitle className="flex items-center gap-2 text-left font-semibold text-base text-foreground">
-              <Settings2 className="w-5 h-5 text-primary" />
-              <span>指数个性化设置</span>
-            </DrawerTitle>
-            <DrawerClose className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:text-foreground transition-colors">
-              <X className="w-4 h-4" />
+          <DrawerHeader className="flex flex-row items-center justify-between gap-2 py-3.5 px-4 border-b border-border/60 bg-muted/10 shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
+                <Settings2 className="size-4" />
+              </div>
+              <DrawerTitle className="text-left font-semibold text-base tracking-tight text-foreground truncate">
+                指数个性化设置
+              </DrawerTitle>
+            </div>
+            <DrawerClose className="size-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+              <X className="size-4" />
             </DrawerClose>
           </DrawerHeader>
           <div className="flex-1 overflow-y-auto scrollbar-y-styled pt-2">{body}</div>
@@ -268,7 +272,7 @@ export default function MarketSettingModal({
               key="mobile-index-reset-confirm"
               title="恢复默认指数"
               message="是否恢复已添加指数为默认配置？"
-              icon={<RotateCcw className="w-5 h-5 shrink-0 text-primary" />}
+              icon={<RotateCcw className="size-4 text-primary" />}
               confirmVariant="primary"
               confirmText="恢复默认"
               onConfirm={() => {
@@ -288,7 +292,7 @@ export default function MarketSettingModal({
       {open && (
         <motion.div
           key="market-index-setting-overlay"
-          className="pc-table-setting-overlay fixed inset-0 bg-black/50 backdrop-blur-xs flex justify-end z-[10001]"
+          className="pc-table-setting-overlay fixed inset-0 bg-black/60 backdrop-blur-xs flex justify-end z-[10001]"
           role="dialog"
           aria-modal="true"
           aria-label="指数个性化设置"
@@ -299,28 +303,30 @@ export default function MarketSettingModal({
           onClick={onClose}
         >
           <motion.aside
-            className="pc-market-setting-drawer pc-table-setting-drawer glass w-[840px] max-w-[90vw] h-full flex flex-col bg-[var(--background)]/95 border-l border-[var(--border)] shadow-2xl"
+            className="w-[840px] max-w-[90vw] h-full flex flex-col bg-card/95 backdrop-blur-2xl border-l border-border/80 shadow-2xl"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="pc-table-setting-header flex items-center justify-between p-4 border-b border-[var(--border)]">
+            <div className="flex items-center justify-between p-4 border-b border-border/60 bg-muted/10 shrink-0">
               <div className="flex items-center gap-2.5">
-                <Settings2 className="w-5 h-5 text-primary" />
-                <span className="font-semibold text-base text-foreground">指数个性化设置</span>
+                <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
+                  <Settings2 className="size-4" />
+                </div>
+                <span className="font-semibold text-base tracking-tight text-foreground">指数个性化设置</span>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="w-8 h-8 rounded-full text-[var(--muted)] hover:text-foreground"
+                className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
               >
-                <X className="w-4 h-4" />
+                <X className="size-4" />
               </Button>
             </div>
-            <div className="pc-table-setting-body flex-1 overflow-y-auto p-4 scrollbar-y-styled">{body}</div>
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-y-styled">{body}</div>
           </motion.aside>
         </motion.div>
       )}
@@ -329,7 +335,7 @@ export default function MarketSettingModal({
           key="pc-index-reset-confirm"
           title="恢复默认指数"
           message="是否恢复已添加指数为默认配置？"
-          icon={<RotateCcw className="w-5 h-5 shrink-0 text-primary" />}
+          icon={<RotateCcw className="size-4 text-primary" />}
           confirmVariant="primary"
           confirmText="恢复默认"
           onConfirm={() => {

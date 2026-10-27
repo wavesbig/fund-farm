@@ -1,9 +1,17 @@
 'use client';
 
 import * as React from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Trash2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { TrashIcon } from './Icons';
+import { cn } from '@/lib/utils';
 
 export interface ConfirmModalProps {
   title: string;
@@ -33,27 +41,46 @@ export default function ConfirmModal({
   const buttonVariant =
     confirmVariant === 'primary' ? 'default' : confirmVariant === 'secondary' ? 'secondary' : 'destructive';
 
+  const isDanger = confirmVariant === 'danger';
+  const isPrimary = confirmVariant === 'primary';
+
   return (
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
         overlayClassName="!z-[12000]"
         showCloseButton={false}
-        className="!z-[12010] max-w-[400px] flex flex-col gap-5 p-6"
+        className="!z-[12010] max-w-[420px] w-[92vw] p-5 sm:p-6 rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl flex flex-col gap-4 text-left"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader className="flex flex-row items-center gap-3 text-left">
-          {icon || <TrashIcon width="20" height="20" className="shrink-0 text-[var(--danger)]" />}
-          <DialogTitle className="flex-1 text-base font-semibold">{title}</DialogTitle>
+        <DialogHeader className="flex flex-row items-center gap-3 text-left space-y-0">
+          <div
+            className={cn(
+              'size-10 rounded-xl flex items-center justify-center shrink-0 border shadow-xs',
+              isDanger && 'bg-destructive/10 text-destructive border-destructive/20',
+              isPrimary && 'bg-primary/10 text-primary border-primary/20',
+              !isDanger && !isPrimary && 'bg-muted/30 text-muted-foreground border-border/50'
+            )}
+          >
+            {icon || <Trash2 className="size-5" />}
+          </div>
+          <DialogTitle className="flex-1 text-base font-semibold tracking-tight text-foreground truncate">
+            {title}
+          </DialogTitle>
         </DialogHeader>
+
         <DialogDescription asChild>
-          <div className="text-left text-sm leading-relaxed text-[var(--muted-foreground)]">
+          <div className="text-left text-xs sm:text-sm leading-relaxed text-muted-foreground pl-0.5">
             {messageContent || message}
           </div>
         </DialogDescription>
-        <div className="flex flex-col gap-3 sm:flex-row">
+
+        <DialogFooter className="flex flex-row items-center justify-end gap-2.5 pt-2 sm:pt-3">
           <Button
             type="button"
-            variant="secondary"
-            className="min-w-0 flex-1 cursor-pointer h-auto min-h-[48px] py-3 sm:h-11 sm:min-h-0 sm:py-0 rounded-xl"
+            variant="ghost"
+            size="sm"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground h-9 px-4 rounded-lg cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               onCancel();
@@ -64,7 +91,8 @@ export default function ConfirmModal({
           <Button
             type="button"
             variant={buttonVariant}
-            className="min-w-0 flex-1 cursor-pointer h-auto min-h-[48px] py-3 sm:h-11 sm:min-h-0 sm:py-0 rounded-xl"
+            size="sm"
+            className="text-xs font-medium h-9 px-4.5 rounded-lg shadow-xs cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               onConfirm();
@@ -72,7 +100,7 @@ export default function ConfirmModal({
           >
             {confirmText}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

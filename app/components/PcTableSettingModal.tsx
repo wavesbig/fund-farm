@@ -160,7 +160,7 @@ export default function PcTableSettingModal({
       <Reorder.Item
         key={item.id}
         value={item}
-        className="pc-table-setting-item glass flex items-center gap-2 p-2.5 rounded-xl border border-[var(--border)] bg-[var(--card)]"
+        className="flex items-center gap-2 p-2.5 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 transition-all shadow-xs backdrop-blur-sm"
         layout
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -191,8 +191,8 @@ export default function PcTableSettingModal({
           layout: { duration: 0.2 }
         }}
       >
-        <div className="drag-handle flex items-center px-2 cursor-grab text-[var(--muted)] hover:text-foreground touch-none select-none">
-          <GripVertical className="w-4 h-4" />
+        <div className="flex items-center px-1.5 cursor-grab text-muted-foreground/60 hover:text-foreground touch-none select-none">
+          <GripVertical className="size-4" />
         </div>
         {onTogglePinColumn && (
           <Button
@@ -208,11 +208,13 @@ export default function PcTableSettingModal({
               }
             }}
             className={cn(
-              'w-7 h-7 p-0 shrink-0 transition-colors',
-              isPinned ? 'text-primary hover:text-primary/80' : 'text-[var(--muted)] hover:text-foreground'
+              'size-7 p-0 rounded-lg shrink-0 transition-colors',
+              isPinned
+                ? 'text-primary bg-primary/10 hover:bg-primary/20'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            <Pin className="w-3.5 h-3.5" />
+            <Pin className="size-3.5" />
           </Button>
         )}
         <Button
@@ -221,16 +223,18 @@ export default function PcTableSettingModal({
           size="icon"
           onClick={() => handleMoveToTop(item.id)}
           title="置顶"
-          className="w-7 h-7 p-0 text-[var(--muted)] hover:text-foreground shrink-0"
+          className="size-7 p-0 rounded-lg text-muted-foreground hover:text-foreground shrink-0"
         >
-          <ArrowUpToLine className="w-3.5 h-3.5" />
+          <ArrowUpToLine className="size-3.5" />
         </Button>
-        <div className="flex-1 flex flex-col gap-0.5 text-sm select-none">
-          <span className="font-medium text-foreground">{item.header}</span>
+        <div className="flex-1 flex flex-col gap-0.5 text-xs select-none min-w-0 pr-1">
+          <span className="font-semibold tracking-tight text-foreground truncate">{item.header}</span>
           {item.id === 'totalChangePercent' && (
-            <span className="text-xs text-[var(--muted)]">估值涨幅与持有收益的汇总</span>
+            <span className="text-[11px] text-muted-foreground">估值涨幅与持有收益的汇总</span>
           )}
-          {item.id === 'todayProfit' && <span className="text-xs text-[var(--muted)]">下方百分比数字为收益率</span>}
+          {item.id === 'todayProfit' && (
+            <span className="text-[11px] text-muted-foreground">下方百分比数字为收益率</span>
+          )}
         </div>
         {onToggleColumnVisibility && (
           <Switch
@@ -250,7 +254,7 @@ export default function PcTableSettingModal({
       {open && (
         <motion.div
           key="drawer"
-          className="pc-table-setting-overlay fixed inset-0 bg-black/50 backdrop-blur-xs flex justify-end z-[10001]"
+          className="pc-table-setting-overlay fixed inset-0 bg-black/60 backdrop-blur-xs flex justify-end z-[10001]"
           role="dialog"
           aria-modal="true"
           aria-label="个性化设置"
@@ -261,26 +265,28 @@ export default function PcTableSettingModal({
           onClick={onClose}
         >
           <motion.aside
-            className="pc-table-setting-drawer glass w-[380px] max-w-[90vw] h-full flex flex-col bg-[var(--background)]/95 border-l border-[var(--border)] shadow-2xl"
+            className="w-[380px] max-w-[90vw] h-full flex flex-col bg-card/95 backdrop-blur-2xl border-l border-border/80 shadow-2xl"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="pc-table-setting-header flex items-center justify-between p-4 border-b border-[var(--border)]">
+            <div className="flex items-center justify-between p-4 border-b border-border/60 bg-muted/10 shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
-                <Settings2 className="w-5 h-5 text-primary" />
-                <span className="font-semibold text-base text-foreground">个性化设置</span>
+                <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
+                  <Settings2 className="size-4" />
+                </div>
+                <span className="font-semibold text-base tracking-tight text-foreground">个性化设置</span>
                 {onSyncSettings && (
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => setSyncModalOpen(true)}
-                    className="h-7 px-2.5 rounded-full text-xs gap-1 text-primary bg-white/5 border-primary/30 shrink-0"
+                    className="h-6.5 px-2.5 rounded-full text-[11px] gap-1 text-primary bg-primary/10 hover:bg-primary/20 border-primary/25 shrink-0 font-medium"
                   >
-                    <RefreshCw className="w-3 h-3" />
+                    <RefreshCw className="size-3" />
                     <span>同步</span>
                   </Button>
                 )}
@@ -290,16 +296,16 @@ export default function PcTableSettingModal({
                 size="icon"
                 title="关闭"
                 onClick={onClose}
-                className="w-8 h-8 rounded-full text-[var(--muted)] hover:text-foreground"
+                className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
               >
-                <X className="w-4 h-4" />
+                <X className="size-4" />
               </Button>
             </div>
 
-            <div className="pc-table-setting-body flex-1 overflow-y-auto p-4 scrollbar-y-styled" ref={scrollRef}>
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-y-styled" ref={scrollRef}>
               {onToggleShowFullFundName && (
-                <div className="flex items-center justify-between py-3 border-b border-[var(--border)] mb-4">
-                  <span className="text-sm font-medium text-foreground">展示完整基金名称</span>
+                <div className="flex items-center justify-between py-3 border-b border-border/60 mb-4">
+                  <span className="text-xs font-semibold tracking-tight text-foreground">展示完整基金名称</span>
                   <Switch
                     checked={Boolean(showFullFundName)}
                     onCheckedChange={(checked) => {
@@ -309,33 +315,35 @@ export default function PcTableSettingModal({
                   />
                 </div>
               )}
-              <h3 className="text-sm font-semibold text-foreground mb-2">表头设置</h3>
+              <h3 className="text-xs font-semibold tracking-tight text-foreground mb-2">表头设置</h3>
               <div className="flex items-center justify-between mb-3 gap-2">
-                <p className="text-xs text-[var(--muted)] m-0">拖拽调整列顺序</p>
+                <p className="text-xs text-muted-foreground m-0">拖拽调整列顺序</p>
                 {onResetColumnOrder && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="w-7 h-7 p-0 text-[var(--muted)] hover:text-foreground"
+                    className="size-7 p-0 rounded-lg text-muted-foreground hover:text-foreground"
                     title="重置列顺序"
                     onClick={() => setResetOrderConfirmOpen(true)}
                   >
-                    <RotateCcw className="w-3.5 h-3.5" />
+                    <RotateCcw className="size-3.5" />
                   </Button>
                 )}
               </div>
               {localColumns.length === 0 ? (
-                <div className="text-[var(--muted)] text-center py-6 text-sm">暂无可配置列</div>
+                <div className="text-muted-foreground text-center py-6 text-xs">暂无可配置列</div>
               ) : (
                 <>
                   {pinnedItems.length > 0 && (
                     <div className="mb-4">
-                      <div className="text-xs text-[var(--muted)] mb-2 pl-2 font-medium">固定在左侧</div>
+                      <div className="text-[11px] font-semibold text-muted-foreground/70 mb-2 pl-1 uppercase tracking-wider">
+                        固定在左侧
+                      </div>
                       <Reorder.Group
                         axis="y"
                         values={pinnedItems}
                         onReorder={handlePinnedReorder}
-                        className="pc-table-setting-list flex flex-col gap-2"
+                        className="flex flex-col gap-2"
                       >
                         <AnimatePresence mode="popLayout">{pinnedItems.map(renderItem)}</AnimatePresence>
                       </Reorder.Group>
@@ -343,12 +351,14 @@ export default function PcTableSettingModal({
                   )}
                   {unpinnedItems.length > 0 && (
                     <div>
-                      <div className="text-xs text-[var(--muted)] mb-2 pl-2 font-medium">随表格滚动</div>
+                      <div className="text-[11px] font-semibold text-muted-foreground/70 mb-2 pl-1 uppercase tracking-wider">
+                        随表格滚动
+                      </div>
                       <Reorder.Group
                         axis="y"
                         values={unpinnedItems}
                         onReorder={handleUnpinnedReorder}
-                        className="pc-table-setting-list flex flex-col gap-2"
+                        className="flex flex-col gap-2"
                       >
                         <AnimatePresence mode="popLayout">{unpinnedItems.map(renderItem)}</AnimatePresence>
                       </Reorder.Group>
@@ -359,12 +369,12 @@ export default function PcTableSettingModal({
               {onResetSizing && (
                 <Button
                   variant="outline"
-                  className="w-full mt-5 h-9 text-xs gap-1.5"
+                  className="w-full mt-5 h-8.5 text-xs font-medium rounded-lg gap-1.5 border-border/70 hover:border-primary/40 transition-colors"
                   onClick={() => {
                     onResetSizing();
                   }}
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="size-3.5" />
                   <span>重置列宽</span>
                 </Button>
               )}

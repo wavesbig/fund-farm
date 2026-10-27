@@ -3,9 +3,10 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { Cloud, AlertTriangle } from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import ConfirmModal from './ConfirmModal';
+import { cn } from '@/lib/utils';
 
 export interface CloudConfigModalProps {
   onConfirm?: () => void;
@@ -62,37 +63,48 @@ export default function CloudConfigModal({ onConfirm, onCancel, type = 'empty' }
         }}
       >
         <DialogContent
-          className="glass card modal max-w-[420px] w-[90vw] z-[99]"
-          overlayClassName="modal-overlay"
+          className="max-w-[440px] w-[92vw] p-0 gap-0 overflow-hidden rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl z-[99]"
           showCloseButton={!isConflict}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogTitle asChild>
-            <div className="flex items-center gap-2.5 font-semibold text-lg text-foreground mb-2">
-              {isConflict ? (
-                <AlertTriangle className="w-5 h-5 text-[var(--danger)]" />
-              ) : (
-                <Cloud className="w-5 h-5 text-primary" />
-              )}
-              <span>{isConflict ? '发现配置冲突' : '云端暂无配置'}</span>
+          <DialogHeader className="px-6 py-4.5 border-b border-border/60 shrink-0 text-left bg-muted/10">
+            <div className="flex items-center gap-3">
+              <div
+                className={cn(
+                  'size-9 rounded-xl flex items-center justify-center shrink-0 border shadow-xs',
+                  isConflict
+                    ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                    : 'bg-primary/10 text-primary border-primary/20'
+                )}
+              >
+                {isConflict ? <AlertTriangle className="size-5" /> : <Cloud className="size-5" />}
+              </div>
+              <div>
+                <DialogTitle className="text-base font-semibold tracking-tight text-foreground">
+                  {isConflict ? '发现配置冲突' : '云端暂无配置'}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                  {isConflict ? '检测到本地配置与云端不一致，请选择保留方案' : '检测到云端尚无配置记录，是否立即同步？'}
+                </DialogDescription>
+              </div>
             </div>
-          </DialogTitle>
-          <DialogDescription className="text-sm leading-relaxed text-[var(--muted)] mb-5">
-            {isConflict ? '检测到本地配置与云端不一致，请选择操作：' : '是否将本地配置同步到云端？'}
-          </DialogDescription>
-          <div className="flex flex-col gap-3">
+          </DialogHeader>
+
+          <div className="p-6 flex flex-col gap-3">
             <Button
               variant={isConflict ? 'outline' : 'default'}
-              className="w-full h-10 font-medium"
+              className="w-full h-9.5 text-xs font-medium rounded-lg cursor-pointer"
               onClick={handlePrimaryClick}
             >
-              {isConflict ? '保留本地 (覆盖云端)' : '同步本地到云端'}
+              {isConflict ? '保留本地配置 (覆盖云端)' : '同步本地到云端'}
             </Button>
             <Button
-              variant={isConflict ? 'default' : 'secondary'}
-              className="w-full h-10 font-medium"
+              variant={isConflict ? 'default' : 'ghost'}
+              className="w-full h-9.5 text-xs font-medium rounded-lg cursor-pointer text-muted-foreground hover:text-foreground"
               onClick={handleSecondaryClick}
             >
-              {isConflict ? '使用云端 (覆盖本地)' : '暂不同步'}
+              {isConflict ? '使用云端配置 (覆盖本地)' : '暂不同步'}
             </Button>
           </div>
         </DialogContent>
@@ -105,7 +117,7 @@ export default function CloudConfigModal({ onConfirm, onCancel, type = 'empty' }
           onConfirm={handleConfirmModalConfirm}
           onCancel={handleConfirmModalCancel}
           confirmText="确认覆盖"
-          icon={<Cloud className="w-5 h-5 text-[var(--danger)]" />}
+          icon={<Cloud className="size-5" />}
           confirmVariant="danger"
         />
       )}

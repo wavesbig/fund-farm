@@ -2,8 +2,15 @@
 
 import * as React from 'react';
 import { useMemo, useState } from 'react';
-import { RefreshCw, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { RefreshCw } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
@@ -35,7 +42,7 @@ export default function SyncPersonalSettingsModal({
     () => options.filter((item) => selected.has(item.id)).map((item) => item.name),
     [options, selected]
   );
-  const targetText = selectedNames.length > 0 ? selectedNames.join('、') : '请选择';
+  const targetText = selectedNames.length > 0 ? selectedNames.join('、') : '请选择目标分组';
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -64,69 +71,82 @@ export default function SyncPersonalSettingsModal({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        showCloseButton={false}
-        className="glass card modal max-w-[460px] w-[90vw] z-[10003]"
-        overlayClassName="modal-overlay z-[10002]"
+        showCloseButton={true}
+        className="max-w-[460px] w-[92vw] p-0 gap-0 overflow-hidden rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl z-[10003]"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogTitle className="sr-only">同步个性化设置</DialogTitle>
-
-        <div className="title flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5 font-semibold text-lg text-foreground">
-            <RefreshCw className="w-5 h-5 text-primary" />
-            <span>同步个性化设置</span>
+        <DialogHeader className="px-6 py-4.5 border-b border-border/60 shrink-0 text-left bg-muted/10">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
+              <RefreshCw className="size-5" />
+            </div>
+            <div>
+              <DialogTitle className="text-base font-semibold tracking-tight text-foreground">
+                同步个性化设置
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground mt-0.5 truncate max-w-[300px]">
+                同步「{sourceName}」的表头设置到其他分组
+              </DialogDescription>
+            </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-8 h-8 rounded-full text-[var(--muted)] hover:text-foreground hover:bg-white/10"
-            onClick={onClose}
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
+        </DialogHeader>
 
-        <p className="text-xs text-[var(--muted)] mb-3 leading-relaxed">
-          将「{sourceName}」分组当前个性化设置同步至（{targetText}）分组。
-        </p>
+        <div className="p-5 sm:p-6 space-y-3.5 max-h-[60vh] overflow-y-auto scrollbar-y-styled">
+          <div className="p-3 rounded-xl bg-muted/30 border border-border/50 text-xs text-muted-foreground leading-relaxed">
+            将「<span className="font-medium text-foreground">{sourceName}</span>」分组的个性化设置应用到：
+            <span className="font-medium text-primary ml-1">{targetText}</span>
+          </div>
 
-        <div className="group-manage-list-container scrollbar-y-styled max-h-[46vh] overflow-y-auto pr-1">
-          {options.length === 0 ? (
-            <div className="empty-state text-[var(--muted)] text-center py-8 text-sm">暂无其它可同步分组</div>
-          ) : (
-            <div className="group-manage-list flex flex-col gap-2">
-              {options.map((item) => {
+          <div className="space-y-2">
+            {options.length === 0 ? (
+              <div className="text-muted-foreground text-center py-8 text-xs">暂无其它可同步分组</div>
+            ) : (
+              options.map((item) => {
                 const isChecked = selected.has(item.id);
                 return (
                   <div
                     key={item.id}
                     className={cn(
-                      'group-manage-item glass flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] cursor-pointer select-none transition-colors hover:bg-white/5',
+                      'flex items-center gap-3 p-3 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 cursor-pointer select-none transition-all shadow-xs',
                       isChecked && 'border-primary/40 bg-primary/10'
                     )}
                     onClick={() => toggleSelect(item.id)}
                   >
                     <Checkbox checked={isChecked} onCheckedChange={() => toggleSelect(item.id)} className="shrink-0" />
-                    <div className="fund-info flex-1 min-w-0">
-                      <div className="font-semibold text-sm text-foreground">{item.name}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-xs sm:text-sm tracking-tight text-foreground">{item.name}</div>
                       {item.description && (
-                        <div className="text-xs text-[var(--muted)] mt-0.5 truncate">{item.description}</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{item.description}</div>
                       )}
                     </div>
                   </div>
                 );
-              })}
-            </div>
-          )}
+              })
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 mt-5">
-          <Button variant="outline" className="flex-1 h-10 bg-white/5 hover:bg-white/10" onClick={onClose}>
+        <DialogFooter className="px-6 py-3.5 border-t border-border/60 shrink-0 bg-muted/20 flex flex-row items-center justify-end gap-2.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground h-9 px-4 rounded-lg cursor-pointer"
+            onClick={onClose}
+          >
             取消
           </Button>
-          <Button className="flex-1 h-10 font-medium" onClick={handleConfirm} disabled={selected.size === 0}>
+          <Button
+            type="button"
+            size="sm"
+            className="text-xs font-medium h-9 px-5 rounded-lg shadow-xs cursor-pointer"
+            onClick={handleConfirm}
+            disabled={selected.size === 0}
+          >
             同步 ({selected.size})
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
