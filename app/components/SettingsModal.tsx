@@ -15,8 +15,7 @@ import {
   Zap,
   LayoutGrid,
   Download,
-  Upload,
-  ShieldCheck
+  Upload
 } from 'lucide-react';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import {
@@ -140,7 +139,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: 'data',
     title: '数据备份',
-    desc: '本地配置导出与恢复',
+    desc: '配置数据导出与恢复',
     icon: HardDriveDownload
   }
 ];
@@ -485,24 +484,15 @@ export default function SettingsModal({
       {/* ===== 分类 3: 数据备份 ===== */}
       {activeTab === 'data' && (
         <div className="space-y-4 w-full min-w-0">
-          <Alert className="bg-primary/10 border-primary/25 text-foreground rounded-xl p-3.5">
-            <ShieldCheck className="size-4 text-primary" />
-            <AlertTitle className="text-primary font-semibold text-xs">本地优先（Local-First）架构声明</AlertTitle>
-            <AlertDescription className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-              基估宝采用离线优先设计，持仓流水、交易明细与个性化配置均保存在本地环境（localStorage 与内置
-              SQLite）中，数据私密安全。
-            </AlertDescription>
-          </Alert>
-
           <div className="flex flex-col gap-2.5 w-full min-w-0">
             <Card className="flex flex-row items-center justify-between p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
               <div className="space-y-1 pr-3 min-w-0 flex-1">
                 <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                   <Download className="w-3.5 h-3.5 text-primary" />
-                  <span>导出本地配置 (JSON)</span>
+                  <span>导出配置备份 (JSON)</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  将当前全部持仓数据、分组划分、自选列表及偏好配置导出为文件备份。
+                  将当前全部持仓数据、分组划分、自选列表及偏好配置导出为 JSON 文件备份。
                 </p>
               </div>
               <Button
@@ -619,7 +609,7 @@ export default function SettingsModal({
         ) : (
           <div className="flex-1 flex flex-row min-h-0 overflow-hidden w-full max-w-full">
             {/* PC 端垂直侧边栏 */}
-            <aside className="w-[210px] shrink-0 border-r border-border/60 bg-card/40 backdrop-blur-md p-3.5 flex flex-col justify-between select-none">
+            <aside className="w-[210px] shrink-0 border-r border-border/60 bg-card/40 backdrop-blur-md p-3.5 flex flex-col select-none">
               <nav className="flex flex-col gap-1.5">
                 <div className="text-[11px] font-semibold text-muted-foreground/70 px-2.5 pb-1">分类导航</div>
                 {NAV_ITEMS.map((item) => {
@@ -671,17 +661,6 @@ export default function SettingsModal({
                   );
                 })}
               </nav>
-
-              {/* 侧边栏底部说明 */}
-              <div className="pt-3 border-t border-border/40 px-2 space-y-1">
-                <div className="flex items-center gap-1.5 font-medium text-xs text-foreground/90">
-                  <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                  <span>本地优先架构</span>
-                </div>
-                <p className="text-[11px] text-muted-foreground/70 leading-tight">
-                  数据加密保存在本地设备，无第三方中转，安全私密。
-                </p>
-              </div>
             </aside>
 
             {/* PC 端右侧主内容区域 */}
