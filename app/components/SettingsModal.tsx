@@ -7,7 +7,7 @@ import {
   RotateCcw,
   Sliders,
   Sparkles,
-  HardDriveDownload,
+  Database,
   Clock,
   Maximize2,
   LineChart,
@@ -90,13 +90,16 @@ function SettingSwitchCard({
   ariaLabel
 }: SettingSwitchCardProps) {
   return (
-    <Card className="w-full flex flex-row items-center justify-between p-3 sm:p-3.5 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+    <Card className="w-full flex flex-row items-center justify-between p-3.5 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
       <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
-        <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
-          <Icon className="w-4 h-4" />
+        <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
+          <Icon className="size-4" />
         </div>
         <div className="flex-1 min-w-0">
-          <Label htmlFor={id} className="text-xs font-semibold text-foreground cursor-pointer truncate">
+          <Label
+            htmlFor={id}
+            className="text-xs font-semibold text-foreground cursor-pointer truncate block tracking-tight"
+          >
             {title}
           </Label>
           {description && <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{description}</p>}
@@ -135,7 +138,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: 'data',
     title: '数据备份',
-    icon: HardDriveDownload
+    icon: Database
   }
 ];
 
@@ -280,15 +283,18 @@ export default function SettingsModal({
       {activeTab === 'general' && (
         <div className="space-y-4 w-full min-w-0">
           {/* 刷新频率卡片 */}
-          <Card className="p-4 gap-3 bg-card/60 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+          <Card className="p-4 gap-3.5 bg-card/60 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
-                  <Clock className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-3">
+                <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
+                  <Clock className="size-4" />
                 </div>
-                <Label className="text-xs font-semibold text-foreground">数据自动刷新频率</Label>
+                <Label className="text-xs font-semibold text-foreground tracking-tight">数据自动刷新频率</Label>
               </div>
-              <Badge variant="outline" className="font-mono text-xs tabular-nums bg-card/80 border-border/70">
+              <Badge
+                variant="outline"
+                className="font-mono text-xs tabular-nums bg-card/80 border-border/70 px-2 py-0.5 h-6"
+              >
                 当前: {localSeconds} 秒
               </Badge>
             </div>
@@ -302,7 +308,7 @@ export default function SettingsModal({
                     variant={isActive ? 'default' : 'outline'}
                     size="sm"
                     className={cn(
-                      'flex-1 h-8 text-xs font-medium tabular-nums rounded-lg border-border/70 truncate',
+                      'flex-1 h-8.5 text-xs font-medium tabular-nums rounded-lg border-border/70 truncate transition-all',
                       isActive && 'shadow-xs font-semibold'
                     )}
                     onClick={() => setLocalSeconds(s)}
@@ -322,24 +328,27 @@ export default function SettingsModal({
                 value={localSeconds || ''}
                 onChange={(e) => setLocalSeconds(Number(e.target.value))}
                 placeholder="自定义秒数（例如 45）"
-                className="h-9 text-[16PX] md:text-sm bg-background/80 font-mono border-border/70 focus-visible:ring-1 focus-visible:ring-primary/40"
+                className="h-9 text-[16PX] md:text-sm bg-background/80 font-mono border-border/70 focus-visible:ring-1 focus-visible:ring-primary/40 rounded-lg"
               />
-              {localSeconds < 30 && <p className="text-destructive text-xs mt-1 font-medium">最低刷新频率为 30 秒</p>}
+              {localSeconds < 30 && <p className="text-destructive text-xs mt-1.5 font-medium">最低刷新频率为 30 秒</p>}
             </div>
           </Card>
 
           {/* 页面宽度控制卡片 (PC端专属) */}
           {!isMobile && setContainerWidth && (
-            <Card className="p-4 gap-3 bg-card/60 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+            <Card className="p-4 gap-3.5 bg-card/60 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
-                    <Maximize2 className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-3">
+                  <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
+                    <Maximize2 className="size-4" />
                   </div>
-                  <Label className="text-xs font-semibold text-foreground">页面最大容器宽度</Label>
+                  <Label className="text-xs font-semibold text-foreground tracking-tight">页面最大容器宽度</Label>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="font-mono text-xs tabular-nums bg-card/80 border-border/70">
+                <div className="flex items-center gap-1.5">
+                  <Badge
+                    variant="outline"
+                    className="font-mono text-xs tabular-nums bg-card/80 border-border/70 px-2 py-0.5 h-6"
+                  >
                     {clampedWidth}px
                   </Badge>
                   {onResetContainerWidth && (
@@ -349,11 +358,11 @@ export default function SettingsModal({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="size-7 text-muted-foreground hover:text-foreground rounded-md"
+                          className="size-7 text-muted-foreground hover:text-foreground rounded-md transition-colors"
                           onClick={() => setResetWidthConfirmOpen(true)}
                           aria-label="重置页面宽度"
                         >
-                          <RotateCcw className="w-3.5 h-3.5" />
+                          <RotateCcw className="size-3.5" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -363,10 +372,10 @@ export default function SettingsModal({
                   )}
                 </div>
               </div>
-              <div className="pt-1 w-full min-w-0">
+              <div className="pt-1.5 w-full min-w-0">
                 <div
                   ref={pageWidthTrackRef}
-                  className="group relative h-4 cursor-pointer flex items-center w-full"
+                  className="group relative h-5 cursor-grab active:cursor-grabbing flex items-center w-full select-none"
                   onPointerDown={(e) => {
                     sliderDraggingRef.current = true;
                     setSliderDragging(true);
@@ -380,18 +389,18 @@ export default function SettingsModal({
                 >
                   <Progress
                     value={pageWidthPercent}
-                    className="h-2 w-full"
+                    className="h-2 w-full rounded-full"
                     indicatorClassName="!bg-none bg-primary !transition-none"
                   />
                   <div
-                    className="pointer-events-none absolute top-1/2 -translate-y-1/2"
+                    className="pointer-events-none absolute top-1/2 -translate-y-1/2 transition-transform group-hover:scale-110"
                     style={{ left: `${pageWidthPercent}%`, transform: 'translate(-50%, -50%)' }}
                   >
-                    <div className="size-4 rounded-full bg-primary shadow-md shadow-primary/40 border-2 border-background" />
+                    <div className="size-4.5 rounded-full bg-primary shadow-sm shadow-primary/30 border-2 border-background" />
                   </div>
                 </div>
               </div>
-              <div className="flex justify-between text-[11px] text-muted-foreground pt-0.5">
+              <div className="flex justify-between text-[11px] text-muted-foreground pt-0.5 font-medium tabular-nums">
                 <span>紧凑 (600px)</span>
                 <span>标准 (1200px)</span>
                 <span>自适应宽屏</span>
@@ -464,40 +473,40 @@ export default function SettingsModal({
         <div className="space-y-4 w-full min-w-0">
           <div className="flex flex-col gap-2.5 w-full min-w-0">
             <Card className="flex flex-row items-center justify-between p-3.5 sm:p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
-                  <Download className="w-4 h-4" />
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
+                  <Download className="size-4" />
                 </div>
-                <span className="text-xs font-semibold text-foreground truncate">导出配置备份 (JSON)</span>
+                <span className="text-xs font-semibold tracking-tight text-foreground truncate">
+                  导出配置备份 (JSON)
+                </span>
               </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={exportLocalData}
-                className="h-8.5 text-xs gap-1.5 shrink-0 rounded-lg border-border/70 hover:border-primary/40"
+                className="h-8.5 px-3.5 text-xs font-medium shrink-0 rounded-lg border-border/70 hover:border-primary/40 transition-colors"
               >
-                <Download className="w-3.5 h-3.5" />
-                <span>导出备份</span>
+                导出备份
               </Button>
             </Card>
 
             <Card className="flex flex-row items-center justify-between p-3.5 sm:p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
-                  <Upload className="w-4 h-4" />
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
+                  <Upload className="size-4" />
                 </div>
-                <span className="text-xs font-semibold text-foreground truncate">恢复导入配置</span>
+                <span className="text-xs font-semibold tracking-tight text-foreground truncate">恢复导入配置</span>
               </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => importFileRef.current?.click?.()}
-                className="h-8.5 text-xs gap-1.5 shrink-0 rounded-lg border-border/70 hover:border-primary/40"
+                className="h-8.5 px-3.5 text-xs font-medium shrink-0 rounded-lg border-border/70 hover:border-primary/40 transition-colors"
               >
-                <Upload className="w-3.5 h-3.5" />
-                <span>选择文件</span>
+                选择文件
               </Button>
             </Card>
           </div>
@@ -536,11 +545,11 @@ export default function SettingsModal({
         {/* 顶部标题栏 Header */}
         <DialogHeader className="px-6 py-4 border-b border-border/60 shrink-0 text-left bg-muted/10">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
-              <Settings className="w-5 h-5" />
+            <div className="size-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
+              <Settings className="size-5" />
             </div>
             <div>
-              <DialogTitle className="text-base font-semibold text-foreground">偏好与设置</DialogTitle>
+              <DialogTitle className="text-base font-semibold tracking-tight text-foreground">偏好与设置</DialogTitle>
               <DialogDescription className="sr-only">偏好与设置</DialogDescription>
             </div>
           </div>
@@ -550,7 +559,7 @@ export default function SettingsModal({
         {isMobile ? (
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden w-full max-w-full">
             {/* 移动端标签栏 */}
-            <div className="flex items-center gap-2 p-2.5 bg-card/50 border-b border-border/60 shrink-0 w-full select-none">
+            <div className="flex items-center gap-1.5 p-2 bg-card/50 border-b border-border/60 shrink-0 w-full select-none">
               {NAV_ITEMS.map((item) => {
                 const isActive = activeTab === item.id;
                 const Icon = item.icon;
@@ -560,13 +569,13 @@ export default function SettingsModal({
                     type="button"
                     onClick={() => setActiveTab(item.id)}
                     className={cn(
-                      'flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl text-xs font-medium transition-all cursor-pointer truncate border',
+                      'flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium tracking-tight transition-all cursor-pointer truncate border',
                       isActive
                         ? 'bg-primary/15 text-primary border-primary/30 shadow-xs font-semibold'
                         : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-card/70'
                     )}
                   >
-                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                    <Icon className="size-3.5 shrink-0" />
                     <span className="truncate">{item.title}</span>
                   </button>
                 );
@@ -582,8 +591,10 @@ export default function SettingsModal({
           <div className="flex-1 flex flex-row min-h-0 overflow-hidden w-full max-w-full">
             {/* PC 端垂直侧边栏 */}
             <aside className="w-[210px] shrink-0 border-r border-border/60 bg-card/40 backdrop-blur-md p-3.5 flex flex-col select-none">
-              <nav className="flex flex-col gap-1.5">
-                <div className="text-[11px] font-semibold text-muted-foreground/70 px-2.5 pb-1">分类导航</div>
+              <nav className="flex flex-col gap-1">
+                <div className="text-[11px] font-semibold text-muted-foreground/60 px-2.5 pb-1 uppercase tracking-wider">
+                  分类导航
+                </div>
                 {NAV_ITEMS.map((item) => {
                   const isActive = activeTab === item.id;
                   const Icon = item.icon;
@@ -593,7 +604,7 @@ export default function SettingsModal({
                       type="button"
                       onClick={() => setActiveTab(item.id)}
                       className={cn(
-                        'flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs transition-all cursor-pointer group border',
+                        'flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[13px] font-medium tracking-tight transition-all cursor-pointer group border',
                         isActive
                           ? 'bg-primary/15 text-primary border-primary/30 font-semibold shadow-xs'
                           : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-card/70'
@@ -601,7 +612,7 @@ export default function SettingsModal({
                     >
                       <Icon
                         className={cn(
-                          'w-4 h-4 shrink-0 transition-colors',
+                          'size-4 shrink-0 transition-colors',
                           isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
                         )}
                       />
@@ -610,7 +621,7 @@ export default function SettingsModal({
                         <Badge
                           variant="outline"
                           className={cn(
-                            'text-[9px] px-1.5 py-0 h-4 font-normal border',
+                            'text-[9px] px-1.5 py-0 h-4 font-normal border rounded-md',
                             isActive ? 'bg-primary/20 text-primary border-primary/30' : 'text-muted-foreground/80'
                           )}
                         >
@@ -632,13 +643,13 @@ export default function SettingsModal({
 
         {/* 底部保存与关闭栏 Footer */}
         <DialogFooter className="px-6 py-3.5 border-t border-border/60 shrink-0 bg-muted/20 flex flex-row items-center justify-end">
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-xs text-muted-foreground hover:text-foreground h-9 px-4"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground h-9 px-4 rounded-lg"
             >
               取消
             </Button>

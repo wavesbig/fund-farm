@@ -419,30 +419,30 @@ export default function AiConfigSection({
   return (
     <div className={cn('space-y-4 text-left w-full min-w-0 max-w-full', className)}>
       {/* 1. 总开关卡片 */}
-      <Card className="p-4 sm:p-4.5 gap-3 bg-gradient-to-r from-primary/10 via-accent/5 to-card/60 border border-primary/25 rounded-2xl shadow-sm backdrop-blur-md">
+      <Card className="p-3.5 sm:p-4 gap-3 bg-gradient-to-r from-primary/10 via-accent/5 to-card/60 border border-primary/25 rounded-2xl shadow-sm backdrop-blur-md">
         <div className="flex items-center justify-between gap-3 min-w-0">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
               className={cn(
-                'p-2 rounded-xl shrink-0 transition-all border',
+                'size-8 rounded-lg flex items-center justify-center shrink-0 transition-all border',
                 enabled
                   ? 'bg-primary/15 text-primary border-primary/30 shadow-xs'
                   : 'bg-muted/30 text-muted-foreground border-border/50'
               )}
             >
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="size-4" />
             </div>
             <div className="flex items-center gap-2 min-w-0">
               <Label
                 htmlFor="ai-master-switch"
-                className="text-sm font-semibold text-foreground cursor-pointer truncate"
+                className="text-sm font-semibold tracking-tight text-foreground cursor-pointer truncate"
               >
                 AI 截图智能识别
               </Label>
               <Badge
                 variant="outline"
                 className={cn(
-                  'text-[10px] px-1.5 py-0 h-4 font-medium rounded-md border shrink-0',
+                  'text-[10px] px-2 py-0.5 h-5 font-medium rounded-full border shrink-0',
                   enabled
                     ? apiKey.trim()
                       ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
@@ -539,14 +539,14 @@ export default function AiConfigSection({
           !enabled && 'opacity-50 pointer-events-none'
         )}
       >
-        <div className="flex items-center justify-between pb-2 border-b border-border/50">
-          <div className="text-xs font-semibold text-foreground flex items-center gap-2">
-            <div className="p-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
-              <KeyRound className="w-3.5 h-3.5" />
+        <div className="flex items-center justify-between pb-2.5 border-b border-border/50">
+          <div className="text-xs font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <div className="size-7 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
+              <KeyRound className="size-3.5" />
             </div>
             <span>接口配置</span>
           </div>
-          <span className="text-[11px] text-muted-foreground font-mono">OpenAI Compatible</span>
+          <span className="text-[11px] text-muted-foreground/80 font-mono">OpenAI Compatible</span>
         </div>
 
         {/* API Key */}
@@ -710,11 +710,11 @@ export default function AiConfigSection({
               onClick={handleTestConnection}
               disabled={testing || !apiKey.trim()}
               className={cn(
-                'h-8.5 px-3 text-xs gap-1.5 rounded-lg border-border/70 hover:border-primary/40 transition-colors',
+                'h-8.5 px-3.5 text-xs font-medium gap-1.5 rounded-lg border-border/70 hover:border-primary/40 transition-colors',
                 testResult?.success && 'border-emerald-500/50 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
               )}
             >
-              <RefreshCw className={cn('w-3.5 h-3.5', testing && 'animate-spin')} />
+              <RefreshCw className={cn('size-3.5', testing && 'animate-spin')} />
               <span>{testing ? '测试中…' : testResult?.success ? '已连通' : '测试连接'}</span>
             </Button>
 
@@ -728,11 +728,11 @@ export default function AiConfigSection({
                 )}
               >
                 {testResult.success ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                  <CheckCircle2 className="size-3.5 shrink-0 text-emerald-500" />
                 ) : (
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <AlertCircle className="size-3.5 shrink-0" />
                 )}
-                <span className="truncate max-w-[220px] sm:max-w-[340px]">{testResult.message}</span>
+                <span className="truncate max-w-[220px] sm:max-w-[340px] font-mono">{testResult.message}</span>
               </div>
             )}
           </div>
@@ -744,11 +744,11 @@ export default function AiConfigSection({
               size="sm"
               onClick={handleSaveImmediate}
               className={cn(
-                'h-8.5 px-3.5 text-xs gap-1.5 rounded-lg transition-all',
+                'h-8.5 px-3.5 text-xs font-medium gap-1.5 rounded-lg transition-all',
                 saveSuccess && 'bg-emerald-600 hover:bg-emerald-600/90 text-white shadow-xs'
               )}
             >
-              {saveSuccess ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+              {saveSuccess ? <Check className="size-3.5" /> : <Save className="size-3.5" />}
               <span>{saveSuccess ? '已保存 ✓' : '保存配置'}</span>
             </Button>
           )}
