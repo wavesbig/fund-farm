@@ -16,7 +16,6 @@ import {
   AlertCircle,
   RefreshCw,
   Save,
-  ShieldCheck,
   Check,
   ListFilter,
   Info
@@ -30,7 +29,7 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
@@ -70,10 +69,10 @@ const PRESETS: ProviderPreset[] = [
   {
     id: 'deepseek',
     name: 'DeepSeek 官方',
-    badge: '官方推荐',
+    badge: '推荐',
     baseURL: 'https://api.deepseek.com/v1',
     model: 'deepseek-chat',
-    tip: '原生 DeepSeek-V3 接口，识别基金代码准确度极高',
+    tip: '原生 DeepSeek-V3，高性价比与准确率',
     latencyHint: '极速',
     icon: Sparkles,
     theme: {
@@ -91,7 +90,7 @@ const PRESETS: ProviderPreset[] = [
     badge: '国内免翻',
     baseURL: 'https://api.siliconflow.cn/v1',
     model: 'deepseek-ai/DeepSeek-V3',
-    tip: '国内极速专线托管，支持满血版 DeepSeek-V3 / R1',
+    tip: '国内高速专线，支持 V3 / R1',
     latencyHint: '低延迟',
     icon: Cpu,
     theme: {
@@ -109,7 +108,7 @@ const PRESETS: ProviderPreset[] = [
     badge: '阿里百炼',
     baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     model: 'qwen-plus',
-    tip: '阿里云官方 OpenAPI 兼容端点，高并发稳定性优秀',
+    tip: '阿里云百炼端点，高可用稳定性',
     latencyHint: '高可用',
     icon: Globe,
     theme: {
@@ -124,11 +123,11 @@ const PRESETS: ProviderPreset[] = [
   {
     id: 'openai',
     name: 'OpenAI 官方',
-    badge: 'GPT-4o',
+    badge: '原厂',
     baseURL: 'https://api.openai.com/v1',
     model: 'gpt-4o-mini',
-    tip: '官方标准端点，需网络环境支持海外访问',
-    latencyHint: '国际原厂',
+    tip: 'OpenAI 官方端点，需海外网络',
+    latencyHint: '国际',
     icon: Bot,
     theme: {
       activeBorder: 'border-emerald-500',
@@ -142,11 +141,11 @@ const PRESETS: ProviderPreset[] = [
   {
     id: 'ollama',
     name: '本地 Ollama',
-    badge: '私有免联网',
+    badge: '本地私有',
     baseURL: 'http://localhost:11434/v1',
     model: 'qwen2.5:7b',
-    tip: '局域网或本机部署，持仓信息不出内网，零费用消耗',
-    latencyHint: '本地私有',
+    tip: '本地私有化运行，零费用免联网',
+    latencyHint: '本地',
     icon: Layers,
     theme: {
       activeBorder: 'border-violet-500',
@@ -159,11 +158,11 @@ const PRESETS: ProviderPreset[] = [
   },
   {
     id: 'custom',
-    name: '自定义端点',
+    name: '自定义接口',
     badge: '通用兼容',
     baseURL: '',
     model: '',
-    tip: '支持任何符合 OpenAI / OpenAPI 规范的中转或自建接口',
+    tip: '支持任意兼容 OpenAI 规范的端点',
     latencyHint: '自定义',
     icon: KeyRound,
     theme: {
@@ -199,7 +198,7 @@ export default function AiConfigSection({
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // 1. 初始化读取配置：优先读内存，同时调接口确保从 SQLite 恢复最新配置
+  // 初始化读取配置
   useEffect(() => {
     const memoryAi = useStorageStore.getState().customSettings?.aiConfig as Record<string, any> | undefined;
     if (memoryAi && isObject(memoryAi)) {
@@ -242,7 +241,6 @@ export default function AiConfigSection({
     });
   }, [enabled, apiKey, baseURL, model, onAiConfigChange]);
 
-  // 计算当前选中的服务商 ID
   const activePresetId = React.useMemo(() => {
     const matched = PRESETS.find((p) => p.id !== 'custom' && p.baseURL === baseURL && (p.model === model || !baseURL));
     if (matched) return matched.id;
@@ -265,11 +263,11 @@ export default function AiConfigSection({
   }, []);
 
   /**
-   * 通过 API Key 和 Base URL 自动拉取该服务商支持的模型列表 (/v1/models)
+   * 通过 API Key 和 Base URL 拉取可用模型列表
    */
   const handleFetchModels = async () => {
     if (!apiKey.trim()) {
-      setTestResult({ success: false, message: '请先填写 API Key 再获取模型列表' });
+      setTestResult({ success: false, message: '请先填写 API Key' });
       return;
     }
 
@@ -297,7 +295,7 @@ export default function AiConfigSection({
         if (data.models.length > 0) {
           setModelList(data.models);
           setIsManualInput(false);
-          setModelFetchMsg(`已成功拉取 ${data.models.length} 个可用模型`);
+          setModelFetchMsg(`已获取 ${data.models.length} 个模型`);
 
           if (!data.models.includes(model)) {
             const preferred =
@@ -311,12 +309,12 @@ export default function AiConfigSection({
             setModel(preferred);
           }
         } else {
-          setModelFetchMsg('该服务商返回的模型列表为空，可继续手动输入');
+          setModelFetchMsg('未返回可用模型，可手动输入');
         }
       } else {
         setTestResult({
           success: false,
-          message: data.message || '获取模型列表失败，请检查 Base URL 与 API Key 是否正确'
+          message: data.message || '获取模型失败，请检查 Base URL 与 API Key'
         });
       }
     } catch (err: any) {
@@ -334,7 +332,7 @@ export default function AiConfigSection({
    */
   const handleTestConnection = async () => {
     if (!apiKey.trim()) {
-      setTestResult({ success: false, message: '请先输入 API Key 再进行测试' });
+      setTestResult({ success: false, message: '请先填写 API Key' });
       return;
     }
 
@@ -361,12 +359,12 @@ export default function AiConfigSection({
       if (res.ok && data.success) {
         setTestResult({
           success: true,
-          message: data.message || '连接成功！模型响应正常。'
+          message: data.message || '连接成功，模型响应正常'
         });
       } else {
         setTestResult({
           success: false,
-          message: data.message || data.error || '测试连接失败，请检查 Base URL、API Key 与网络状态'
+          message: data.message || data.error || '连接失败，请检查配置或网络'
         });
       }
     } catch (err: any) {
@@ -380,7 +378,7 @@ export default function AiConfigSection({
   };
 
   /**
-   * 立即持久化保存 AI 配置至 SQLite 和 store
+   * 持久化保存 AI 配置
    */
   const handleSaveImmediate = async () => {
     const nextAiConfig: AiConfig = {
@@ -401,37 +399,37 @@ export default function AiConfigSection({
     try {
       await saveSqliteKey('customSettings', nextCustomSettings);
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2500);
+      setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err) {
-      console.error('[AiConfigSection] Immediate SQLite save failed:', err);
+      console.error('[AiConfigSection] save failed:', err);
     }
   };
 
   return (
     <div className={cn('space-y-4 text-left w-full min-w-0 max-w-full', className)}>
-      {/* 1. 总开关与状态卡片 (精美渐变光晕质感) */}
+      {/* 1. 总开关卡片 */}
       <Card className="p-4 sm:p-4.5 gap-3 bg-gradient-to-r from-primary/10 via-accent/5 to-card/60 border border-primary/25 rounded-2xl shadow-sm backdrop-blur-md">
         <div className="flex items-center justify-between gap-3 min-w-0">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
               className={cn(
-                'p-2.5 rounded-xl shrink-0 transition-all border',
+                'p-2 rounded-xl shrink-0 transition-all border',
                 enabled
                   ? 'bg-primary/15 text-primary border-primary/30 shadow-xs'
                   : 'bg-muted/30 text-muted-foreground border-border/50'
               )}
             >
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
                 <Label htmlFor="ai-master-switch" className="text-sm font-semibold text-foreground cursor-pointer">
-                  AI 截图智能提取与识别
+                  AI 截图智能识别
                 </Label>
                 <Badge
                   variant="outline"
                   className={cn(
-                    'text-[10px] px-2 py-0.5 h-4.5 font-medium rounded-md border',
+                    'text-[10px] px-1.5 py-0 h-4 font-medium rounded-md border',
                     enabled
                       ? apiKey.trim()
                         ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
@@ -439,11 +437,11 @@ export default function AiConfigSection({
                       : 'bg-muted/40 text-muted-foreground border-border/50'
                   )}
                 >
-                  {enabled ? (apiKey.trim() ? '服务就绪 ✓' : '待配置 API Key') : '已停用'}
+                  {enabled ? (apiKey.trim() ? '已就绪' : '待配置 Key') : '未启用'}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed truncate sm:whitespace-normal">
-                导入支付宝、微信、天天基金持仓截图时，调用大模型识别基金代码、金额与收益。
+              <p className="text-xs text-muted-foreground mt-0.5 truncate sm:whitespace-normal">
+                导入持仓截图时，调用大模型自动解析基金代码与金额
               </p>
             </div>
           </div>
@@ -457,16 +455,16 @@ export default function AiConfigSection({
         </div>
       </Card>
 
-      {/* 2. 服务商选择卡片网格 (品牌个性化着色，避免暗沉杂灰) */}
+      {/* 2. 推荐服务商 */}
       <div
         className={cn('space-y-2.5 w-full min-w-0 transition-opacity', !enabled && 'opacity-50 pointer-events-none')}
       >
         <div className="flex items-center justify-between">
           <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
             <Cpu className="w-3.5 h-3.5 text-primary" />
-            <span>精选推荐服务商</span>
+            <span>推荐服务商</span>
           </Label>
-          <span className="text-[11px] text-muted-foreground hidden sm:inline">一键套用推荐端点与模型</span>
+          <span className="text-[11px] text-muted-foreground">点击一键套用</span>
         </div>
 
         <div className="flex flex-wrap gap-2.5 w-full min-w-0">
@@ -494,7 +492,7 @@ export default function AiConfigSection({
                 )}
               >
                 <div className="min-w-0">
-                  <div className="flex items-center justify-between gap-1.5 mb-1.5 min-w-0">
+                  <div className="flex items-center justify-between gap-1.5 mb-1 min-w-0">
                     <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground truncate min-w-0">
                       <IconComponent
                         className={cn(
@@ -511,7 +509,7 @@ export default function AiConfigSection({
                       {preset.badge}
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-muted-foreground line-clamp-1 leading-snug mb-2">{preset.tip}</p>
+                  <p className="text-[11px] text-muted-foreground line-clamp-1 mb-2">{preset.tip}</p>
                 </div>
 
                 <div className="flex items-center justify-between pt-1.5 border-t border-border/40 text-[10px] text-muted-foreground font-mono min-w-0">
@@ -531,7 +529,7 @@ export default function AiConfigSection({
         </div>
       </div>
 
-      {/* 3. 接口凭据与模型配置卡片 (通透毛玻璃面板) */}
+      {/* 3. 接口与模型配置 */}
       <Card
         className={cn(
           'p-4 sm:p-5 gap-3.5 bg-card/50 border-border/70 shadow-xs rounded-2xl space-y-3.5 w-full min-w-0 backdrop-blur-sm transition-opacity',
@@ -540,26 +538,20 @@ export default function AiConfigSection({
       >
         <div className="flex items-center justify-between pb-2 border-b border-border/50">
           <div className="text-xs font-semibold text-foreground flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
+            <div className="p-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
               <KeyRound className="w-3.5 h-3.5" />
             </div>
-            <span>接口凭据与模型参数</span>
+            <span>接口配置</span>
           </div>
           <span className="text-[11px] text-muted-foreground font-mono">OpenAI Compatible</span>
         </div>
 
         {/* API Key */}
         <div className="space-y-1.5 min-w-0">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="ai-api-key" className="text-xs font-medium text-foreground flex items-center gap-1">
-              <span>API 密钥 (API Key)</span>
-              <span className="text-destructive font-bold">*</span>
-            </Label>
-            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <ShieldCheck className="w-3 h-3 text-emerald-500" />
-              <span>本地 SQLite 私密存储</span>
-            </div>
-          </div>
+          <Label htmlFor="ai-api-key" className="text-xs font-medium text-foreground flex items-center gap-1">
+            <span>API Key</span>
+            <span className="text-destructive font-bold">*</span>
+          </Label>
           <div className="relative flex items-center min-w-0">
             <Input
               id="ai-api-key"
@@ -576,22 +568,19 @@ export default function AiConfigSection({
               type="button"
               onClick={() => setShowKey(!showKey)}
               className="absolute right-2 text-muted-foreground hover:text-foreground p-1 transition-colors cursor-pointer"
-              title={showKey ? '隐藏密钥' : '显示密钥'}
+              title={showKey ? '隐藏' : '显示'}
               tabIndex={-1}
             >
               {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
-          <p className="text-[11px] text-muted-foreground">
-            API Key 仅加密保存在本地设备，服务端仅转发请求，绝不上云存储。
-          </p>
         </div>
 
-        {/* 接口地址 (Base URL) */}
+        {/* 接口地址 */}
         <div className="space-y-1.5 min-w-0">
           <div className="flex items-center justify-between">
             <Label htmlFor="ai-base-url" className="text-xs font-medium text-foreground flex items-center gap-1">
-              <span>接口端点 (Base URL)</span>
+              <span>接口地址</span>
               <span className="text-destructive font-bold">*</span>
             </Label>
             {baseURL !== 'https://api.deepseek.com/v1' && (
@@ -600,7 +589,7 @@ export default function AiConfigSection({
                 onClick={() => setBaseURL('https://api.deepseek.com/v1')}
                 className="text-[11px] text-primary hover:underline cursor-pointer"
               >
-                恢复 DeepSeek 端点
+                恢复默认
               </button>
             )}
           </div>
@@ -617,11 +606,11 @@ export default function AiConfigSection({
           />
         </div>
 
-        {/* 模型名称 (Model) */}
+        {/* 模型名称 */}
         <div className="space-y-1.5 min-w-0">
           <div className="flex items-center justify-between flex-wrap gap-1">
             <Label htmlFor="ai-model-input" className="text-xs font-medium text-foreground flex items-center gap-1">
-              <span>模型名称 (Model)</span>
+              <span>模型名称</span>
               <span className="text-destructive font-bold">*</span>
             </Label>
             <Button
@@ -631,10 +620,9 @@ export default function AiConfigSection({
               onClick={handleFetchModels}
               disabled={fetchingModels || !apiKey.trim()}
               className="h-6 px-2 text-[11px] gap-1 rounded-md border-border/70 hover:border-primary/40"
-              title="根据当前 API Key 自动拉取该服务商支持的模型列表"
             >
               <RefreshCw className={cn('w-3 h-3', fetchingModels && 'animate-spin')} />
-              <span>{fetchingModels ? '拉取中…' : '从 API Key 自动获取模型'}</span>
+              <span>{fetchingModels ? '拉取中…' : '获取模型列表'}</span>
             </Button>
           </div>
 
@@ -648,7 +636,7 @@ export default function AiConfigSection({
                 }}
               >
                 <SelectTrigger className="flex-1 h-9 bg-background/80 text-xs font-mono border-border/70">
-                  <SelectValue placeholder="请选择模型" />
+                  <SelectValue placeholder="选择模型" />
                 </SelectTrigger>
                 <SelectContent className="z-[10001] max-h-56">
                   {modelList.map((m) => (
@@ -664,9 +652,8 @@ export default function AiConfigSection({
                 size="sm"
                 onClick={() => setIsManualInput(true)}
                 className="h-9 px-2.5 text-xs shrink-0 rounded-lg border-border/70"
-                title="切换为手动自由输入"
               >
-                自由输入
+                手动输入
               </Button>
             </div>
           ) : (
@@ -691,7 +678,7 @@ export default function AiConfigSection({
                   className="h-9 px-2.5 text-xs gap-1 shrink-0 rounded-lg border-border/70"
                 >
                   <ListFilter className="w-3.5 h-3.5" />
-                  <span>选择已拉取</span>
+                  <span>选择模型</span>
                 </Button>
               )}
             </div>
@@ -710,7 +697,7 @@ export default function AiConfigSection({
           )}
         </div>
 
-        {/* 4. 测试与即时保存工具栏 */}
+        {/* 4. 测试与保存 */}
         <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-border/50">
           <Button
             type="button"
@@ -721,7 +708,7 @@ export default function AiConfigSection({
             className="h-8.5 px-3 text-xs gap-1.5 rounded-lg border-border/70 hover:border-primary/40"
           >
             <RefreshCw className={cn('w-3.5 h-3.5', testing && 'animate-spin')} />
-            <span>{testing ? '正在测试连接…' : '测试连接 (Ping)'}</span>
+            <span>{testing ? '测试中…' : '测试连接'}</span>
           </Button>
 
           {showImmediateSaveButton && (
@@ -736,17 +723,17 @@ export default function AiConfigSection({
               )}
             >
               {saveSuccess ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-              <span>{saveSuccess ? '已即时落盘保存 ✓' : '单独保存 AI 配置'}</span>
+              <span>{saveSuccess ? '已保存 ✓' : '保存配置'}</span>
             </Button>
           )}
         </div>
 
-        {/* 测试结果提示 */}
+        {/* 测试反馈 */}
         {testResult && (
           <Alert
             variant={testResult.success ? 'default' : 'destructive'}
             className={cn(
-              'mt-2 py-2.5 px-3.5 text-xs border rounded-xl overflow-hidden',
+              'mt-2 py-2 px-3 text-xs border rounded-xl overflow-hidden',
               testResult.success
                 ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-600 dark:text-emerald-400'
                 : 'bg-destructive/10 border-destructive/25 text-destructive'
@@ -764,15 +751,11 @@ export default function AiConfigSection({
         )}
       </Card>
 
-      {/* 5. 提示与使用帮助卡片 */}
-      <Alert className="bg-card/40 border-border/60 text-muted-foreground p-3.5 rounded-xl backdrop-blur-sm">
-        <Info className="size-4 text-primary shrink-0" />
-        <AlertTitle className="text-xs font-semibold text-foreground">如何使用截图导入？</AlertTitle>
-        <AlertDescription className="text-xs mt-1 leading-relaxed">
-          在应用主页面直接粘贴（Ctrl+V）或拖拽持仓截图，系统将通过内置 Tesseract 进行 OCR
-          预处理，再由本设置中的大模型自动解析基金代码并完成导入。
-        </AlertDescription>
-      </Alert>
+      {/* 5. 提示说明 */}
+      <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 px-1">
+        <Info className="size-3.5 text-primary shrink-0" />
+        <span>支持在主页面直接粘贴（Ctrl+V）或拖拽截图，系统将自动识别持仓基金并导入。</span>
+      </div>
     </div>
   );
 }
