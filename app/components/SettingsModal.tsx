@@ -2,9 +2,26 @@
 
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { Settings, RotateCcw } from 'lucide-react';
+import {
+  Settings,
+  RotateCcw,
+  Sliders,
+  Sparkles,
+  HardDriveDownload,
+  Clock,
+  Maximize2,
+  LineChart,
+  Search,
+  Zap,
+  Menu,
+  Download,
+  Upload,
+  ShieldCheck,
+  X
+} from 'lucide-react';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -44,6 +61,39 @@ export interface SettingsModalProps {
   dynamicStyleMobile?: boolean;
   showGroupDropdownPc?: boolean;
   showGroupDropdownMobile?: boolean;
+}
+
+interface SettingSwitchCardProps {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  ariaLabel: string;
+}
+
+function SettingSwitchCard({
+  icon: Icon,
+  title,
+  description,
+  checked,
+  onCheckedChange,
+  ariaLabel
+}: SettingSwitchCardProps) {
+  return (
+    <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] dark:bg-black/20 border border-border/40 hover:border-border/70 transition-colors">
+      <div className="flex items-start gap-3 min-w-0 pr-3">
+        <div className="mt-0.5 p-1.5 rounded-lg bg-primary/10 text-primary shrink-0">
+          <Icon className="w-3.5 h-3.5" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-xs font-medium text-foreground">{title}</div>
+          <div className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{description}</div>
+        </div>
+      </div>
+      <Switch checked={checked} onCheckedChange={onCheckedChange} aria-label={ariaLabel} className="shrink-0" />
+    </div>
+  );
 }
 
 export default function SettingsModal({
@@ -161,6 +211,20 @@ export default function SettingsModal({
     setLocalContainerWidth(containerWidth);
   }, [containerWidth]);
 
+  const handleSave = (e: React.MouseEvent | React.FormEvent) => {
+    saveSettings(
+      e,
+      localSeconds,
+      isMobile ? localShowMarketIndexMobile : localShowMarketIndexPc,
+      isMobile ? localShowGroupFundSearchMobile : localShowGroupFundSearchPc,
+      isMobile,
+      isMobile ? localDynamicStyleMobile : localDynamicStylePc,
+      localContainerWidth,
+      isMobile ? localShowGroupDropdownMobile : localShowGroupDropdownPc,
+      aiConfigRef.current
+    );
+  };
+
   return (
     <Dialog
       open
@@ -170,226 +234,337 @@ export default function SettingsModal({
     >
       <DialogContent
         overlayClassName={cn('modal-overlay z-[9999]', sliderDragging && 'modal-overlay-translucent')}
-        className="!p-0 z-[10000] max-w-[540px] w-[94vw]"
+        className="!p-0 z-[10000] max-w-[620px] w-[94vw]"
         showCloseButton={false}
       >
-        <div className="glass card modal max-h-[85vh] overflow-y-auto p-5 scrollbar-y-styled">
-          <div className="title flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5 font-semibold text-lg text-foreground">
-              <Settings className="w-5 h-5 text-primary" />
+        <div className="glass card modal p-5 max-h-[88vh] flex flex-col">
+          {/* 标题栏 */}
+          <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-border/40 shrink-0">
+            <div className="flex items-center gap-2 font-semibold text-base text-foreground">
+              <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                <Settings className="w-4 h-4" />
+              </div>
               <DialogTitle asChild>
-                <span>设置</span>
+                <span>偏好与系统设置</span>
               </DialogTitle>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground hover:text-foreground rounded-lg"
+              onClick={onClose}
+              aria-label="关闭设置弹框"
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
 
-          {/* 刷新频率 */}
-          <div className="form-group mb-4">
-            <div className="text-xs text-[var(--muted)] mb-2 font-medium">刷新频率</div>
-            <div className="flex flex-wrap gap-2 mb-2.5">
-              {[30, 60, 120, 300].map((s) => {
-                const isActive = localSeconds === s;
-                return (
-                  <Button
-                    key={s}
-                    type="button"
-                    variant={isActive ? 'default' : 'outline'}
-                    size="sm"
-                    className="h-8 px-3 text-xs tabular-nums"
-                    onClick={() => setLocalSeconds(s)}
-                    aria-pressed={isActive}
-                  >
-                    {s} 秒
-                  </Button>
-                );
-              })}
-            </div>
-            <Input
-              type="number"
-              inputMode="numeric"
-              min="30"
-              step="5"
-              value={localSeconds || ''}
-              onChange={(e) => setLocalSeconds(Number(e.target.value))}
-              placeholder="自定义秒数"
-              className="h-9 text-[16PX] md:text-sm bg-black/20"
-            />
-            {localSeconds < 30 && <div className="text-[var(--danger)] text-xs mt-1.5">最小 30 秒</div>}
-          </div>
+          {/* 分类标签导航 */}
+          <Tabs defaultValue="general" className="w-full flex-1 flex flex-col min-h-0">
+            <TabsList className="grid grid-cols-3 w-full h-10 p-1 bg-white/[0.04] dark:bg-black/30 border border-border/40 rounded-xl mb-3 shrink-0">
+              <TabsTrigger
+                value="general"
+                className="flex items-center justify-center gap-1.5 text-xs font-medium py-1.5 rounded-lg"
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>常规界面</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="ai"
+                className="flex items-center justify-center gap-1.5 text-xs font-medium py-1.5 rounded-lg"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span>AI 大模型</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="data"
+                className="flex items-center justify-center gap-1.5 text-xs font-medium py-1.5 rounded-lg"
+              >
+                <HardDriveDownload className="w-3.5 h-3.5" />
+                <span>数据备份</span>
+              </TabsTrigger>
+            </TabsList>
 
-          {/* 页面宽度 (PC端) */}
-          {!isMobile && setContainerWidth && (
-            <div className="form-group mb-4">
-              <div className="flex items-center gap-1.5 mb-2">
-                <div className="text-xs text-[var(--muted)] font-medium">页面宽度</div>
-                {onResetContainerWidth && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="w-6 h-6 p-0 text-[var(--muted)] hover:text-foreground"
-                        onClick={() => setResetWidthConfirmOpen(true)}
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>重置页面宽度</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <div
-                  ref={pageWidthTrackRef}
-                  className="group relative flex-1 h-3.5 cursor-pointer flex items-center"
-                  onPointerDown={(e) => {
-                    sliderDraggingRef.current = true;
-                    setSliderDragging(true);
-                    updateWidthByClientX(e.clientX);
-                    e.currentTarget.setPointerCapture?.(e.pointerId);
-                  }}
-                  onPointerMove={(e) => {
-                    if (!sliderDraggingRef.current) return;
-                    updateWidthByClientX(e.clientX);
-                  }}
-                >
-                  <Progress
-                    value={pageWidthPercent}
-                    indicatorClassName="!bg-none bg-[var(--primary)] dark:bg-[var(--primary)] !transition-none"
-                  />
-                  <div
-                    className="pointer-events-none absolute top-1/2 -translate-y-1/2"
-                    style={{ left: `${pageWidthPercent}%`, transform: 'translate(-50%, -50%)' }}
-                  >
-                    <div className="h-3 w-3 rounded-full bg-primary shadow-md shadow-primary/40" />
+            {/* 可滚动内容区域 */}
+            <div className="flex-1 overflow-y-auto pr-1 scrollbar-y-styled">
+              {/* ===== TAB 1: 常规界面 ===== */}
+              <TabsContent value="general" className="space-y-4 focus-visible:outline-none mt-0">
+                {/* 刷新频率 */}
+                <div className="space-y-2 p-3.5 rounded-xl bg-white/[0.03] dark:bg-black/20 border border-border/40">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-primary" />
+                      <span>数据自动刷新频率</span>
+                    </label>
+                    <span className="text-xs text-muted-foreground font-mono tabular-nums">
+                      当前: {localSeconds} 秒
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[30, 60, 120, 300].map((s) => {
+                      const isActive = localSeconds === s;
+                      return (
+                        <Button
+                          key={s}
+                          type="button"
+                          variant={isActive ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-8 text-xs font-medium tabular-nums rounded-lg"
+                          onClick={() => setLocalSeconds(s)}
+                          aria-pressed={isActive}
+                        >
+                          {s} 秒
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  <div className="pt-1">
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min="30"
+                      step="5"
+                      value={localSeconds || ''}
+                      onChange={(e) => setLocalSeconds(Number(e.target.value))}
+                      placeholder="自定义秒数（例如 45）"
+                      className="h-9 text-[16PX] md:text-sm bg-black/20"
+                    />
+                    {localSeconds < 30 && <p className="text-destructive text-xs mt-1">最低刷新频率为 30 秒</p>}
                   </div>
                 </div>
-                <span className="text-xs text-[var(--muted)] min-w-[48px] text-right tabular-nums">
-                  {clampedWidth}px
-                </span>
-              </div>
-            </div>
-          )}
 
-          {/* 切换选项 */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="form-group mb-0">
-              <div className="text-xs text-[var(--muted)] mb-2 font-medium">显示大盘指数</div>
-              <div className="flex items-center">
-                <Switch
-                  checked={isMobile ? localShowMarketIndexMobile : localShowMarketIndexPc}
-                  onCheckedChange={(checked) => {
-                    const nextValue = Boolean(checked);
-                    if (isMobile) setLocalShowMarketIndexMobile(nextValue);
-                    else setLocalShowMarketIndexPc(nextValue);
+                {/* 页面宽度控制 (PC端专属) */}
+                {!isMobile && setContainerWidth && (
+                  <div className="space-y-2.5 p-3.5 rounded-xl bg-white/[0.03] dark:bg-black/20 border border-border/40">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                        <Maximize2 className="w-3.5 h-3.5 text-primary" />
+                        <span>页面最大容器宽度</span>
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground font-mono tabular-nums">{clampedWidth}px</span>
+                        {onResetContainerWidth && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="w-6 h-6 p-0 text-muted-foreground hover:text-foreground"
+                                onClick={() => setResetWidthConfirmOpen(true)}
+                              >
+                                <RotateCcw className="w-3 h-3" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>恢复默认宽度 1200px</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 pt-1">
+                      <div
+                        ref={pageWidthTrackRef}
+                        className="group relative flex-1 h-3.5 cursor-pointer flex items-center"
+                        onPointerDown={(e) => {
+                          sliderDraggingRef.current = true;
+                          setSliderDragging(true);
+                          updateWidthByClientX(e.clientX);
+                          e.currentTarget.setPointerCapture?.(e.pointerId);
+                        }}
+                        onPointerMove={(e) => {
+                          if (!sliderDraggingRef.current) return;
+                          updateWidthByClientX(e.clientX);
+                        }}
+                      >
+                        <Progress
+                          value={pageWidthPercent}
+                          indicatorClassName="!bg-none bg-[var(--primary)] dark:bg-[var(--primary)] !transition-none"
+                        />
+                        <div
+                          className="pointer-events-none absolute top-1/2 -translate-y-1/2"
+                          style={{ left: `${pageWidthPercent}%`, transform: 'translate(-50%, -50%)' }}
+                        >
+                          <div className="h-3.5 w-3.5 rounded-full bg-primary shadow-sm shadow-primary/50 border border-white/20" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-[11px] text-muted-foreground">
+                      <span>紧凑 (600px)</span>
+                      <span>默认 (1200px)</span>
+                      <span>自适应宽屏</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 界面功能与视图偏好 */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground mb-1">界面功能与视图偏好</div>
+                  <div className="grid gap-2">
+                    <SettingSwitchCard
+                      icon={LineChart}
+                      title="显示大盘指数行情"
+                      description="在首页表格或概览顶部显示上证指数等关键大盘指数行情条"
+                      checked={isMobile ? localShowMarketIndexMobile : localShowMarketIndexPc}
+                      onCheckedChange={(checked) => {
+                        const nextValue = Boolean(checked);
+                        if (isMobile) setLocalShowMarketIndexMobile(nextValue);
+                        else setLocalShowMarketIndexPc(nextValue);
+                      }}
+                      ariaLabel="显示大盘指数"
+                    />
+
+                    <SettingSwitchCard
+                      icon={Search}
+                      title="分组内基金即时搜索"
+                      description="在各个持仓分组列表上方提供快速搜索过滤输入栏"
+                      checked={isMobile ? localShowGroupFundSearchMobile : localShowGroupFundSearchPc}
+                      onCheckedChange={(checked) => {
+                        const nextValue = Boolean(checked);
+                        if (isMobile) setLocalShowGroupFundSearchMobile(nextValue);
+                        else setLocalShowGroupFundSearchPc(nextValue);
+                      }}
+                      ariaLabel="显示分组内基金搜索"
+                    />
+
+                    <SettingSwitchCard
+                      icon={Zap}
+                      title="减少动态样式与动画效果"
+                      description="降低背景毛玻璃与转场过渡动画渲染强度，提升设备运行流畅度"
+                      checked={isMobile ? !localDynamicStyleMobile : !localDynamicStylePc}
+                      onCheckedChange={(checked) => {
+                        const nextValue = !checked;
+                        if (isMobile) setLocalDynamicStyleMobile(nextValue);
+                        else setLocalDynamicStylePc(nextValue);
+                      }}
+                      ariaLabel="减少动态样式效果"
+                    />
+
+                    <SettingSwitchCard
+                      icon={Menu}
+                      title="下拉菜单形式展示分组"
+                      description="将平铺的分组标签栏折叠为下拉选择菜单，有效节省纵向屏幕空间"
+                      checked={isMobile ? localShowGroupDropdownMobile : localShowGroupDropdownPc}
+                      onCheckedChange={(checked) => {
+                        const nextValue = Boolean(checked);
+                        if (isMobile) setLocalShowGroupDropdownMobile(nextValue);
+                        else setLocalShowGroupDropdownPc(nextValue);
+                      }}
+                      ariaLabel="下拉形式展示分组"
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* ===== TAB 2: AI 大模型 ===== */}
+              <TabsContent value="ai" className="space-y-3.5 focus-visible:outline-none mt-0">
+                <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs text-foreground flex items-start gap-2.5">
+                  <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <div className="leading-relaxed">
+                    <span className="font-semibold text-primary">智能识图与大模型：</span>
+                    支持 OpenAI 兼容格式接口（如
+                    DeepSeek、硅基流动、通义千问等）。配置后在顶栏添加基金时点击相机图标，即可通过大模型自动解析持仓截图并提取基金代码。
+                  </div>
+                </div>
+
+                <AiConfigSection
+                  onAiConfigChange={(cfg) => {
+                    aiConfigRef.current = cfg;
                   }}
-                  aria-label="显示大盘指数"
+                  showImmediateSaveButton={true}
+                  className="border-0 bg-transparent p-0 mb-0"
                 />
-              </div>
-            </div>
+              </TabsContent>
 
-            <div className="form-group mb-0">
-              <div className="text-xs text-[var(--muted)] mb-2 font-medium">显示分组内基金搜索</div>
-              <div className="flex items-center">
-                <Switch
-                  checked={isMobile ? localShowGroupFundSearchMobile : localShowGroupFundSearchPc}
-                  onCheckedChange={(checked) => {
-                    const nextValue = Boolean(checked);
-                    if (isMobile) setLocalShowGroupFundSearchMobile(nextValue);
-                    else setLocalShowGroupFundSearchPc(nextValue);
-                  }}
-                  aria-label="显示分组内基金搜索"
+              {/* ===== TAB 3: 数据备份 ===== */}
+              <TabsContent value="data" className="space-y-3.5 focus-visible:outline-none mt-0">
+                <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 text-xs text-foreground flex items-start gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <div className="leading-relaxed">
+                    <span className="font-semibold text-primary">本地优先存储架构：</span>
+                    基估宝采用离线优先设计，您的持仓流水、交易明细与个性化配置均保存在本地浏览器环境（localStorage
+                    与内置 SQLite）中，数据私密安全。
+                  </div>
+                </div>
+
+                <div className="grid gap-2.5">
+                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] dark:bg-black/20 border border-border/40">
+                    <div className="space-y-0.5 pr-3">
+                      <div className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                        <Download className="w-3.5 h-3.5 text-primary" />
+                        <span>导出本地配置 (JSON)</span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        将当前全部持仓数据、分组划分、自选列表及偏好配置导出为文件备份。
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={exportLocalData}
+                      className="h-8 text-xs gap-1.5 shrink-0"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>导出备份</span>
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] dark:bg-black/20 border border-border/40">
+                    <div className="space-y-0.5 pr-3">
+                      <div className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                        <Upload className="w-3.5 h-3.5 text-primary" />
+                        <span>恢复导入配置</span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        选择此前备份导出的 JSON 配置文件，一键恢复全部持仓与系统偏好。
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => importFileRef.current?.click?.()}
+                      className="h-8 text-xs gap-1.5 shrink-0"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>选择文件</span>
+                    </Button>
+                  </div>
+                </div>
+
+                <input
+                  ref={importFileRef}
+                  type="file"
+                  accept="application/json"
+                  style={{ display: 'none' }}
+                  onChange={handleImportFileChange}
                 />
-              </div>
+                {importMsg && (
+                  <div className="p-2.5 rounded-lg bg-black/20 border border-border/40 text-xs text-muted-foreground text-center">
+                    {importMsg}
+                  </div>
+                )}
+              </TabsContent>
             </div>
-          </div>
+          </Tabs>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="form-group mb-0">
-              <div className="text-xs text-[var(--muted)] mb-2 font-medium">减少动态样式效果</div>
-              <div className="flex items-center">
-                <Switch
-                  checked={isMobile ? !localDynamicStyleMobile : !localDynamicStylePc}
-                  onCheckedChange={(checked) => {
-                    const nextValue = !checked;
-                    if (isMobile) setLocalDynamicStyleMobile(nextValue);
-                    else setLocalDynamicStylePc(nextValue);
-                  }}
-                  aria-label="减少动态样式效果"
-                />
-              </div>
-            </div>
-
-            <div className="form-group mb-0">
-              <div className="text-xs text-[var(--muted)] mb-2 font-medium">下拉形式展示分组</div>
-              <div className="flex items-center">
-                <Switch
-                  checked={isMobile ? localShowGroupDropdownMobile : localShowGroupDropdownPc}
-                  onCheckedChange={(checked) => {
-                    const nextValue = Boolean(checked);
-                    if (isMobile) setLocalShowGroupDropdownMobile(nextValue);
-                    else setLocalShowGroupDropdownPc(nextValue);
-                  }}
-                  aria-label="下拉形式展示分组"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* AI 配置区域 */}
-          <AiConfigSection
-            onAiConfigChange={(cfg) => {
-              aiConfigRef.current = cfg;
-            }}
-            showImmediateSaveButton={true}
-          />
-
-          {/* 数据导入导出 */}
-          <div className="form-group mb-4">
-            <div className="text-xs text-[var(--muted)] mb-2 font-medium">数据备份与迁移</div>
-            <div className="flex gap-2.5">
-              <Button type="button" variant="outline" className="flex-1 h-9 text-xs" onClick={exportLocalData}>
-                导出本地配置
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 h-9 text-xs"
-                onClick={() => importFileRef.current?.click?.()}
-              >
-                导入本地配置
-              </Button>
-            </div>
-            <input
-              ref={importFileRef}
-              type="file"
-              accept="application/json"
-              style={{ display: 'none' }}
-              onChange={handleImportFileChange}
-            />
-            {importMsg && <div className="text-xs text-[var(--muted)] mt-2">{importMsg}</div>}
-          </div>
-
-          {/* 底部保存按钮 */}
-          <div className="flex justify-end mt-5 pt-3 border-t border-[var(--border)]">
+          {/* 底部按钮栏 */}
+          <div className="flex items-center justify-between pt-3.5 mt-3 border-t border-border/40 shrink-0">
             <Button
-              className="w-full h-10 font-medium"
-              onClick={(e) =>
-                saveSettings(
-                  e,
-                  localSeconds,
-                  isMobile ? localShowMarketIndexMobile : localShowMarketIndexPc,
-                  isMobile ? localShowGroupFundSearchMobile : localShowGroupFundSearchPc,
-                  isMobile,
-                  isMobile ? localDynamicStyleMobile : localDynamicStylePc,
-                  localContainerWidth,
-                  isMobile ? localShowGroupDropdownMobile : localShowGroupDropdownPc,
-                  aiConfigRef.current
-                )
-              }
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              取消
+            </Button>
+            <Button
+              type="button"
+              className="h-9 px-5 text-xs font-medium"
+              onClick={handleSave}
               disabled={localSeconds < 30}
             >
               保存并关闭

@@ -21,6 +21,7 @@ export interface AiConfig {
 export interface AiConfigSectionProps {
   onAiConfigChange?: (cfg: AiConfig) => void;
   showImmediateSaveButton?: boolean;
+  className?: string;
 }
 
 const PRESETS = [
@@ -56,8 +57,11 @@ const PRESETS = [
   }
 ];
 
-export default function AiConfigSection({ onAiConfigChange, showImmediateSaveButton = true }: AiConfigSectionProps) {
-  const customSettings = useStorageStore((s) => s.customSettings) || {};
+export default function AiConfigSection({
+  onAiConfigChange,
+  showImmediateSaveButton = true,
+  className
+}: AiConfigSectionProps) {
   const setCustomSettings = useStorageStore((s) => s.setCustomSettings);
 
   const [apiKey, setApiKey] = useState('');
@@ -77,7 +81,7 @@ export default function AiConfigSection({ onAiConfigChange, showImmediateSaveBut
 
   // 1. 初始化读取配置：优先读内存，同时调接口确保从 SQLite 恢复最新配置
   useEffect(() => {
-    const memoryAi = customSettings?.aiConfig as Record<string, any> | undefined;
+    const memoryAi = useStorageStore.getState().customSettings?.aiConfig as Record<string, any> | undefined;
     if (memoryAi && isObject(memoryAi)) {
       if (isString(memoryAi.apiKey)) setApiKey(memoryAi.apiKey);
       if (isString(memoryAi.baseURL) && memoryAi.baseURL.trim()) setBaseURL(memoryAi.baseURL);
@@ -273,7 +277,9 @@ export default function AiConfigSection({ onAiConfigChange, showImmediateSaveBut
   };
 
   return (
-    <div className="ai-config-section p-3.5 rounded-xl bg-white/[0.04] border border-[var(--border)] mb-4">
+    <div
+      className={cn('ai-config-section p-3.5 rounded-xl bg-white/[0.04] border border-[var(--border)] mb-4', className)}
+    >
       {/* 标题栏 */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5 font-medium text-xs text-foreground">
