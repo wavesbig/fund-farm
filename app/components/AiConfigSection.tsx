@@ -17,8 +17,7 @@ import {
   RefreshCw,
   Save,
   Check,
-  ListFilter,
-  Info
+  ListFilter
 } from 'lucide-react';
 import { useStorageStore } from '../stores';
 import { getStoredToken } from '../lib/authClient';
@@ -52,7 +51,6 @@ export interface ProviderPreset {
   badge: string;
   baseURL: string;
   model: string;
-  tip: string;
   latencyHint: string;
   icon: React.ElementType;
   theme: {
@@ -72,7 +70,6 @@ const PRESETS: ProviderPreset[] = [
     badge: '推荐',
     baseURL: 'https://api.deepseek.com/v1',
     model: 'deepseek-chat',
-    tip: '原生 DeepSeek-V3，高性价比与准确率',
     latencyHint: '极速',
     icon: Sparkles,
     theme: {
@@ -90,7 +87,6 @@ const PRESETS: ProviderPreset[] = [
     badge: '国内免翻',
     baseURL: 'https://api.siliconflow.cn/v1',
     model: 'deepseek-ai/DeepSeek-V3',
-    tip: '国内高速专线，支持 V3 / R1',
     latencyHint: '低延迟',
     icon: Cpu,
     theme: {
@@ -108,7 +104,6 @@ const PRESETS: ProviderPreset[] = [
     badge: '阿里百炼',
     baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     model: 'qwen-plus',
-    tip: '阿里云百炼端点，高可用稳定性',
     latencyHint: '高可用',
     icon: Globe,
     theme: {
@@ -126,7 +121,6 @@ const PRESETS: ProviderPreset[] = [
     badge: '原厂',
     baseURL: 'https://api.openai.com/v1',
     model: 'gpt-4o-mini',
-    tip: 'OpenAI 官方端点，需海外网络',
     latencyHint: '国际',
     icon: Bot,
     theme: {
@@ -144,7 +138,6 @@ const PRESETS: ProviderPreset[] = [
     badge: '本地私有',
     baseURL: 'http://localhost:11434/v1',
     model: 'qwen2.5:7b',
-    tip: '本地私有化运行，零费用免联网',
     latencyHint: '本地',
     icon: Layers,
     theme: {
@@ -162,7 +155,6 @@ const PRESETS: ProviderPreset[] = [
     badge: '通用兼容',
     baseURL: '',
     model: '',
-    tip: '支持任意兼容 OpenAI 规范的端点',
     latencyHint: '自定义',
     icon: KeyRound,
     theme: {
@@ -421,28 +413,26 @@ export default function AiConfigSection({
             >
               <Sparkles className="w-4 h-4" />
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="ai-master-switch" className="text-sm font-semibold text-foreground cursor-pointer">
-                  AI 截图智能识别
-                </Label>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'text-[10px] px-1.5 py-0 h-4 font-medium rounded-md border',
-                    enabled
-                      ? apiKey.trim()
-                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                        : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
-                      : 'bg-muted/40 text-muted-foreground border-border/50'
-                  )}
-                >
-                  {enabled ? (apiKey.trim() ? '已就绪' : '待配置 Key') : '未启用'}
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5 truncate sm:whitespace-normal">
-                导入持仓截图时，调用大模型自动解析基金代码与金额
-              </p>
+            <div className="flex items-center gap-2 min-w-0">
+              <Label
+                htmlFor="ai-master-switch"
+                className="text-sm font-semibold text-foreground cursor-pointer truncate"
+              >
+                AI 截图智能识别
+              </Label>
+              <Badge
+                variant="outline"
+                className={cn(
+                  'text-[10px] px-1.5 py-0 h-4 font-medium rounded-md border shrink-0',
+                  enabled
+                    ? apiKey.trim()
+                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                      : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                    : 'bg-muted/40 text-muted-foreground border-border/50'
+                )}
+              >
+                {enabled ? (apiKey.trim() ? '已就绪' : '待配置 Key') : '未启用'}
+              </Badge>
             </div>
           </div>
           <Switch
@@ -459,13 +449,10 @@ export default function AiConfigSection({
       <div
         className={cn('space-y-2.5 w-full min-w-0 transition-opacity', !enabled && 'opacity-50 pointer-events-none')}
       >
-        <div className="flex items-center justify-between">
-          <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-            <Cpu className="w-3.5 h-3.5 text-primary" />
-            <span>推荐服务商</span>
-          </Label>
-          <span className="text-[11px] text-muted-foreground">点击一键套用</span>
-        </div>
+        <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+          <Cpu className="w-3.5 h-3.5 text-primary" />
+          <span>推荐服务商</span>
+        </Label>
 
         <div className="flex flex-wrap gap-2.5 w-full min-w-0">
           {PRESETS.map((preset) => {
@@ -491,25 +478,22 @@ export default function AiConfigSection({
                     : cn('bg-card/60 border-border/70 hover:bg-card/90', theme.hoverBorder)
                 )}
               >
-                <div className="min-w-0">
-                  <div className="flex items-center justify-between gap-1.5 mb-1 min-w-0">
-                    <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground truncate min-w-0">
-                      <IconComponent
-                        className={cn(
-                          'w-3.5 h-3.5 shrink-0 transition-colors',
-                          isSelected ? theme.activeText : 'text-muted-foreground'
-                        )}
-                      />
-                      <span className="truncate">{preset.name}</span>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className={cn('text-[9px] px-1.5 py-0 h-4 font-normal shrink-0 border', theme.badgeStyle)}
-                    >
-                      {preset.badge}
-                    </Badge>
+                <div className="flex items-center justify-between gap-1.5 mb-2.5 min-w-0">
+                  <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground truncate min-w-0">
+                    <IconComponent
+                      className={cn(
+                        'w-3.5 h-3.5 shrink-0 transition-colors',
+                        isSelected ? theme.activeText : 'text-muted-foreground'
+                      )}
+                    />
+                    <span className="truncate">{preset.name}</span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground line-clamp-1 mb-2">{preset.tip}</p>
+                  <Badge
+                    variant="outline"
+                    className={cn('text-[9px] px-1.5 py-0 h-4 font-normal shrink-0 border', theme.badgeStyle)}
+                  >
+                    {preset.badge}
+                  </Badge>
                 </div>
 
                 <div className="flex items-center justify-between pt-1.5 border-t border-border/40 text-[10px] text-muted-foreground font-mono min-w-0">
@@ -750,12 +734,6 @@ export default function AiConfigSection({
           </Alert>
         )}
       </Card>
-
-      {/* 5. 提示说明 */}
-      <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 px-1">
-        <Info className="size-3.5 text-primary shrink-0" />
-        <span>支持在主页面直接粘贴（Ctrl+V）或拖拽截图，系统将自动识别持仓基金并导入。</span>
-      </div>
     </div>
   );
 }

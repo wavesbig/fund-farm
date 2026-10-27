@@ -75,7 +75,7 @@ interface SettingSwitchCardProps {
   id: string;
   icon: React.ComponentType<{ className?: string }>;
   title: string;
-  description: string;
+  description?: string;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   ariaLabel: string;
@@ -91,16 +91,16 @@ function SettingSwitchCard({
   ariaLabel
 }: SettingSwitchCardProps) {
   return (
-    <Card className="w-full flex flex-row items-center justify-between p-3.5 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
-      <div className="flex items-start gap-3 flex-1 min-w-0 pr-2">
-        <div className="mt-0.5 p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
+    <Card className="w-full flex flex-row items-center justify-between p-3 sm:p-3.5 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+      <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
+        <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
           <Icon className="w-4 h-4" />
         </div>
-        <div className="flex-1 min-w-0 space-y-0.5">
-          <Label htmlFor={id} className="text-xs font-semibold text-foreground cursor-pointer">
+        <div className="flex-1 min-w-0">
+          <Label htmlFor={id} className="text-xs font-semibold text-foreground cursor-pointer truncate">
             {title}
           </Label>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">{description}</p>
+          {description && <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{description}</p>}
         </div>
       </div>
       <Switch
@@ -117,7 +117,6 @@ function SettingSwitchCard({
 interface NavItem {
   id: 'general' | 'ai' | 'data';
   title: string;
-  desc: string;
   badge?: string;
   icon: React.ElementType;
 }
@@ -126,20 +125,17 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: 'general',
     title: '常规界面',
-    desc: '刷新频率与布局偏好',
     icon: Sliders
   },
   {
     id: 'ai',
     title: 'AI 大模型',
-    desc: '截图识别与模型服务',
     badge: '智能识别',
     icon: Sparkles
   },
   {
     id: 'data',
     title: '数据备份',
-    desc: '配置数据导出与恢复',
     icon: HardDriveDownload
   }
 ];
@@ -412,7 +408,6 @@ export default function SettingsModal({
                 id="setting-market-index"
                 icon={LineChart}
                 title="显示大盘指数行情"
-                description="在首页表格或概览顶部显示上证指数等关键大盘指数行情条"
                 checked={isMobile ? localShowMarketIndexMobile : localShowMarketIndexPc}
                 onCheckedChange={(checked) => {
                   const nextValue = Boolean(checked);
@@ -426,7 +421,6 @@ export default function SettingsModal({
                 id="setting-group-search"
                 icon={Search}
                 title="分组内基金即时搜索"
-                description="在各个持仓分组列表上方提供快速搜索过滤输入栏"
                 checked={isMobile ? localShowGroupFundSearchMobile : localShowGroupFundSearchPc}
                 onCheckedChange={(checked) => {
                   const nextValue = Boolean(checked);
@@ -440,7 +434,6 @@ export default function SettingsModal({
                 id="setting-dynamic-style"
                 icon={Zap}
                 title="减少动态样式效果"
-                description="关闭卡片微动效与过渡模糊，优化低性能设备流畅度"
                 checked={isMobile ? !localDynamicStyleMobile : !localDynamicStylePc}
                 onCheckedChange={(checked) => {
                   const nextValue = !checked;
@@ -454,7 +447,6 @@ export default function SettingsModal({
                 id="setting-group-dropdown"
                 icon={LayoutGrid}
                 title="下拉形式展示分组"
-                description="采用简洁下拉菜单切换不同基金分组，节省纵向视图空间"
                 checked={isMobile ? localShowGroupDropdownMobile : localShowGroupDropdownPc}
                 onCheckedChange={(checked) => {
                   const nextValue = Boolean(checked);
@@ -485,15 +477,12 @@ export default function SettingsModal({
       {activeTab === 'data' && (
         <div className="space-y-4 w-full min-w-0">
           <div className="flex flex-col gap-2.5 w-full min-w-0">
-            <Card className="flex flex-row items-center justify-between p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
-              <div className="space-y-1 pr-3 min-w-0 flex-1">
-                <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  <Download className="w-3.5 h-3.5 text-primary" />
-                  <span>导出配置备份 (JSON)</span>
+            <Card className="flex flex-row items-center justify-between p-3.5 sm:p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
+                  <Download className="w-4 h-4" />
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  将当前全部持仓数据、分组划分、自选列表及偏好配置导出为 JSON 文件备份。
-                </p>
+                <span className="text-xs font-semibold text-foreground truncate">导出配置备份 (JSON)</span>
               </div>
               <Button
                 type="button"
@@ -507,15 +496,12 @@ export default function SettingsModal({
               </Button>
             </Card>
 
-            <Card className="flex flex-row items-center justify-between p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
-              <div className="space-y-1 pr-3 min-w-0 flex-1">
-                <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  <Upload className="w-3.5 h-3.5 text-primary" />
-                  <span>恢复导入配置</span>
+            <Card className="flex flex-row items-center justify-between p-3.5 sm:p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
+                  <Upload className="w-4 h-4" />
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  选择此前备份导出的 JSON 配置文件，一键恢复全部持仓与系统偏好。
-                </p>
+                <span className="text-xs font-semibold text-foreground truncate">恢复导入配置</span>
               </div>
               <Button
                 type="button"
@@ -560,16 +546,14 @@ export default function SettingsModal({
         showCloseButton={true}
       >
         {/* 顶部标题栏 Header */}
-        <DialogHeader className="px-6 py-4.5 border-b border-border/60 shrink-0 text-left bg-muted/10">
+        <DialogHeader className="px-6 py-4 border-b border-border/60 shrink-0 text-left bg-muted/10">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <DialogTitle className="text-base font-semibold text-foreground">偏好与系统设置</DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                自定义数据刷新频率、界面功能、大模型智能提取及本地数据备份
-              </DialogDescription>
+              <DialogTitle className="text-base font-semibold text-foreground">偏好与设置</DialogTitle>
+              <DialogDescription className="sr-only">偏好与设置</DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -621,7 +605,7 @@ export default function SettingsModal({
                       type="button"
                       onClick={() => setActiveTab(item.id)}
                       className={cn(
-                        'flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-all cursor-pointer group border',
+                        'flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs transition-all cursor-pointer group border',
                         isActive
                           ? 'bg-primary/15 text-primary border-primary/30 font-semibold shadow-xs'
                           : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-card/70'
@@ -633,30 +617,18 @@ export default function SettingsModal({
                           isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
                         )}
                       />
-                      <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="truncate">{item.title}</span>
-                          {item.badge && (
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                'text-[9px] px-1 py-0 h-3.5 font-normal border',
-                                isActive ? 'bg-primary/20 text-primary border-primary/30' : 'text-muted-foreground/80'
-                              )}
-                            >
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </div>
-                        <span
+                      <span className="truncate flex-1">{item.title}</span>
+                      {item.badge && (
+                        <Badge
+                          variant="outline"
                           className={cn(
-                            'text-[10px] truncate leading-tight mt-0.5',
-                            isActive ? 'text-primary/80 font-normal' : 'text-muted-foreground/70'
+                            'text-[9px] px-1.5 py-0 h-4 font-normal border',
+                            isActive ? 'bg-primary/20 text-primary border-primary/30' : 'text-muted-foreground/80'
                           )}
                         >
-                          {item.desc}
-                        </span>
-                      </div>
+                          {item.badge}
+                        </Badge>
+                      )}
                     </button>
                   );
                 })}
