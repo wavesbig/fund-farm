@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { isString, isObject, isArray, isBoolean } from 'lodash';
 import {
   Sparkles,
@@ -51,80 +51,129 @@ export interface ProviderPreset {
   id: string;
   name: string;
   badge: string;
-  badgeVariant: 'default' | 'secondary' | 'outline';
   baseURL: string;
   model: string;
   tip: string;
   latencyHint: string;
   icon: React.ElementType;
+  theme: {
+    activeBorder: string;
+    activeBg: string;
+    activeText: string;
+    activeRing: string;
+    badgeStyle: string;
+    hoverBorder: string;
+  };
 }
 
 const PRESETS: ProviderPreset[] = [
   {
     id: 'deepseek',
     name: 'DeepSeek 官方',
-    badge: '推荐 · 性价比',
-    badgeVariant: 'default',
+    badge: '官方推荐',
     baseURL: 'https://api.deepseek.com/v1',
     model: 'deepseek-chat',
     tip: '原生 DeepSeek-V3 接口，识别基金代码准确度极高',
     latencyHint: '极速',
-    icon: Sparkles
+    icon: Sparkles,
+    theme: {
+      activeBorder: 'border-cyan-500',
+      activeBg: 'bg-cyan-500/12',
+      activeText: 'text-cyan-500 dark:text-cyan-400',
+      activeRing: 'ring-1 ring-cyan-500/30',
+      badgeStyle: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30',
+      hoverBorder: 'hover:border-cyan-500/40'
+    }
   },
   {
     id: 'siliconflow',
     name: '硅基流动',
     badge: '国内免翻',
-    badgeVariant: 'secondary',
     baseURL: 'https://api.siliconflow.cn/v1',
     model: 'deepseek-ai/DeepSeek-V3',
-    tip: '国内高速专线托管，支持满血版 DeepSeek-V3 / R1',
+    tip: '国内极速专线托管，支持满血版 DeepSeek-V3 / R1',
     latencyHint: '低延迟',
-    icon: Cpu
+    icon: Cpu,
+    theme: {
+      activeBorder: 'border-indigo-500',
+      activeBg: 'bg-indigo-500/12',
+      activeText: 'text-indigo-500 dark:text-indigo-400',
+      activeRing: 'ring-1 ring-indigo-500/30',
+      badgeStyle: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30',
+      hoverBorder: 'hover:border-indigo-500/40'
+    }
   },
   {
     id: 'dashscope',
     name: '通义千问',
     badge: '阿里百炼',
-    badgeVariant: 'secondary',
     baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     model: 'qwen-plus',
     tip: '阿里云官方 OpenAPI 兼容端点，高并发稳定性优秀',
     latencyHint: '高可用',
-    icon: Globe
+    icon: Globe,
+    theme: {
+      activeBorder: 'border-amber-500',
+      activeBg: 'bg-amber-500/12',
+      activeText: 'text-amber-500 dark:text-amber-400',
+      activeRing: 'ring-1 ring-amber-500/30',
+      badgeStyle: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30',
+      hoverBorder: 'hover:border-amber-500/40'
+    }
   },
   {
     id: 'openai',
     name: 'OpenAI 官方',
-    badge: '国际原厂',
-    badgeVariant: 'outline',
+    badge: 'GPT-4o',
     baseURL: 'https://api.openai.com/v1',
     model: 'gpt-4o-mini',
     tip: '官方标准端点，需网络环境支持海外访问',
-    latencyHint: '海外专线',
-    icon: Bot
+    latencyHint: '国际原厂',
+    icon: Bot,
+    theme: {
+      activeBorder: 'border-emerald-500',
+      activeBg: 'bg-emerald-500/12',
+      activeText: 'text-emerald-500 dark:text-emerald-400',
+      activeRing: 'ring-1 ring-emerald-500/30',
+      badgeStyle: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+      hoverBorder: 'hover:border-emerald-500/40'
+    }
   },
   {
     id: 'ollama',
     name: '本地 Ollama',
     badge: '私有免联网',
-    badgeVariant: 'outline',
     baseURL: 'http://localhost:11434/v1',
     model: 'qwen2.5:7b',
     tip: '局域网或本机部署，持仓信息不出内网，零费用消耗',
-    latencyHint: '本地',
-    icon: Layers
+    latencyHint: '本地私有',
+    icon: Layers,
+    theme: {
+      activeBorder: 'border-violet-500',
+      activeBg: 'bg-violet-500/12',
+      activeText: 'text-violet-500 dark:text-violet-400',
+      activeRing: 'ring-1 ring-violet-500/30',
+      badgeStyle: 'bg-violet-500/15 text-violet-600 dark:text-violet-400 border-violet-500/30',
+      hoverBorder: 'hover:border-violet-500/40'
+    }
   },
   {
     id: 'custom',
     name: '自定义端点',
     badge: '通用兼容',
-    badgeVariant: 'outline',
     baseURL: '',
     model: '',
     tip: '支持任何符合 OpenAI / OpenAPI 规范的中转或自建接口',
     latencyHint: '自定义',
-    icon: KeyRound
+    icon: KeyRound,
+    theme: {
+      activeBorder: 'border-rose-500',
+      activeBg: 'bg-rose-500/12',
+      activeText: 'text-rose-500 dark:text-rose-400',
+      activeRing: 'ring-1 ring-rose-500/30',
+      badgeStyle: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30',
+      hoverBorder: 'hover:border-rose-500/40'
+    }
   }
 ];
 
@@ -160,7 +209,6 @@ export default function AiConfigSection({
       if (isBoolean(memoryAi.enabled)) setEnabled(memoryAi.enabled);
     }
 
-    // 从服务端 SQLite 查询最新数据兜底
     const fetchLatestFromDb = async () => {
       try {
         const token = getStoredToken();
@@ -205,7 +253,6 @@ export default function AiConfigSection({
 
   const applyPreset = useCallback((preset: ProviderPreset) => {
     if (preset.id === 'custom') {
-      // 切换为自定义，保留当前内容，便于用户自由编辑
       setTestResult(null);
       setModelFetchMsg('');
       return;
@@ -252,7 +299,6 @@ export default function AiConfigSection({
           setIsManualInput(false);
           setModelFetchMsg(`已成功拉取 ${data.models.length} 个可用模型`);
 
-          // 优先定位常用聊天模型
           if (!data.models.includes(model)) {
             const preferred =
               data.models.find(
@@ -350,10 +396,8 @@ export default function AiConfigSection({
       aiConfig: nextAiConfig
     };
 
-    // 1. 同步写入 Zustand 内存 store (由 storageStore 处理持久化)
     setCustomSettings(nextCustomSettings);
 
-    // 2. 立即直接落盘至本地 SQLite 数据库，彻底杜绝防抖丢数据
     try {
       await saveSqliteKey('customSettings', nextCustomSettings);
       setSaveSuccess(true);
@@ -364,33 +408,42 @@ export default function AiConfigSection({
   };
 
   return (
-    <div className={cn('space-y-4 text-left', className)}>
-      {/* 1. 总开关与状态卡片 */}
-      <Card className="p-4 gap-3 bg-muted/30 border-border/60 shadow-none rounded-xl">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+    <div className={cn('space-y-4 text-left w-full min-w-0 max-w-full', className)}>
+      {/* 1. 总开关与状态卡片 (精美渐变光晕质感) */}
+      <Card className="p-4 sm:p-4.5 gap-3 bg-gradient-to-r from-primary/10 via-accent/5 to-card/60 border border-primary/25 rounded-2xl shadow-sm backdrop-blur-md">
+        <div className="flex items-center justify-between gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
               className={cn(
-                'p-2.5 rounded-xl shrink-0 transition-colors',
-                enabled ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
+                'p-2.5 rounded-xl shrink-0 transition-all border',
+                enabled
+                  ? 'bg-primary/15 text-primary border-primary/30 shadow-xs'
+                  : 'bg-muted/30 text-muted-foreground border-border/50'
               )}
             >
               <Sparkles className="w-5 h-5" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <Label htmlFor="ai-master-switch" className="text-sm font-semibold text-foreground cursor-pointer">
                   AI 截图智能提取与识别
                 </Label>
                 <Badge
-                  variant={enabled ? (apiKey.trim() ? 'default' : 'secondary') : 'outline'}
-                  className="text-[10px] px-1.5 py-0 h-4 font-normal"
+                  variant="outline"
+                  className={cn(
+                    'text-[10px] px-2 py-0.5 h-4.5 font-medium rounded-md border',
+                    enabled
+                      ? apiKey.trim()
+                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                        : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                      : 'bg-muted/40 text-muted-foreground border-border/50'
+                  )}
                 >
                   {enabled ? (apiKey.trim() ? '服务就绪 ✓' : '待配置 API Key') : '已停用'}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                导入支付宝、微信、天天基金等持仓截图时，自动调用大语言模型识别基金代码、金额与收益。
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed truncate sm:whitespace-normal">
+                导入支付宝、微信、天天基金持仓截图时，调用大模型识别基金代码、金额与收益。
               </p>
             </div>
           </div>
@@ -404,20 +457,23 @@ export default function AiConfigSection({
         </div>
       </Card>
 
-      {/* 2. 服务商选择卡片网格 */}
-      <div className={cn('space-y-2 transition-opacity', !enabled && 'opacity-50 pointer-events-none')}>
+      {/* 2. 服务商选择卡片网格 (品牌个性化着色，避免暗沉杂灰) */}
+      <div
+        className={cn('space-y-2.5 w-full min-w-0 transition-opacity', !enabled && 'opacity-50 pointer-events-none')}
+      >
         <div className="flex items-center justify-between">
           <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
             <Cpu className="w-3.5 h-3.5 text-primary" />
             <span>精选推荐服务商</span>
           </Label>
-          <span className="text-[11px] text-muted-foreground">一键套用标准接口与推荐模型</span>
+          <span className="text-[11px] text-muted-foreground hidden sm:inline">一键套用推荐端点与模型</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 w-full min-w-0">
           {PRESETS.map((preset) => {
             const isSelected = activePresetId === preset.id;
             const IconComponent = preset.icon;
+            const theme = preset.theme;
             return (
               <div
                 key={preset.id}
@@ -431,30 +487,41 @@ export default function AiConfigSection({
                   }
                 }}
                 className={cn(
-                  'relative flex flex-col justify-between p-3 rounded-xl border text-left transition-all cursor-pointer group select-none',
+                  'relative flex flex-col justify-between p-3 rounded-xl border text-left transition-all cursor-pointer group select-none min-w-0 w-full overflow-hidden backdrop-blur-sm',
                   isSelected
-                    ? 'bg-primary/10 border-primary ring-1 ring-primary/40 shadow-xs'
-                    : 'bg-muted/20 border-border/60 hover:bg-muted/50 hover:border-border'
+                    ? cn(theme.activeBorder, theme.activeBg, theme.activeRing, 'shadow-xs')
+                    : cn('bg-card/60 border-border/70 hover:bg-card/90', theme.hoverBorder)
                 )}
               >
-                <div>
-                  <div className="flex items-center justify-between gap-1 mb-1.5">
-                    <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground truncate">
+                <div className="min-w-0">
+                  <div className="flex items-center justify-between gap-1.5 mb-1.5 min-w-0">
+                    <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground truncate min-w-0">
                       <IconComponent
-                        className={cn('w-3.5 h-3.5 shrink-0', isSelected ? 'text-primary' : 'text-muted-foreground')}
+                        className={cn(
+                          'w-3.5 h-3.5 shrink-0 transition-colors',
+                          isSelected ? theme.activeText : 'text-muted-foreground'
+                        )}
                       />
                       <span className="truncate">{preset.name}</span>
                     </div>
-                    <Badge variant={preset.badgeVariant} className="text-[10px] px-1.5 py-0 h-4 font-normal shrink-0">
+                    <Badge
+                      variant="outline"
+                      className={cn('text-[9px] px-1.5 py-0 h-4 font-normal shrink-0 border', theme.badgeStyle)}
+                    >
                       {preset.badge}
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-muted-foreground line-clamp-2 leading-tight mb-2">{preset.tip}</p>
+                  <p className="text-[11px] text-muted-foreground line-clamp-1 leading-snug mb-2">{preset.tip}</p>
                 </div>
 
-                <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground font-mono">
-                  <span className="truncate max-w-[120px]">{preset.model || '自定义端点'}</span>
-                  <span className={cn('text-[9px] shrink-0', isSelected ? 'text-primary font-medium' : '')}>
+                <div className="flex items-center justify-between pt-1.5 border-t border-border/40 text-[10px] text-muted-foreground font-mono min-w-0">
+                  <span className="truncate max-w-[130px]">{preset.model || '自定义端点'}</span>
+                  <span
+                    className={cn(
+                      'text-[9px] shrink-0 font-sans',
+                      isSelected ? theme.activeText : 'text-muted-foreground/70'
+                    )}
+                  >
                     {preset.latencyHint}
                   </span>
                 </div>
@@ -464,23 +531,25 @@ export default function AiConfigSection({
         </div>
       </div>
 
-      {/* 3. 接口凭据与模型配置卡片 */}
+      {/* 3. 接口凭据与模型配置卡片 (通透毛玻璃面板) */}
       <Card
         className={cn(
-          'p-4 gap-3 bg-muted/30 border-border/60 shadow-none rounded-xl space-y-3.5 transition-opacity',
+          'p-4 sm:p-5 gap-3.5 bg-card/50 border-border/70 shadow-xs rounded-2xl space-y-3.5 w-full min-w-0 backdrop-blur-sm transition-opacity',
           !enabled && 'opacity-50 pointer-events-none'
         )}
       >
-        <div className="flex items-center justify-between pb-1 border-b border-border/40">
-          <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-            <KeyRound className="w-3.5 h-3.5 text-primary" />
+        <div className="flex items-center justify-between pb-2 border-b border-border/50">
+          <div className="text-xs font-semibold text-foreground flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
+              <KeyRound className="w-3.5 h-3.5" />
+            </div>
             <span>接口凭据与模型参数</span>
           </div>
-          <span className="text-[11px] text-muted-foreground font-mono">OpenAI Compatible API</span>
+          <span className="text-[11px] text-muted-foreground font-mono">OpenAI Compatible</span>
         </div>
 
         {/* API Key */}
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 min-w-0">
           <div className="flex items-center justify-between">
             <Label htmlFor="ai-api-key" className="text-xs font-medium text-foreground flex items-center gap-1">
               <span>API 密钥 (API Key)</span>
@@ -491,7 +560,7 @@ export default function AiConfigSection({
               <span>本地 SQLite 私密存储</span>
             </div>
           </div>
-          <div className="relative flex items-center">
+          <div className="relative flex items-center min-w-0">
             <Input
               id="ai-api-key"
               type={showKey ? 'text' : 'password'}
@@ -501,7 +570,7 @@ export default function AiConfigSection({
                 setTestResult(null);
               }}
               placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
-              className="w-full h-9 pr-9 text-[16PX] md:text-sm bg-background/60 font-mono"
+              className="w-full h-9 pr-9 text-[16PX] md:text-sm bg-background/80 font-mono border-border/70 focus-visible:ring-1 focus-visible:ring-primary/40"
             />
             <button
               type="button"
@@ -514,12 +583,12 @@ export default function AiConfigSection({
             </button>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            API Key 仅存放于您本地浏览器及内置 SQLite 数据库中，服务端仅做请求转发，绝不记录存储。
+            API Key 仅加密保存在本地设备，服务端仅转发请求，绝不上云存储。
           </p>
         </div>
 
         {/* 接口地址 (Base URL) */}
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 min-w-0">
           <div className="flex items-center justify-between">
             <Label htmlFor="ai-base-url" className="text-xs font-medium text-foreground flex items-center gap-1">
               <span>接口端点 (Base URL)</span>
@@ -531,7 +600,7 @@ export default function AiConfigSection({
                 onClick={() => setBaseURL('https://api.deepseek.com/v1')}
                 className="text-[11px] text-primary hover:underline cursor-pointer"
               >
-                恢复默认端点
+                恢复 DeepSeek 端点
               </button>
             )}
           </div>
@@ -544,13 +613,13 @@ export default function AiConfigSection({
               setTestResult(null);
             }}
             placeholder="https://api.deepseek.com/v1"
-            className="w-full h-9 text-[16PX] md:text-sm bg-background/60 font-mono"
+            className="w-full h-9 text-[16PX] md:text-sm bg-background/80 font-mono border-border/70 focus-visible:ring-1 focus-visible:ring-primary/40"
           />
         </div>
 
         {/* 模型名称 (Model) */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
+        <div className="space-y-1.5 min-w-0">
+          <div className="flex items-center justify-between flex-wrap gap-1">
             <Label htmlFor="ai-model-input" className="text-xs font-medium text-foreground flex items-center gap-1">
               <span>模型名称 (Model)</span>
               <span className="text-destructive font-bold">*</span>
@@ -561,7 +630,7 @@ export default function AiConfigSection({
               size="sm"
               onClick={handleFetchModels}
               disabled={fetchingModels || !apiKey.trim()}
-              className="h-6 px-2 text-[11px] gap-1 rounded-md"
+              className="h-6 px-2 text-[11px] gap-1 rounded-md border-border/70 hover:border-primary/40"
               title="根据当前 API Key 自动拉取该服务商支持的模型列表"
             >
               <RefreshCw className={cn('w-3 h-3', fetchingModels && 'animate-spin')} />
@@ -570,7 +639,7 @@ export default function AiConfigSection({
           </div>
 
           {modelList.length > 0 && !isManualInput ? (
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center min-w-0">
               <Select
                 value={model}
                 onValueChange={(val) => {
@@ -578,7 +647,7 @@ export default function AiConfigSection({
                   setTestResult(null);
                 }}
               >
-                <SelectTrigger className="flex-1 h-9 bg-background/60 text-xs font-mono">
+                <SelectTrigger className="flex-1 h-9 bg-background/80 text-xs font-mono border-border/70">
                   <SelectValue placeholder="请选择模型" />
                 </SelectTrigger>
                 <SelectContent className="z-[10001] max-h-56">
@@ -594,14 +663,14 @@ export default function AiConfigSection({
                 variant="outline"
                 size="sm"
                 onClick={() => setIsManualInput(true)}
-                className="h-9 px-2.5 text-xs shrink-0 rounded-lg"
+                className="h-9 px-2.5 text-xs shrink-0 rounded-lg border-border/70"
                 title="切换为手动自由输入"
               >
                 自由输入
               </Button>
             </div>
           ) : (
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center min-w-0">
               <Input
                 id="ai-model-input"
                 type="text"
@@ -611,7 +680,7 @@ export default function AiConfigSection({
                   setTestResult(null);
                 }}
                 placeholder="deepseek-chat"
-                className="flex-1 h-9 text-[16PX] md:text-sm bg-background/60 font-mono"
+                className="flex-1 h-9 text-[16PX] md:text-sm bg-background/80 font-mono border-border/70 focus-visible:ring-1 focus-visible:ring-primary/40"
               />
               {modelList.length > 0 && (
                 <Button
@@ -619,7 +688,7 @@ export default function AiConfigSection({
                   variant="outline"
                   size="sm"
                   onClick={() => setIsManualInput(false)}
-                  className="h-9 px-2 text-xs gap-1 shrink-0 rounded-lg"
+                  className="h-9 px-2.5 text-xs gap-1 shrink-0 rounded-lg border-border/70"
                 >
                   <ListFilter className="w-3.5 h-3.5" />
                   <span>选择已拉取</span>
@@ -642,14 +711,14 @@ export default function AiConfigSection({
         </div>
 
         {/* 4. 测试与即时保存工具栏 */}
-        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-border/40">
+        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-border/50">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleTestConnection}
             disabled={testing || !apiKey.trim()}
-            className="h-8 px-3 text-xs gap-1.5 rounded-lg"
+            className="h-8.5 px-3 text-xs gap-1.5 rounded-lg border-border/70 hover:border-primary/40"
           >
             <RefreshCw className={cn('w-3.5 h-3.5', testing && 'animate-spin')} />
             <span>{testing ? '正在测试连接…' : '测试连接 (Ping)'}</span>
@@ -662,8 +731,8 @@ export default function AiConfigSection({
               size="sm"
               onClick={handleSaveImmediate}
               className={cn(
-                'h-8 px-3 text-xs gap-1.5 rounded-lg transition-colors',
-                saveSuccess && 'bg-emerald-600 text-white hover:bg-emerald-600/90'
+                'h-8.5 px-3.5 text-xs gap-1.5 rounded-lg transition-all',
+                saveSuccess && 'bg-emerald-600 hover:bg-emerald-600/90 text-white shadow-xs'
               )}
             >
               {saveSuccess ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
@@ -677,10 +746,10 @@ export default function AiConfigSection({
           <Alert
             variant={testResult.success ? 'default' : 'destructive'}
             className={cn(
-              'mt-2 py-2 px-3 text-xs',
+              'mt-2 py-2.5 px-3.5 text-xs border rounded-xl overflow-hidden',
               testResult.success
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                : 'bg-destructive/10 border-destructive/20 text-destructive'
+                ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-600 dark:text-emerald-400'
+                : 'bg-destructive/10 border-destructive/25 text-destructive'
             )}
           >
             {testResult.success ? (
@@ -688,13 +757,15 @@ export default function AiConfigSection({
             ) : (
               <AlertCircle className="size-4 shrink-0" />
             )}
-            <AlertDescription className="text-xs break-all leading-relaxed">{testResult.message}</AlertDescription>
+            <AlertDescription className="text-xs break-all leading-relaxed overflow-hidden">
+              {testResult.message}
+            </AlertDescription>
           </Alert>
         )}
       </Card>
 
-      {/* 5. 提示与使用帮助 */}
-      <Alert className="bg-muted/20 border-border/50 text-muted-foreground p-3">
+      {/* 5. 提示与使用帮助卡片 */}
+      <Alert className="bg-card/40 border-border/60 text-muted-foreground p-3.5 rounded-xl backdrop-blur-sm">
         <Info className="size-4 text-primary shrink-0" />
         <AlertTitle className="text-xs font-semibold text-foreground">如何使用截图导入？</AlertTitle>
         <AlertDescription className="text-xs mt-1 leading-relaxed">
