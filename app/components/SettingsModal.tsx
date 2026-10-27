@@ -92,7 +92,7 @@ function SettingSwitchCard({
   ariaLabel
 }: SettingSwitchCardProps) {
   return (
-    <Card className="w-full flex flex-row items-center justify-between p-3.5 gap-3 bg-card/50 hover:bg-card/80 border-border/60 hover:border-primary/30 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+    <Card className="w-full flex flex-row items-center justify-between p-3.5 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
       <div className="flex items-start gap-3 flex-1 min-w-0 pr-2">
         <div className="mt-0.5 p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
           <Icon className="w-4 h-4" />
@@ -279,6 +279,284 @@ export default function SettingsModal({
     );
   };
 
+  // 渲染通用主内容面板
+  const renderMainContent = () => (
+    <div className="space-y-4 w-full min-w-0">
+      {/* ===== 分类 1: 常规界面 ===== */}
+      {activeTab === 'general' && (
+        <div className="space-y-4 w-full min-w-0">
+          {/* 刷新频率卡片 */}
+          <Card className="p-4 gap-3 bg-card/60 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
+                  <Clock className="w-3.5 h-3.5" />
+                </div>
+                <Label className="text-xs font-semibold text-foreground">数据自动刷新频率</Label>
+              </div>
+              <Badge variant="outline" className="font-mono text-xs tabular-nums bg-card/80 border-border/70">
+                当前: {localSeconds} 秒
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2 w-full min-w-0">
+              {[30, 60, 120, 300].map((s) => {
+                const isActive = localSeconds === s;
+                return (
+                  <Button
+                    key={s}
+                    type="button"
+                    variant={isActive ? 'default' : 'outline'}
+                    size="sm"
+                    className={cn(
+                      'flex-1 h-8 text-xs font-medium tabular-nums rounded-lg border-border/70 truncate',
+                      isActive && 'shadow-xs font-semibold'
+                    )}
+                    onClick={() => setLocalSeconds(s)}
+                    aria-pressed={isActive}
+                  >
+                    {s} 秒
+                  </Button>
+                );
+              })}
+            </div>
+            <div className="pt-0.5">
+              <Input
+                type="number"
+                inputMode="numeric"
+                min="30"
+                step="5"
+                value={localSeconds || ''}
+                onChange={(e) => setLocalSeconds(Number(e.target.value))}
+                placeholder="自定义秒数（例如 45）"
+                className="h-9 text-[16PX] md:text-sm bg-background/80 font-mono border-border/70 focus-visible:ring-1 focus-visible:ring-primary/40"
+              />
+              {localSeconds < 30 && <p className="text-destructive text-xs mt-1 font-medium">最低刷新频率为 30 秒</p>}
+            </div>
+          </Card>
+
+          {/* 页面宽度控制卡片 (PC端专属) */}
+          {!isMobile && setContainerWidth && (
+            <Card className="p-4 gap-3 bg-card/60 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </div>
+                  <Label className="text-xs font-semibold text-foreground">页面最大容器宽度</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="font-mono text-xs tabular-nums bg-card/80 border-border/70">
+                    {clampedWidth}px
+                  </Badge>
+                  {onResetContainerWidth && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="size-7 text-muted-foreground hover:text-foreground rounded-md"
+                          onClick={() => setResetWidthConfirmOpen(true)}
+                          aria-label="重置页面宽度"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>恢复默认宽度 1200px</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+              </div>
+              <div className="pt-1 w-full min-w-0">
+                <div
+                  ref={pageWidthTrackRef}
+                  className="group relative h-4 cursor-pointer flex items-center w-full"
+                  onPointerDown={(e) => {
+                    sliderDraggingRef.current = true;
+                    setSliderDragging(true);
+                    updateWidthByClientX(e.clientX);
+                    e.currentTarget.setPointerCapture?.(e.pointerId);
+                  }}
+                  onPointerMove={(e) => {
+                    if (!sliderDraggingRef.current) return;
+                    updateWidthByClientX(e.clientX);
+                  }}
+                >
+                  <Progress
+                    value={pageWidthPercent}
+                    className="h-2 w-full"
+                    indicatorClassName="!bg-none bg-primary !transition-none"
+                  />
+                  <div
+                    className="pointer-events-none absolute top-1/2 -translate-y-1/2"
+                    style={{ left: `${pageWidthPercent}%`, transform: 'translate(-50%, -50%)' }}
+                  >
+                    <div className="size-4 rounded-full bg-primary shadow-md shadow-primary/40 border-2 border-background" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-between text-[11px] text-muted-foreground pt-0.5">
+                <span>紧凑 (600px)</span>
+                <span>标准 (1200px)</span>
+                <span>自适应宽屏</span>
+              </div>
+            </Card>
+          )}
+
+          {/* 界面功能与视图偏好列表 */}
+          <div className="space-y-2 pt-1 min-w-0">
+            <Label className="text-xs font-semibold text-foreground">界面功能与视图偏好</Label>
+            <div className="flex flex-col gap-2.5 w-full min-w-0">
+              <SettingSwitchCard
+                id="setting-market-index"
+                icon={LineChart}
+                title="显示大盘指数行情"
+                description="在首页表格或概览顶部显示上证指数等关键大盘指数行情条"
+                checked={isMobile ? localShowMarketIndexMobile : localShowMarketIndexPc}
+                onCheckedChange={(checked) => {
+                  const nextValue = Boolean(checked);
+                  if (isMobile) setLocalShowMarketIndexMobile(nextValue);
+                  else setLocalShowMarketIndexPc(nextValue);
+                }}
+                ariaLabel="显示大盘指数"
+              />
+
+              <SettingSwitchCard
+                id="setting-group-search"
+                icon={Search}
+                title="分组内基金即时搜索"
+                description="在各个持仓分组列表上方提供快速搜索过滤输入栏"
+                checked={isMobile ? localShowGroupFundSearchMobile : localShowGroupFundSearchPc}
+                onCheckedChange={(checked) => {
+                  const nextValue = Boolean(checked);
+                  if (isMobile) setLocalShowGroupFundSearchMobile(nextValue);
+                  else setLocalShowGroupFundSearchPc(nextValue);
+                }}
+                ariaLabel="显示分组内基金搜索"
+              />
+
+              <SettingSwitchCard
+                id="setting-dynamic-style"
+                icon={Zap}
+                title="减少动态样式效果"
+                description="关闭卡片微动效与过渡模糊，优化低性能设备流畅度"
+                checked={isMobile ? !localDynamicStyleMobile : !localDynamicStylePc}
+                onCheckedChange={(checked) => {
+                  const nextValue = !checked;
+                  if (isMobile) setLocalDynamicStyleMobile(nextValue);
+                  else setLocalDynamicStylePc(nextValue);
+                }}
+                ariaLabel="减少动态样式效果"
+              />
+
+              <SettingSwitchCard
+                id="setting-group-dropdown"
+                icon={LayoutGrid}
+                title="下拉形式展示分组"
+                description="采用简洁下拉菜单切换不同基金分组，节省纵向视图空间"
+                checked={isMobile ? localShowGroupDropdownMobile : localShowGroupDropdownPc}
+                onCheckedChange={(checked) => {
+                  const nextValue = Boolean(checked);
+                  if (isMobile) setLocalShowGroupDropdownMobile(nextValue);
+                  else setLocalShowGroupDropdownPc(nextValue);
+                }}
+                ariaLabel="下拉形式展示分组"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== 分类 2: AI 大模型 ===== */}
+      {activeTab === 'ai' && (
+        <div className="space-y-4 w-full min-w-0">
+          <AiConfigSection
+            onAiConfigChange={(cfg) => {
+              aiConfigRef.current = cfg;
+            }}
+            showImmediateSaveButton={true}
+            className="border-0 bg-transparent p-0 mb-0 shadow-none w-full min-w-0"
+          />
+        </div>
+      )}
+
+      {/* ===== 分类 3: 数据备份 ===== */}
+      {activeTab === 'data' && (
+        <div className="space-y-4 w-full min-w-0">
+          <Alert className="bg-primary/10 border-primary/25 text-foreground rounded-xl p-3.5">
+            <ShieldCheck className="size-4 text-primary" />
+            <AlertTitle className="text-primary font-semibold text-xs">本地优先（Local-First）架构声明</AlertTitle>
+            <AlertDescription className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+              基估宝采用离线优先设计，持仓流水、交易明细与个性化配置均保存在本地环境（localStorage 与内置
+              SQLite）中，数据私密安全。
+            </AlertDescription>
+          </Alert>
+
+          <div className="flex flex-col gap-2.5 w-full min-w-0">
+            <Card className="flex flex-row items-center justify-between p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+              <div className="space-y-1 pr-3 min-w-0 flex-1">
+                <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Download className="w-3.5 h-3.5 text-primary" />
+                  <span>导出本地配置 (JSON)</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  将当前全部持仓数据、分组划分、自选列表及偏好配置导出为文件备份。
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={exportLocalData}
+                className="h-8.5 text-xs gap-1.5 shrink-0 rounded-lg border-border/70 hover:border-primary/40"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>导出备份</span>
+              </Button>
+            </Card>
+
+            <Card className="flex flex-row items-center justify-between p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+              <div className="space-y-1 pr-3 min-w-0 flex-1">
+                <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Upload className="w-3.5 h-3.5 text-primary" />
+                  <span>恢复导入配置</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  选择此前备份导出的 JSON 配置文件，一键恢复全部持仓与系统偏好。
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => importFileRef.current?.click?.()}
+                className="h-8.5 text-xs gap-1.5 shrink-0 rounded-lg border-border/70 hover:border-primary/40"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>选择文件</span>
+              </Button>
+            </Card>
+          </div>
+
+          <input
+            ref={importFileRef}
+            type="file"
+            accept="application/json"
+            style={{ display: 'none' }}
+            onChange={handleImportFileChange}
+          />
+          {importMsg && (
+            <div className="p-3 rounded-xl bg-card/60 border border-border/60 text-xs text-muted-foreground text-center">
+              {importMsg}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <Dialog
       open
@@ -288,11 +566,11 @@ export default function SettingsModal({
     >
       <DialogContent
         overlayClassName={cn(sliderDragging && 'opacity-20 backdrop-blur-none transition-opacity')}
-        className="sm:max-w-[800px] md:max-w-[860px] w-[95vw] h-[86vh] max-h-[720px] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl"
+        className="sm:max-w-[820px] md:max-w-[880px] w-[95vw] h-[85vh] max-h-[720px] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl"
         showCloseButton={true}
       >
         {/* 顶部标题栏 Header */}
-        <DialogHeader className="px-6 py-4 border-b border-border/60 shrink-0 text-left bg-muted/20">
+        <DialogHeader className="px-6 py-4.5 border-b border-border/60 shrink-0 text-left bg-muted/10">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
               <Settings className="w-5 h-5" />
@@ -306,36 +584,11 @@ export default function SettingsModal({
           </div>
         </DialogHeader>
 
-        {/* 主体侧边栏布局容器 (无横向滚动条) */}
-        <div className="flex-1 flex flex-col sm:flex-row min-h-0 overflow-hidden w-full max-w-full">
-          {/* 移动端标签栏 (无横向滚动，3列均匀网格分布) */}
-          <div className="sm:hidden grid grid-cols-3 gap-1.5 p-2 bg-card/40 border-b border-border/50 shrink-0 w-full select-none">
-            {NAV_ITEMS.map((item) => {
-              const isActive = activeTab === item.id;
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveTab(item.id)}
-                  className={cn(
-                    'flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl text-xs font-medium transition-all cursor-pointer truncate',
-                    isActive
-                      ? 'bg-primary/15 text-primary border border-primary/30 shadow-xs font-semibold'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-card/70'
-                  )}
-                >
-                  <Icon className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">{item.title}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* PC 端垂直侧边栏 */}
-          <aside className="hidden sm:flex flex-col justify-between w-[200px] md:w-[220px] shrink-0 border-r border-border/50 bg-card/30 backdrop-blur-md p-3 select-none">
-            <nav className="flex flex-col gap-1.5">
-              <div className="text-[11px] font-semibold text-muted-foreground/70 px-2.5 pb-1">分类导航</div>
+        {/* 主体侧边栏布局：手机端与PC端根据 isMobile 彻底隔离渲染 */}
+        {isMobile ? (
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden w-full max-w-full">
+            {/* 移动端标签栏 */}
+            <div className="flex items-center gap-2 p-2.5 bg-card/50 border-b border-border/60 shrink-0 w-full select-none">
               {NAV_ITEMS.map((item) => {
                 const isActive = activeTab === item.id;
                 const Icon = item.icon;
@@ -345,339 +598,98 @@ export default function SettingsModal({
                     type="button"
                     onClick={() => setActiveTab(item.id)}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-all cursor-pointer group border',
+                      'flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl text-xs font-medium transition-all cursor-pointer truncate border',
                       isActive
-                        ? 'bg-primary/15 text-primary border-primary/30 font-semibold shadow-xs'
-                        : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-card/60'
+                        ? 'bg-primary/15 text-primary border-primary/30 shadow-xs font-semibold'
+                        : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-card/70'
                     )}
                   >
-                    <Icon
-                      className={cn(
-                        'w-4 h-4 shrink-0 transition-colors',
-                        isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                      )}
-                    />
-                    <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="truncate">{item.title}</span>
-                        {item.badge && (
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              'text-[9px] px-1 py-0 h-3.5 font-normal border',
-                              isActive ? 'bg-primary/20 text-primary border-primary/30' : 'text-muted-foreground/80'
-                            )}
-                          >
-                            {item.badge}
-                          </Badge>
-                        )}
-                      </div>
-                      <span
-                        className={cn(
-                          'text-[10px] truncate leading-tight mt-0.5',
-                          isActive ? 'text-primary/80 font-normal' : 'text-muted-foreground/70'
-                        )}
-                      >
-                        {item.desc}
-                      </span>
-                    </div>
+                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{item.title}</span>
                   </button>
                 );
               })}
-            </nav>
-
-            {/* 侧边栏底部说明 */}
-            <div className="pt-3 border-t border-border/40 px-2 space-y-1">
-              <div className="flex items-center gap-1.5 font-medium text-xs text-foreground/90">
-                <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                <span>本地优先架构</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground/70 leading-tight">
-                数据加密保存在本地设备，无第三方中转，安全私密。
-              </p>
             </div>
-          </aside>
 
-          {/* 右侧主内容区域 (彻底杜绝横向滚动条，仅纵向平滑滚动) */}
-          <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 sm:p-5 scrollbar-y-styled">
-            {/* ===== 分类 1: 常规界面 ===== */}
-            {activeTab === 'general' && (
-              <div className="space-y-4 w-full min-w-0">
-                {/* 刷新频率卡片 */}
-                <Card className="p-4 gap-3 bg-card/50 border-border/60 hover:border-primary/30 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
-                        <Clock className="w-3.5 h-3.5" />
-                      </div>
-                      <Label className="text-xs font-semibold text-foreground">数据自动刷新频率</Label>
-                    </div>
-                    <Badge variant="outline" className="font-mono text-xs tabular-nums bg-card/80 border-border/70">
-                      当前: {localSeconds} 秒
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2 w-full min-w-0">
-                    {[30, 60, 120, 300].map((s) => {
-                      const isActive = localSeconds === s;
-                      return (
-                        <Button
-                          key={s}
-                          type="button"
-                          variant={isActive ? 'default' : 'outline'}
-                          size="sm"
-                          className={cn(
-                            'h-8 text-xs font-medium tabular-nums rounded-lg border-border/70 truncate',
-                            isActive && 'shadow-xs font-semibold'
-                          )}
-                          onClick={() => setLocalSeconds(s)}
-                          aria-pressed={isActive}
-                        >
-                          {s} 秒
-                        </Button>
-                      );
-                    })}
-                  </div>
-                  <div className="pt-0.5">
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      min="30"
-                      step="5"
-                      value={localSeconds || ''}
-                      onChange={(e) => setLocalSeconds(Number(e.target.value))}
-                      placeholder="自定义秒数（例如 45）"
-                      className="h-9 text-[16PX] md:text-sm bg-background/80 font-mono border-border/70 focus-visible:ring-1 focus-visible:ring-primary/40"
-                    />
-                    {localSeconds < 30 && (
-                      <p className="text-destructive text-xs mt-1 font-medium">最低刷新频率为 30 秒</p>
-                    )}
-                  </div>
-                </Card>
-
-                {/* 页面宽度控制卡片 (PC端专属) */}
-                {!isMobile && setContainerWidth && (
-                  <Card className="p-4 gap-3 bg-card/50 border-border/60 hover:border-primary/30 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
-                          <Maximize2 className="w-3.5 h-3.5" />
-                        </div>
-                        <Label className="text-xs font-semibold text-foreground">页面最大容器宽度</Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="font-mono text-xs tabular-nums bg-card/80 border-border/70">
-                          {clampedWidth}px
-                        </Badge>
-                        {onResetContainerWidth && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-7 text-muted-foreground hover:text-foreground rounded-md"
-                                onClick={() => setResetWidthConfirmOpen(true)}
-                                aria-label="重置页面宽度"
-                              >
-                                <RotateCcw className="w-3.5 h-3.5" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>恢复默认宽度 1200px</p>
-                            </TooltipContent>
-                          </Tooltip>
+            {/* 移动端下方主内容区 */}
+            <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 scrollbar-y-styled">
+              {renderMainContent()}
+            </main>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-row min-h-0 overflow-hidden w-full max-w-full">
+            {/* PC 端垂直侧边栏 */}
+            <aside className="w-[210px] shrink-0 border-r border-border/60 bg-card/40 backdrop-blur-md p-3.5 flex flex-col justify-between select-none">
+              <nav className="flex flex-col gap-1.5">
+                <div className="text-[11px] font-semibold text-muted-foreground/70 px-2.5 pb-1">分类导航</div>
+                {NAV_ITEMS.map((item) => {
+                  const isActive = activeTab === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setActiveTab(item.id)}
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-all cursor-pointer group border',
+                        isActive
+                          ? 'bg-primary/15 text-primary border-primary/30 font-semibold shadow-xs'
+                          : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-card/70'
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          'w-4 h-4 shrink-0 transition-colors',
+                          isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
                         )}
-                      </div>
-                    </div>
-                    <div className="pt-1 w-full min-w-0">
-                      <div
-                        ref={pageWidthTrackRef}
-                        className="group relative h-4 cursor-pointer flex items-center w-full"
-                        onPointerDown={(e) => {
-                          sliderDraggingRef.current = true;
-                          setSliderDragging(true);
-                          updateWidthByClientX(e.clientX);
-                          e.currentTarget.setPointerCapture?.(e.pointerId);
-                        }}
-                        onPointerMove={(e) => {
-                          if (!sliderDraggingRef.current) return;
-                          updateWidthByClientX(e.clientX);
-                        }}
-                      >
-                        <Progress
-                          value={pageWidthPercent}
-                          className="h-2 w-full"
-                          indicatorClassName="!bg-none bg-primary !transition-none"
-                        />
-                        <div
-                          className="pointer-events-none absolute top-1/2 -translate-y-1/2"
-                          style={{ left: `${pageWidthPercent}%`, transform: 'translate(-50%, -50%)' }}
-                        >
-                          <div className="size-4 rounded-full bg-primary shadow-md shadow-primary/40 border-2 border-background" />
+                      />
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate">{item.title}</span>
+                          {item.badge && (
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                'text-[9px] px-1 py-0 h-3.5 font-normal border',
+                                isActive ? 'bg-primary/20 text-primary border-primary/30' : 'text-muted-foreground/80'
+                              )}
+                            >
+                              {item.badge}
+                            </Badge>
+                          )}
                         </div>
+                        <span
+                          className={cn(
+                            'text-[10px] truncate leading-tight mt-0.5',
+                            isActive ? 'text-primary/80 font-normal' : 'text-muted-foreground/70'
+                          )}
+                        >
+                          {item.desc}
+                        </span>
                       </div>
-                    </div>
-                    <div className="flex justify-between text-[11px] text-muted-foreground pt-0.5">
-                      <span>紧凑 (600px)</span>
-                      <span>标准 (1200px)</span>
-                      <span>自适应宽屏</span>
-                    </div>
-                  </Card>
-                )}
+                    </button>
+                  );
+                })}
+              </nav>
 
-                {/* 界面功能与视图偏好列表 */}
-                <div className="space-y-2 pt-1 min-w-0">
-                  <Label className="text-xs font-semibold text-foreground">界面功能与视图偏好</Label>
-                  <div className="flex flex-col gap-2.5 w-full min-w-0">
-                    <SettingSwitchCard
-                      id="setting-market-index"
-                      icon={LineChart}
-                      title="显示大盘指数行情"
-                      description="在首页表格或概览顶部显示上证指数等关键大盘指数行情条"
-                      checked={isMobile ? localShowMarketIndexMobile : localShowMarketIndexPc}
-                      onCheckedChange={(checked) => {
-                        const nextValue = Boolean(checked);
-                        if (isMobile) setLocalShowMarketIndexMobile(nextValue);
-                        else setLocalShowMarketIndexPc(nextValue);
-                      }}
-                      ariaLabel="显示大盘指数"
-                    />
-
-                    <SettingSwitchCard
-                      id="setting-group-search"
-                      icon={Search}
-                      title="分组内基金即时搜索"
-                      description="在各个持仓分组列表上方提供快速搜索过滤输入栏"
-                      checked={isMobile ? localShowGroupFundSearchMobile : localShowGroupFundSearchPc}
-                      onCheckedChange={(checked) => {
-                        const nextValue = Boolean(checked);
-                        if (isMobile) setLocalShowGroupFundSearchMobile(nextValue);
-                        else setLocalShowGroupFundSearchPc(nextValue);
-                      }}
-                      ariaLabel="显示分组内基金搜索"
-                    />
-
-                    <SettingSwitchCard
-                      id="setting-dynamic-style"
-                      icon={Zap}
-                      title="减少动态样式效果"
-                      description="关闭卡片微动效与过渡模糊，优化低性能设备流畅度"
-                      checked={isMobile ? !localDynamicStyleMobile : !localDynamicStylePc}
-                      onCheckedChange={(checked) => {
-                        const nextValue = !checked;
-                        if (isMobile) setLocalDynamicStyleMobile(nextValue);
-                        else setLocalDynamicStylePc(nextValue);
-                      }}
-                      ariaLabel="减少动态样式效果"
-                    />
-
-                    <SettingSwitchCard
-                      id="setting-group-dropdown"
-                      icon={LayoutGrid}
-                      title="下拉形式展示分组"
-                      description="采用简洁下拉菜单切换不同基金分组，节省纵向视图空间"
-                      checked={isMobile ? localShowGroupDropdownMobile : localShowGroupDropdownPc}
-                      onCheckedChange={(checked) => {
-                        const nextValue = Boolean(checked);
-                        if (isMobile) setLocalShowGroupDropdownMobile(nextValue);
-                        else setLocalShowGroupDropdownPc(nextValue);
-                      }}
-                      ariaLabel="下拉形式展示分组"
-                    />
-                  </div>
+              {/* 侧边栏底部说明 */}
+              <div className="pt-3 border-t border-border/40 px-2 space-y-1">
+                <div className="flex items-center gap-1.5 font-medium text-xs text-foreground/90">
+                  <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                  <span>本地优先架构</span>
                 </div>
+                <p className="text-[11px] text-muted-foreground/70 leading-tight">
+                  数据加密保存在本地设备，无第三方中转，安全私密。
+                </p>
               </div>
-            )}
+            </aside>
 
-            {/* ===== 分类 2: AI 大模型 ===== */}
-            {activeTab === 'ai' && (
-              <div className="space-y-4 w-full min-w-0">
-                <AiConfigSection
-                  onAiConfigChange={(cfg) => {
-                    aiConfigRef.current = cfg;
-                  }}
-                  showImmediateSaveButton={true}
-                  className="border-0 bg-transparent p-0 mb-0 shadow-none w-full min-w-0"
-                />
-              </div>
-            )}
-
-            {/* ===== 分类 3: 数据备份 ===== */}
-            {activeTab === 'data' && (
-              <div className="space-y-4 w-full min-w-0">
-                <Alert className="bg-primary/10 border-primary/25 text-foreground rounded-xl p-3.5">
-                  <ShieldCheck className="size-4 text-primary" />
-                  <AlertTitle className="text-primary font-semibold text-xs">
-                    本地优先（Local-First）架构声明
-                  </AlertTitle>
-                  <AlertDescription className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                    基估宝采用离线优先设计，持仓流水、交易明细与个性化配置均保存在本地环境（localStorage 与内置
-                    SQLite）中，数据私密安全。
-                  </AlertDescription>
-                </Alert>
-
-                <div className="flex flex-col gap-2.5 w-full min-w-0">
-                  <Card className="flex flex-row items-center justify-between p-4 gap-3 bg-card/50 hover:bg-card/80 border-border/60 hover:border-primary/30 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
-                    <div className="space-y-1 pr-3 min-w-0 flex-1">
-                      <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                        <Download className="w-3.5 h-3.5 text-primary" />
-                        <span>导出本地配置 (JSON)</span>
-                      </div>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        将当前全部持仓数据、分组划分、自选列表及偏好配置导出为文件备份。
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={exportLocalData}
-                      className="h-8.5 text-xs gap-1.5 shrink-0 rounded-lg border-border/70 hover:border-primary/40"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>导出备份</span>
-                    </Button>
-                  </Card>
-
-                  <Card className="flex flex-row items-center justify-between p-4 gap-3 bg-card/50 hover:bg-card/80 border-border/60 hover:border-primary/30 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
-                    <div className="space-y-1 pr-3 min-w-0 flex-1">
-                      <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                        <Upload className="w-3.5 h-3.5 text-primary" />
-                        <span>恢复导入配置</span>
-                      </div>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        选择此前备份导出的 JSON 配置文件，一键恢复全部持仓与系统偏好。
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => importFileRef.current?.click?.()}
-                      className="h-8.5 text-xs gap-1.5 shrink-0 rounded-lg border-border/70 hover:border-primary/40"
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>选择文件</span>
-                    </Button>
-                  </Card>
-                </div>
-
-                <input
-                  ref={importFileRef}
-                  type="file"
-                  accept="application/json"
-                  style={{ display: 'none' }}
-                  onChange={handleImportFileChange}
-                />
-                {importMsg && (
-                  <div className="p-3 rounded-xl bg-card/60 border border-border/60 text-xs text-muted-foreground text-center">
-                    {importMsg}
-                  </div>
-                )}
-              </div>
-            )}
-          </main>
-        </div>
+            {/* PC 端右侧主内容区域 */}
+            <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-5 sm:p-6 scrollbar-y-styled">
+              {renderMainContent()}
+            </main>
+          </div>
+        )}
 
         {/* 底部保存与关闭栏 Footer */}
         <DialogFooter className="px-6 py-3.5 border-t border-border/60 shrink-0 bg-muted/20 flex flex-row items-center justify-between sm:justify-between">

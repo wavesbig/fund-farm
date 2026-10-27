@@ -469,7 +469,7 @@ export default function AiConfigSection({
           <span className="text-[11px] text-muted-foreground hidden sm:inline">一键套用推荐端点与模型</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 w-full min-w-0">
+        <div className="flex flex-wrap gap-2.5 w-full min-w-0">
           {PRESETS.map((preset) => {
             const isSelected = activePresetId === preset.id;
             const IconComponent = preset.icon;
@@ -487,7 +487,7 @@ export default function AiConfigSection({
                   }
                 }}
                 className={cn(
-                  'relative flex flex-col justify-between p-3 rounded-xl border text-left transition-all cursor-pointer group select-none min-w-0 w-full overflow-hidden backdrop-blur-sm',
+                  'w-full sm:w-[calc(50%-5px)] lg:w-[calc(33.333%-7px)] relative flex flex-col justify-between p-3 rounded-xl border text-left transition-all cursor-pointer group select-none min-w-0 overflow-hidden backdrop-blur-sm',
                   isSelected
                     ? cn(theme.activeBorder, theme.activeBg, theme.activeRing, 'shadow-xs')
                     : cn('bg-card/60 border-border/70 hover:bg-card/90', theme.hoverBorder)
