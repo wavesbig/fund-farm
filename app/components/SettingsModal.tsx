@@ -253,7 +253,7 @@ export default function SettingsModal({
       }}
     >
       <DialogContent
-        overlayClassName={cn('z-[9999]', sliderDragging && 'opacity-60')}
+        overlayClassName={cn(sliderDragging && 'opacity-20 backdrop-blur-none transition-opacity')}
         className="sm:max-w-[620px] w-[95vw] max-h-[88vh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border-border bg-card/95 backdrop-blur-xl shadow-2xl"
         showCloseButton={true}
       >
