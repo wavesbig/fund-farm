@@ -12,7 +12,6 @@ import {
   Maximize2,
   LineChart,
   Search,
-  Zap,
   LayoutGrid,
   Download,
   Upload
@@ -428,19 +427,6 @@ export default function SettingsModal({
                   else setLocalShowGroupFundSearchPc(nextValue);
                 }}
                 ariaLabel="显示分组内基金搜索"
-              />
-
-              <SettingSwitchCard
-                id="setting-dynamic-style"
-                icon={Zap}
-                title="减少动态样式效果"
-                checked={isMobile ? !localDynamicStyleMobile : !localDynamicStylePc}
-                onCheckedChange={(checked) => {
-                  const nextValue = !checked;
-                  if (isMobile) setLocalDynamicStyleMobile(nextValue);
-                  else setLocalDynamicStylePc(nextValue);
-                }}
-                ariaLabel="减少动态样式效果"
               />
 
               <SettingSwitchCard
