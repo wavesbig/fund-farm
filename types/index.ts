@@ -189,10 +189,12 @@ export interface FundTagRecord {
  */
 export interface SortRule {
   id: string;
-  name: string;
-  alias: string;
-  enabled: boolean;
-  sortKey: string;
+  label: string;
+  name?: string;
+  alias?: string;
+  enabled?: boolean;
+  sortKey?: string;
+  order?: 'asc' | 'desc';
 }
 
 /**

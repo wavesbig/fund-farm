@@ -310,10 +310,11 @@ export const FilterBar = memo(function FilterBar({
       </div>
 
       <div
-        className="sort-group"
+        className="sort-group shrink-0"
         style={{
           display: currentTab === SUMMARY_TAB_ID ? 'none' : 'flex',
           alignItems: 'center',
+          flexWrap: 'wrap',
           gap: 12
         }}
       >
@@ -326,14 +327,14 @@ export const FilterBar = memo(function FilterBar({
               applyViewMode(val);
             }
           }}
-          className="bg-muted/30 border border-border/50 p-0.5 rounded-lg"
+          className="bg-muted/30 border border-border/50 p-0.5 rounded-lg shrink-0"
         >
           <Tooltip>
             <TooltipTrigger asChild>
               <ToggleGroupItem
                 value="card"
                 aria-label="卡片视图"
-                className="size-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md transition-colors"
+                className="size-7 p-0 text-muted-foreground hover:text-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md transition-colors"
               >
                 <GridIcon width="15" height="15" />
               </ToggleGroupItem>
@@ -347,7 +348,7 @@ export const FilterBar = memo(function FilterBar({
               <ToggleGroupItem
                 value="list"
                 aria-label="表格视图"
-                className="size-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md transition-colors"
+                className="size-7 p-0 text-muted-foreground hover:text-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md transition-colors"
               >
                 <ListIcon width="15" height="15" />
               </ToggleGroupItem>
@@ -361,7 +362,10 @@ export const FilterBar = memo(function FilterBar({
         {/* 使用标准 shadcn/ui Separator 替代手写 divider */}
         <Separator orientation="vertical" className="h-5" />
 
-        <div className="sort-items" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div
+          className="sort-items shrink-0"
+          style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}
+        >
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -392,8 +396,9 @@ export const FilterBar = memo(function FilterBar({
                 }}
               >
                 <SelectTrigger
-                  className="h-4 min-w-[110px] py-0 text-xs shadow-none"
-                  style={{ background: 'var(--card-bg)', height: 36 }}
+                  size="sm"
+                  className="h-8 min-w-[110px] text-xs shadow-none"
+                  style={{ background: 'var(--card-bg)' }}
                 >
                   <SelectValue placeholder="选择排序规则" />
                 </SelectTrigger>
@@ -402,7 +407,7 @@ export const FilterBar = memo(function FilterBar({
                     .filter((s) => s.enabled)
                     .map((s) => (
                       <SelectItem key={s.id} value={s.id}>
-                        {s.alias || s.name}
+                        {s.alias || s.label || s.name || s.id}
                       </SelectItem>
                     ))}
                 </SelectContent>
@@ -416,8 +421,9 @@ export const FilterBar = memo(function FilterBar({
                 }}
               >
                 <SelectTrigger
-                  className="h-4 min-w-[84px] py-0 text-xs shadow-none"
-                  style={{ background: 'var(--card-bg)', height: 36 }}
+                  size="sm"
+                  className="h-8 min-w-[84px] text-xs shadow-none"
+                  style={{ background: 'var(--card-bg)' }}
                 >
                   <SelectValue placeholder="排序方向" />
                 </SelectTrigger>
@@ -428,7 +434,7 @@ export const FilterBar = memo(function FilterBar({
               </Select>
             </div>
           ) : (
-            <div className="chips">
+            <div className="chips" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
               {sortRules
                 .filter((s) => s.enabled)
                 .map((s) => (
@@ -436,7 +442,7 @@ export const FilterBar = memo(function FilterBar({
                     key={s.id}
                     variant={sortBy === s.id ? 'default' : 'outline'}
                     className={cn(
-                      'cursor-pointer text-xs transition-colors py-1 px-2.5 font-normal',
+                      'cursor-pointer text-xs transition-colors py-1 px-2.5 font-normal select-none',
                       sortBy === s.id
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                         : 'hover:bg-accent text-muted-foreground'
@@ -452,7 +458,7 @@ export const FilterBar = memo(function FilterBar({
                       });
                     }}
                   >
-                    <span>{s.alias || s.name}</span>
+                    <span>{s.alias || s.label || s.name || s.id}</span>
                     {sortBy === s.id && <span className="ml-0.5">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
                   </Badge>
                 ))}
