@@ -645,14 +645,7 @@ export default function SettingsModal({
         )}
 
         {/* 底部保存与关闭栏 Footer */}
-        <DialogFooter className="px-6 py-3.5 border-t border-border/60 shrink-0 bg-muted/20 flex flex-row items-center justify-between sm:justify-between">
-          <div className="text-xs text-muted-foreground hidden sm:flex items-center gap-1.5">
-            <span>当前分类：</span>
-            <Badge variant="outline" className="text-[11px] font-normal border-border/70">
-              {NAV_ITEMS.find((item) => item.id === activeTab)?.title}
-            </Badge>
-          </div>
-
+        <DialogFooter className="px-6 py-3.5 border-t border-border/60 shrink-0 bg-muted/20 flex flex-row items-center justify-end">
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <Button
               type="button"
