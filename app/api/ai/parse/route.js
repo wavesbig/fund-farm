@@ -112,7 +112,9 @@ export async function POST(request) {
       const reply = ping.choices?.[0]?.message?.content?.trim() || '';
       return NextResponse.json({
         success: true,
-        message: `大模型连接成功！已连接到模型 [${model}]，响应: ${reply}`
+        model,
+        reply,
+        message: `大模型连接成功 (${model})`
       });
     }
 

@@ -28,8 +28,8 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { toast as sonnerToast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export interface AiConfig {
@@ -259,7 +259,9 @@ export default function AiConfigSection({
    */
   const handleFetchModels = async () => {
     if (!apiKey.trim()) {
-      setTestResult({ success: false, message: '请先填写 API Key' });
+      const msg = '请先填写 API Key';
+      setTestResult({ success: false, message: msg });
+      sonnerToast.error(msg);
       return;
     }
 
@@ -287,7 +289,9 @@ export default function AiConfigSection({
         if (data.models.length > 0) {
           setModelList(data.models);
           setIsManualInput(false);
-          setModelFetchMsg(`已获取 ${data.models.length} 个模型`);
+          const fetchMsg = `已获取 ${data.models.length} 个模型`;
+          setModelFetchMsg(fetchMsg);
+          sonnerToast.success(fetchMsg);
 
           if (!data.models.includes(model)) {
             const preferred =
@@ -302,18 +306,23 @@ export default function AiConfigSection({
           }
         } else {
           setModelFetchMsg('未返回可用模型，可手动输入');
+          sonnerToast.info('未返回可用模型，可手动输入');
         }
       } else {
+        const errMsg = data.message || '获取模型失败，请检查 Base URL 与 API Key';
         setTestResult({
           success: false,
-          message: data.message || '获取模型失败，请检查 Base URL 与 API Key'
+          message: errMsg
         });
+        sonnerToast.error(errMsg);
       }
     } catch (err: any) {
+      const errMsg = err.message || '网络连接异常';
       setTestResult({
         success: false,
-        message: err.message || '网络连接异常'
+        message: errMsg
       });
+      sonnerToast.error(errMsg);
     } finally {
       setFetchingModels(false);
     }
@@ -324,7 +333,9 @@ export default function AiConfigSection({
    */
   const handleTestConnection = async () => {
     if (!apiKey.trim()) {
-      setTestResult({ success: false, message: '请先填写 API Key' });
+      const msg = '请先填写 API Key';
+      setTestResult({ success: false, message: msg });
+      sonnerToast.error(msg);
       return;
     }
 
@@ -349,21 +360,27 @@ export default function AiConfigSection({
 
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
+        const msg = data.message || `大模型连接成功 (${model.trim()})`;
         setTestResult({
           success: true,
-          message: data.message || '连接成功，模型响应正常'
+          message: msg
         });
+        sonnerToast.success(msg);
       } else {
+        const errMsg = data.message || data.error || '连接失败，请检查配置或网络';
         setTestResult({
           success: false,
-          message: data.message || data.error || '连接失败，请检查配置或网络'
+          message: errMsg
         });
+        sonnerToast.error(errMsg);
       }
     } catch (err: any) {
+      const errMsg = err.message || '网络连接异常';
       setTestResult({
         success: false,
-        message: err.message || '网络连接异常'
+        message: errMsg
       });
+      sonnerToast.error(errMsg);
     } finally {
       setTesting(false);
     }
@@ -391,9 +408,11 @@ export default function AiConfigSection({
     try {
       await saveSqliteKey('customSettings', nextCustomSettings);
       setSaveSuccess(true);
+      sonnerToast.success('AI 配置已保存');
       setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err) {
       console.error('[AiConfigSection] save failed:', err);
+      sonnerToast.error('保存失败，请稍后重试');
     }
   };
 
@@ -682,18 +701,41 @@ export default function AiConfigSection({
         </div>
 
         {/* 4. 测试与保存 */}
-        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-border/50">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleTestConnection}
-            disabled={testing || !apiKey.trim()}
-            className="h-8.5 px-3 text-xs gap-1.5 rounded-lg border-border/70 hover:border-primary/40"
-          >
-            <RefreshCw className={cn('w-3.5 h-3.5', testing && 'animate-spin')} />
-            <span>{testing ? '测试中…' : '测试连接'}</span>
-          </Button>
+        <div className="pt-2 flex flex-wrap items-center justify-between gap-2.5 border-t border-border/50">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleTestConnection}
+              disabled={testing || !apiKey.trim()}
+              className={cn(
+                'h-8.5 px-3 text-xs gap-1.5 rounded-lg border-border/70 hover:border-primary/40 transition-colors',
+                testResult?.success && 'border-emerald-500/50 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
+              )}
+            >
+              <RefreshCw className={cn('w-3.5 h-3.5', testing && 'animate-spin')} />
+              <span>{testing ? '测试中…' : testResult?.success ? '已连通' : '测试连接'}</span>
+            </Button>
+
+            {testResult && (
+              <div
+                className={cn(
+                  'flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border animate-in fade-in zoom-in-95 duration-200 min-w-0',
+                  testResult.success
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25'
+                    : 'bg-destructive/10 text-destructive border-destructive/25'
+                )}
+              >
+                {testResult.success ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                ) : (
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                )}
+                <span className="truncate max-w-[220px] sm:max-w-[340px]">{testResult.message}</span>
+              </div>
+            )}
+          </div>
 
           {showImmediateSaveButton && (
             <Button
@@ -711,28 +753,6 @@ export default function AiConfigSection({
             </Button>
           )}
         </div>
-
-        {/* 测试反馈 */}
-        {testResult && (
-          <Alert
-            variant={testResult.success ? 'default' : 'destructive'}
-            className={cn(
-              'mt-2 py-2 px-3 text-xs border rounded-xl overflow-hidden',
-              testResult.success
-                ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-600 dark:text-emerald-400'
-                : 'bg-destructive/10 border-destructive/25 text-destructive'
-            )}
-          >
-            {testResult.success ? (
-              <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-            ) : (
-              <AlertCircle className="size-4 shrink-0" />
-            )}
-            <AlertDescription className="text-xs break-all leading-relaxed overflow-hidden">
-              {testResult.message}
-            </AlertDescription>
-          </Alert>
-        )}
       </Card>
     </div>
   );
