@@ -13,6 +13,8 @@ import {
   Sparkles,
   SlidersHorizontal
 } from 'lucide-react';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from '@/components/ui/drawer';
 
 export interface TutorialDrawerProps {
@@ -59,59 +61,88 @@ const SECTIONS = [
 ];
 
 export default function TutorialDrawer({ open, onOpenChange }: TutorialDrawerProps) {
-  return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="glass h-[90vh] max-h-[90vh] flex flex-col">
-        <DrawerHeader className="shrink-0 flex flex-row items-center justify-between gap-2 space-y-0 px-5 pb-3.5 pt-4 text-left border-b border-[var(--border)]">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <DrawerTitle className="text-base font-semibold text-foreground">基估宝 · 使用帮助指南</DrawerTitle>
-          </div>
-          <DrawerClose className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:text-foreground transition-colors">
-            <X className="w-4 h-4" />
-          </DrawerClose>
-        </DrawerHeader>
+  const isMobile = useIsMobile();
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 scrollbar-y-styled space-y-4 max-w-4xl mx-auto w-full">
-          {/* 重点说明卡片 */}
-          <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 flex items-start gap-3 text-xs leading-relaxed text-foreground">
-            <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-primary mb-0.5">关于盘中估值精度的说明：</p>
-              <p className="text-muted-foreground">
-                盘中估值基于基金最新季报披露的重仓股持仓比例及其实时分时走势测算，仅供盘中参考。实际净值以基金公司盘后官方披露为准（通常在交易日
-                20:00 - 23:00 更新），非股票型或有盘中调仓的基金可能存在合理偏差。
-              </p>
-            </div>
-          </div>
-
-          {/* 章节网格 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-            {SECTIONS.map((sec, idx) => {
-              const Icon = sec.icon;
-              return (
-                <div
-                  key={idx}
-                  className="p-4 rounded-xl border border-[var(--border)] bg-card/40 backdrop-blur hover:bg-card/60 transition-colors"
-                >
-                  <div className="flex items-center gap-2.5 mb-2 font-medium text-sm text-foreground">
-                    <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center text-primary shrink-0">
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <span>{sec.title}</span>
-                  </div>
-                  <p className="text-xs text-[var(--muted)] leading-relaxed">{sec.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* 底部提示 */}
-          <div className="text-center py-3 text-xs text-[var(--muted)] opacity-75">
-            如在使用中有任何改进建议，可随时在主界面底部点击“提交反馈”。
-          </div>
+  const content = (
+    <div className="flex-1 overflow-y-auto px-5 py-4 scrollbar-y-styled space-y-4">
+      {/* 重点说明卡片 */}
+      <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 flex items-start gap-3 text-xs leading-relaxed text-foreground">
+        <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+        <div>
+          <p className="font-semibold text-primary mb-0.5">关于盘中估值精度的说明：</p>
+          <p className="text-muted-foreground">
+            盘中估值基于基金最新季报披露的重仓股持仓比例及其实时分时走势测算，仅供盘中参考。实际净值以基金公司盘后官方披露为准（通常在交易日
+            20:00 - 23:00 更新），非股票型或有盘中调仓的基金可能存在合理偏差。
+          </p>
         </div>
-      </DrawerContent>
-    </Drawer>
+      </div>
+
+      {/* 章节网格 - 使用显式 inline style 避免 globals.css 的全局 .grid 12列干扰 */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))',
+          gap: '12px'
+        }}
+      >
+        {SECTIONS.map((sec, idx) => {
+          const Icon = sec.icon;
+          const isLastOdd = !isMobile && idx === SECTIONS.length - 1 && SECTIONS.length % 2 === 1;
+          return (
+            <div
+              key={idx}
+              style={isLastOdd ? { gridColumn: 'span 2' } : undefined}
+              className="p-3.5 rounded-xl border border-[var(--border)] bg-card/40 backdrop-blur hover:bg-card/60 transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-1.5 font-medium text-sm text-foreground">
+                <div className="w-6 h-6 rounded-lg bg-primary/15 flex items-center justify-center text-primary shrink-0">
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+                <span>{sec.title}</span>
+              </div>
+              <p className="text-xs text-[var(--muted)] leading-relaxed">{sec.desc}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 底部提示 */}
+      <div className="text-center py-2 text-xs text-[var(--muted)] opacity-75">
+        如在使用中有任何改进建议，可随时在主界面底部点击“提交反馈”。
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className="glass h-[88vh] max-h-[90vh] flex flex-col">
+          <DrawerHeader className="shrink-0 flex flex-row items-center justify-between gap-2 space-y-0 px-4 pb-3 pt-3 text-left border-b border-[var(--border)]">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <DrawerTitle className="text-base font-semibold text-foreground">使用帮助指南</DrawerTitle>
+            </div>
+            <DrawerClose className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:text-foreground transition-colors">
+              <X className="w-4 h-4" />
+            </DrawerClose>
+          </DrawerHeader>
+          {content}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="glass card modal max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden z-[99]">
+        <DialogHeader className="shrink-0 px-6 pt-5 pb-3.5 border-b border-[var(--border)]">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <DialogTitle className="text-base font-semibold text-foreground">基估宝 · 使用帮助指南</DialogTitle>
+          </div>
+        </DialogHeader>
+        {content}
+      </DialogContent>
+    </Dialog>
   );
 }
