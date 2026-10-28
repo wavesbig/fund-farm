@@ -45,7 +45,7 @@ export interface FundListViewProps {
   displayFunds: any[];
   linkedHoldingsForAllFav: any;
   todayStr: string;
-  dcaPlansForTab: any[];
+  dcaPlansForTab: Record<string, any>;
   holdingsForTabWithLinked: Record<string, any>;
   percentModes: Record<string, any>;
   todayPercentModes: Record<string, any>;
@@ -55,7 +55,7 @@ export interface FundListViewProps {
   collapsedTrends: Record<string, any>;
   collapsedValuationTrends: Record<string, any>;
   collapsedEarnings: Record<string, any>;
-  transactionsForTab: any[];
+  transactionsForTab: Record<string, any>;
   theme: string;
   isTradingDay: boolean;
   getHoldingProfitForTab: (fund: any, holding?: any) => any;

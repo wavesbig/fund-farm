@@ -3267,7 +3267,7 @@ export default function HomePage() {
     try {
       const parsed = useStorageStore.getState().customSettings || {};
       const nextAiConfig = aiConfigOverride !== undefined ? aiConfigOverride : parsed.aiConfig;
-      let nextCustomSettings = {
+      let nextCustomSettings: Record<string, any> = {
         ...parsed,
         ...(nextAiConfig ? { aiConfig: nextAiConfig } : {})
       };

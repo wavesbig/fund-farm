@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import GroupSummary from './GroupSummary';
-import GroupAccountSummaryCard from './GroupAccountSummaryCard';
+import GroupAccountSummaryCard, { type SparklinePoint } from './GroupAccountSummaryCard';
 import { SUMMARY_TAB_ID, SUMMARY_SOURCE_GLOBAL } from '@/app/constants';
 import type { Fund, FundGroup, Holding } from '@/types';
 
@@ -17,7 +17,7 @@ export interface SummaryCardItem {
   hasAnyTodayData: boolean;
   upCount: number;
   downCount: number;
-  sparkSeries?: Array<{ time: string; value: number }>;
+  sparkSeries?: SparklinePoint[];
 }
 
 export interface SummaryTabContentProps {
