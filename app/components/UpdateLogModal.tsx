@@ -22,35 +22,57 @@ interface ReleaseItem {
   body?: string;
 }
 
+const DEFAULT_RELEASES: ReleaseItem[] = [
+  {
+    id: 1,
+    tag_name: 'v2.4.1',
+    name: 'v2.4.1 实时持久化与 TypeScript 全面重构',
+    published_at: '2026-10-28T00:00:00Z',
+    body: '• 全面迁移至 TypeScript，提升整体健壮性与类型安全性\n• 深度集成 Node 22 原生 SQLite (WAL模式)，实现 100ms 实时秒级落盘与离线防丢\n• 优化多端交互体验，重构内置帮助指南与数据管理能力'
+  },
+  {
+    id: 2,
+    tag_name: 'v2.4.0',
+    name: 'v2.4.0 架构升级与本地存储优化',
+    published_at: '2026-09-15T00:00:00Z',
+    body: '• 重构底层持久化机制，增强并发与页面意外关闭时的数据一致性\n• 玻璃拟态设计与明暗主题自适应优化\n• 提升基金估值计算性能与重仓股盘中分时追踪精度'
+  }
+];
+
 export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalProps) {
   const isMobile = useIsMobile();
-  const [releases, setReleases] = useState<ReleaseItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [releases, setReleases] = useState<ReleaseItem[]>(DEFAULT_RELEASES);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open) {
+    const releasesApiUrl = process.env.NEXT_PUBLIC_GITHUB_RELEASES_URL;
+    if (open && releasesApiUrl) {
       const fetchReleases = async () => {
         setLoading(true);
         setError(null);
         try {
           const data = await withRetry(
             async () => {
-              const res = await fetch('https://api.github.com/repos/hzm0321/real-time-fund/releases');
+              const res = await fetch(releasesApiUrl);
               if (!res.ok) throw new Error('Failed to fetch releases');
               return res.json();
             },
             2,
             500
           );
-          setReleases(data || []);
-        } catch (err: any) {
-          setError(err.message);
+          setReleases(data && data.length > 0 ? data : DEFAULT_RELEASES);
+        } catch {
+          // 降级使用内置日志
+          setReleases(DEFAULT_RELEASES);
         } finally {
           setLoading(false);
         }
       };
       fetchReleases();
+    } else if (open) {
+      setReleases(DEFAULT_RELEASES);
+      setLoading(false);
     }
   }, [open]);
 

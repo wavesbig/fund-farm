@@ -207,15 +207,17 @@ export const Navbar = memo(function Navbar({
 
       <div className="actions">
         <UpdateChecker onModalOpenChange={setIsUpdateModalOpen} />
-        <span className="github-icon-wrap">
-          <Image
-            unoptimized
-            alt="项目Github地址"
-            src={githubImg}
-            style={{ width: '30px', height: '30px', cursor: 'pointer' }}
-            onClick={() => window.open('https://github.com/hzm0321/real-time-fund')}
-          />
-        </span>
+        {process.env.NEXT_PUBLIC_GITHUB_REPO_URL && (
+          <span className="github-icon-wrap">
+            <Image
+              unoptimized
+              alt="项目Github地址"
+              src={githubImg}
+              style={{ width: '30px', height: '30px', cursor: 'pointer' }}
+              onClick={() => window.open(process.env.NEXT_PUBLIC_GITHUB_REPO_URL, '_blank')}
+            />
+          </span>
+        )}
         {isMobile && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -266,11 +268,7 @@ export const Navbar = memo(function Navbar({
           onLogout={handleLogout}
           onLogoutConfirmOpenChange={setIsLogoutConfirmOpen}
           onTutorial={() => {
-            if (isMobile) {
-              setTutorialDrawerOpen(true);
-            } else {
-              window.open('https://www.yuque.com/u267605/ookgim/im06q8tembbld6im?singleDoc', '_blank');
-            }
+            setTutorialDrawerOpen(true);
           }}
           onUpdateLog={() => setUpdateLogOpen(true)}
         />

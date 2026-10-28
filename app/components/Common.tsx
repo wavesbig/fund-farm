@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -9,8 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import zhifubaoImg from '../assets/zhifubao.jpg';
-import weixinImg from '../assets/weixin.jpg';
 import { CalendarIcon, MinusIcon, PlusIcon, TrendUpIcon, TrendDownIcon } from './Icons';
 import { DEFAULT_TZ } from '@/app/constants';
 
@@ -129,74 +126,6 @@ export function DatePicker({ value, onChange, position = 'bottom', minDate = und
         />
       </PopoverContent>
     </Popover>
-  );
-}
-
-export function DonateTabs() {
-  const [method, setMethod] = useState<'alipay' | 'wechat'>('wechat');
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-      <div className="tabs glass" style={{ padding: 4, borderRadius: 12, width: '100%', display: 'flex' }}>
-        <button
-          type="button"
-          onClick={() => setMethod('alipay')}
-          style={{
-            flex: 1,
-            padding: '8px 0',
-            border: 'none',
-            background: method === 'alipay' ? 'rgba(34, 211, 238, 0.15)' : 'transparent',
-            color: method === 'alipay' ? 'var(--primary)' : 'var(--muted)',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 600,
-            transition: 'all 0.2s ease'
-          }}
-        >
-          支付宝
-        </button>
-        <button
-          type="button"
-          onClick={() => setMethod('wechat')}
-          style={{
-            flex: 1,
-            padding: '8px 0',
-            border: 'none',
-            background: method === 'wechat' ? 'rgba(34, 211, 238, 0.15)' : 'transparent',
-            color: method === 'wechat' ? 'var(--primary)' : 'var(--muted)',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 600,
-            transition: 'all 0.2s ease'
-          }}
-        >
-          微信支付
-        </button>
-      </div>
-
-      <div
-        style={{
-          width: 200,
-          height: 200,
-          background: 'white',
-          borderRadius: 12,
-          padding: 8,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-          {method === 'alipay' ? (
-            <Image src={zhifubaoImg} alt="支付宝收款码" fill sizes="184px" style={{ objectFit: 'contain' }} />
-          ) : (
-            <Image src={weixinImg} alt="微信收款码" fill sizes="184px" style={{ objectFit: 'contain' }} />
-          )}
-        </div>
-      </div>
-    </div>
   );
 }
 

@@ -115,21 +115,6 @@ export default function FeedbackModal({ onClose, user }: FeedbackModalProps) {
                 </>
               )}
             </Button>
-
-            <div className="mt-2 pt-4 border-t border-[var(--border)] text-center">
-              <p className="text-xs leading-relaxed text-[var(--muted)]">
-                如果您有 Github 账号，也可以在本项目
-                <a
-                  href="https://github.com/hzm0321/real-time-fund/issues"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline px-1 font-semibold"
-                >
-                  Issues
-                </a>
-                区留言互动
-              </p>
-            </div>
           </form>
         )}
       </DialogContent>

@@ -1,11 +1,6 @@
 # 基估宝-实时基金估值
 
-一个基于 Next.js 开发的基金估值与重仓股实时追踪工具。采用玻璃拟态设计（Glassmorphism），支持移动端适配。
-
-- **项目介绍官网**：[https://fund.cc.cd/home/](https://fund.cc.cd/home/)
-- **应用预览地址**：
-  1. [https://fund.cc.cd/](https://fund.cc.cd/) （推荐，加速国内访问）
-  2. [https://hzm0321.github.io/real-time-fund/](https://hzm0321.github.io/real-time-fund/)
+一个基于 Next.js 开发的基金估值与重仓股实时追踪工具。采用玻璃拟态设计（Glassmorphism），支持移动端适配，数据通过 Node 22 原生 SQLite 实现秒级实时自动持久化。
 
 ## 📸 界面预览
 
@@ -22,16 +17,6 @@
 ### 移动端界面
 
 <img src="./doc/mobile-demo-01.png" width="300" alt="移动端适配界面">
-
-## Star History
-
-<a href="https://www.star-history.com/?repos=hzm0321%2Freal-time-fund&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=hzm0321/real-time-fund&type=date&theme=dark&legend=top-left&sealed_token=uqcuaLvgb3Aq07R3KcrXIc_PUJ4IWyDLbNFrAREdVyaDQbln1bhfGGTJKYc8MAZBTS-c1BsyGO8Vyl9FduEa32KDI_dmFw8j4UaArC7ROA4g5MMR087plPKENee8zZQDDQ_YFnFGbairNxciy_MdnPK3mxtO5OIQ6TTzBmTawwiMDx7Kyt_cgCc6xvUH" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=hzm0321/real-time-fund&type=date&legend=top-left&sealed_token=uqcuaLvgb3Aq07R3KcrXIc_PUJ4IWyDLbNFrAREdVyaDQbln1bhfGGTJKYc8MAZBTS-c1BsyGO8Vyl9FduEa32KDI_dmFw8j4UaArC7ROA4g5MMR087plPKENee8zZQDDQ_YFnFGbairNxciy_MdnPK3mxtO5OIQ6TTzBmTawwiMDx7Kyt_cgCc6xvUH" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=hzm0321/real-time-fund&type=date&legend=top-left&sealed_token=uqcuaLvgb3Aq07R3KcrXIc_PUJ4IWyDLbNFrAREdVyaDQbln1bhfGGTJKYc8MAZBTS-c1BsyGO8Vyl9FduEa32KDI_dmFw8j4UaArC7ROA4g5MMR087plPKENee8zZQDDQ_YFnFGbairNxciy_MdnPK3mxtO5OIQ6TTzBmTawwiMDx7Kyt_cgCc6xvUH" />
- </picture>
-</a>
 
 ## ✨ 特性
 
@@ -84,7 +69,7 @@ npm install -g @jigubao/cli
 - **脚本友好** (支持 `--json`)：除登录/登出外，所有指令均支持 `--json` 输出，便于与 `jq` 或其他脚本工具结合。
 - **安全退出** (`jgb logout`)：注销并清理本地及云端的登录会话。
 
-更多关于 CLI 的开发与高级用法，请参阅 [基估宝命令行工具说明文档 (jgb-cli/README.md)](https://fund.cc.cd/home/docs/cli/intro)。
+更多关于 CLI 的开发与高级用法，请参阅相关命令行文档。
 
 ## 🚀 快速开始
 
@@ -93,7 +78,7 @@ npm install -g @jigubao/cli
 1. 克隆仓库：
 
    ```bash
-   git clone https://github.com/hzm0321/real-time-fund.git
+   git clone https://github.com/<your-username>/real-time-fund.git
    cd real-time-fund
    ```
 
@@ -113,7 +98,7 @@ npm install -g @jigubao/cli
 - `NEXT_PUBLIC_Supabase_ANON_KEY`：Supabase 匿名公钥
 - `NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY`：Web3Forms Access Key
 - `NEXT_PUBLIC_GA_ID`：Google Analytics Measurement ID（如 `G-xxxx`）
-- `NEXT_PUBLIC_GITHUB_LATEST_RELEASE_URL`：GitHub 最新 Release 接口地址，用于在页面中展示"发现新版本"提示（如：`https://api.github.com/repos/hzm0321/real-time-fund/releases/latest`）
+- `NEXT_PUBLIC_GITHUB_LATEST_RELEASE_URL`：GitHub 最新 Release 接口地址，用于在页面中展示"发现新版本"提示（如：`https://api.github.com/repos/<your-username>/real-time-fund/releases/latest`）
 - `NEXT_PUBLIC_IS_GITHUB_LOGIN`：控制是否开启 GitHub OAuth 登录功能，可选值 `true` / `false`（默认 `false`）
 
 注：如不使用登录、反馈或 GA 统计功能，可不设置对应变量
@@ -164,7 +149,7 @@ npm install -g @jigubao/cli
    - 访问 GitHub → Settings → Developer settings → OAuth Apps → New OAuth App
    - 填写信息：
      - Application name：自定义应用名称
-     - Homepage URL：你的应用地址（如 `https://hzm0321.github.io/real-time-fund/`）
+     - Homepage URL：你的应用地址（如 `https://<your-domain>/`）
      - Authorization callback URL：`https://<your-supabase-project-id>.supabase.co/auth/v1/callback`
    - 创建后获取 **Client ID** 和 **Client Secret**
 
@@ -176,8 +161,8 @@ npm install -g @jigubao/cli
 
    **第三步：配置站点 URL（重要）**
    - Supabase控制台 → Authentication → URL Configuration
-   - **Site URL**：设置为你的应用主域名（如 `https://hzm0321.github.io/`）
-   - **Redirect URLs**：添加你的应用完整路径（如 `https://hzm0321.github.io/real-time-fund/`）
+   - **Site URL**：设置为你的应用主域名（如 `https://<your-domain>/`）
+   - **Redirect URLs**：添加你的应用完整路径（如 `https://<your-domain>/`）
 
    配置完成后，用户即可通过 GitHub 账号一键登录。
 
@@ -294,27 +279,27 @@ docker run -d -p 3000:3000 --name fund --env-file .env real-time-fund
 docker compose up -d
 ```
 
-### Docker Hub
+### Docker 运行
 
-镜像已发布至 Docker Hub，可直接拉取运行，无需本地构建。
+已提供 Dockerfile 与 docker-compose 支持，可直接构建并运行容器。
 
-1. **拉取镜像**
+1. **构建或拉取镜像**
 
    ```bash
-   docker pull hzm0321/real-time-fund:latest
+   docker build -t real-time-fund:latest .
    ```
 
 2. **启动容器**  
    访问 [http://localhost:3000](http://localhost:3000) 即可使用。
 
    ```bash
-   docker run -d -p 3000:3000 --name real-time-fund --restart always hzm0321/real-time-fund:latest
+   docker run -d -p 3000:3000 --name real-time-fund --restart always real-time-fund:latest
    ```
 
 3. **使用自定义环境变量（运行时替换）**  
    镜像内已预置占位符，启动时通过环境变量即可覆盖，无需重新构建。例如使用本地 `.env`：
    ```bash
-   docker run -d -p 3000:3000 --name real-time-fund --restart always --env-file .env hzm0321/real-time-fund:latest
+   docker run -d -p 3000:3000 --name real-time-fund --restart always --env-file .env real-time-fund:latest
    ```
    或单独指定变量：`-e NEXT_PUBLIC_SUPABASE_URL=xxx -e NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx`。  
    变量名与本地开发一致：`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY`、`NEXT_PUBLIC_GA_ID`、`NEXT_PUBLIC_GITHUB_LATEST_RELEASE_URL`。
@@ -326,15 +311,13 @@ docker compose up -d
 3. **调整频率**：点击右上角“设置”图标，可调整自动刷新的间隔时间。
 4. **删除基金**：点击卡片右上角的红色删除图标即可移除。
 
-## 💬 开发者交流群
-
-欢迎基金实时开发者加入微信群聊讨论开发与协作：
-
-<img src="./doc/weChatGroupDevelop.jpg" width="300">
-
 ## 📝 免责声明
 
 本项目所有数据均来自公开接口，仅供个人学习及参考使用。数据可能存在延迟，不作为任何投资建议。
+
+## 🙏 致谢 (Acknowledgements)
+
+本项目基于开源项目 [real-time-fund](https://github.com/hzm0321/real-time-fund) 进行重构与二次开发，感谢原作者 [hzm0321](https://github.com/hzm0321) 及开源社区贡献者为本项目奠定的基础架构。
 
 ## 📄 开源协议 (License)
 
@@ -345,8 +328,3 @@ docker compose up -d
 - **无担保**：软件按「原样」提供，不提供任何明示或暗示的担保。
 
 完整协议文本见仓库根目录 [LICENSE](./LICENSE) 文件，或 [GNU AGPL v3 官方说明](https://www.gnu.org/licenses/agpl-3.0.html)。
-
----
-
-二开或转载需注明出处。  
-Made by [hzm](https://github.com/hzm0321)

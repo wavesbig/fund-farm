@@ -4353,11 +4353,7 @@ export default function HomePage() {
           lastSyncDisplay={lastSyncTime ? dayjs(lastSyncTime).format('MM-DD HH:mm') : null}
           onMyEarnings={() => setPortfolioEarningsOpen(true)}
           onTutorial={() => {
-            if (isMobile) {
-              setTutorialDrawerOpen(true);
-            } else {
-              window.open('https://www.yuque.com/u267605/ookgim/im06q8tembbld6im?singleDoc', '_blank');
-            }
+            setTutorialDrawerOpen(true);
           }}
           onUpdateLog={() => setUpdateLogOpen(true)}
           onFeedback={() => {
