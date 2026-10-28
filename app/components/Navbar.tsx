@@ -7,7 +7,8 @@ import githubImg from '../assets/github.svg';
 import SearchBar from './SearchBar';
 import RefreshButton from './RefreshButton';
 import UserMenu from './UserMenu';
-import { CloseIcon, MoonIcon, SunIcon } from './Icons';
+import { CloseIcon } from './Icons';
+import { Moon, Search, Sun } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 
@@ -48,10 +49,9 @@ export interface NavbarProps {
   userAvatar: string | null;
   navbarHeight: number;
   lastSyncTime: string | null;
-  syncUserConfig: (userId: string) => void;
+  syncUserConfig: (userId?: any, isForce?: boolean) => void;
   setSettingsOpen: (open: boolean) => void;
   setPortfolioEarningsOpen: (open: boolean) => void;
-  handleOpenLogin: () => void;
   handleLogout: () => void;
   setIsLogoutConfirmOpen: (open: boolean) => void;
   setTutorialDrawerOpen: (open: boolean) => void;
@@ -94,7 +94,6 @@ export const Navbar = memo(function Navbar({
   syncUserConfig,
   setSettingsOpen,
   setPortfolioEarningsOpen,
-  handleOpenLogin,
   handleLogout,
   setIsLogoutConfirmOpen,
   setTutorialDrawerOpen,
@@ -162,7 +161,7 @@ export const Navbar = memo(function Navbar({
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{isSyncing ? '正在同步到云端...' : undefined}</p>
+            <p>{isSyncing ? '正在同步数据...' : undefined}</p>
           </TooltipContent>
         </Tooltip>
         <span>基估宝</span>
@@ -227,10 +226,7 @@ export const Navbar = memo(function Navbar({
                 aria-label="筛选基金"
                 onClick={handleMobileSearchClick}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-                  <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
+                <Search className="size-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -254,7 +250,7 @@ export const Navbar = memo(function Navbar({
               aria-label={theme === 'dark' ? '切换到亮色主题' : '切换到暗色主题'}
               onClick={handleThemeToggle}
             >
-              {theme === 'dark' ? <SunIcon width="18" height="18" /> : <MoonIcon width="18" height="18" />}
+              {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -267,10 +263,9 @@ export const Navbar = memo(function Navbar({
           navbarHeight={navbarHeight}
           lastSyncTime={lastSyncTime}
           isSyncing={isSyncing}
-          onSync={() => user?.id && syncUserConfig(user.id)}
+          onSync={() => syncUserConfig?.(null, true)}
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenPortfolioEarnings={() => setPortfolioEarningsOpen(true)}
-          onOpenLogin={handleOpenLogin}
           onLogout={handleLogout}
           onLogoutConfirmOpenChange={setIsLogoutConfirmOpen}
           onTutorial={() => {

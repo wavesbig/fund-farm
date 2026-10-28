@@ -41,9 +41,13 @@ const getAddBaseSnapshotFromFund = (fund) => {
  * @param {object} deps
  * @param {Function} deps.scheduleDcaTrades - 生成定投待处理交易
  * @param {Function} deps.processPendingQueue - 执行积压的待处理交易
- * @param {React.RefObject} deps.deviceConflictModalOpenRef - 设备冲突弹窗是否打开
+ * @param {React.RefObject} [deps.deviceConflictModalOpenRef] - 设备冲突弹窗是否打开
  */
-export function useRefreshManager({ scheduleDcaTrades, processPendingQueue, deviceConflictModalOpenRef }) {
+export function useRefreshManager({
+  scheduleDcaTrades,
+  processPendingQueue,
+  deviceConflictModalOpenRef = { current: false }
+}) {
   const [refreshing, setRefreshing] = useState(false);
   const timerRef = useRef(null);
   const refreshCycleStartRef = useRef(Date.now());
@@ -69,7 +73,7 @@ export function useRefreshManager({ scheduleDcaTrades, processPendingQueue, devi
       const store = useStorageStore.getState();
 
       // 如果弹窗拦截同步中，则不允许执行数据刷新，但保持心跳循环
-      if (deviceConflictModalOpenRef.current) {
+      if (deviceConflictModalOpenRef?.current) {
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
           const nextCodes = refreshCodesRef.current || [];

@@ -9,7 +9,6 @@ import dynamic from 'next/dynamic';
 import { useModalStore } from '../stores';
 
 // 低频弹窗：懒加载
-const CloudConfigModal = dynamic(() => import('./CloudConfigModal'), { ssr: false });
 const DonateModal = dynamic(() => import('./DonateModal'), { ssr: false });
 const FeedbackModal = dynamic(() => import('./FeedbackModal'), { ssr: false });
 const WeChatModal = dynamic(() => import('./WeChatModal'), { ssr: false });
@@ -32,7 +31,6 @@ import GroupManageModal from './GroupManageModal';
 import GroupModal from './GroupModal';
 import HoldingEditModal from './HoldingEditModal';
 import HoldingActionModal from './HoldingActionModal';
-import LoginModal from './LoginModal';
 import SettingsModal from './SettingsModal';
 import SuccessModal from './SuccessModal';
 import TradeModal from './TradeModal';
@@ -87,8 +85,6 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
   const feedbackNonce = useModalStore((s) => s.feedbackNonce);
   const weChatOpen = useModalStore((s) => s.weChatOpen);
   const donateOpen = useModalStore((s) => s.donateOpen);
-  const loginModalOpen = useModalStore((s) => s.loginModalOpen);
-  const loginInitialError = useModalStore((s) => s.loginInitialError);
   const tutorialDrawerOpen = useModalStore((s) => s.tutorialDrawerOpen);
   const updateLogOpen = useModalStore((s) => s.updateLogOpen);
   const portfolioEarningsOpen = useModalStore((s) => s.portfolioEarningsOpen);
@@ -121,8 +117,6 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
 
   // Cloud/sync
   const successModal = useModalStore((s) => s.successModal);
-  const cloudConfigModal = useModalStore((s) => s.cloudConfigModal);
-  const deviceConflictModal = useModalStore((s) => s.deviceConflictModal);
 
   // Scan
   const scanModalOpen = useModalStore((s) => s.scanModalOpen);
@@ -142,8 +136,6 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
   const setFeedbackOpen = (v: any) => _ms({ feedbackOpen: isFunction(v) ? v(_gs().feedbackOpen) : v });
   const setWeChatOpen = (v: any) => _ms({ weChatOpen: isFunction(v) ? v(_gs().weChatOpen) : v });
   const setDonateOpen = (v: any) => _ms({ donateOpen: isFunction(v) ? v(_gs().donateOpen) : v });
-  const setLoginModalOpen = (v: any) => _ms({ loginModalOpen: isFunction(v) ? v(_gs().loginModalOpen) : v });
-  const setLoginInitialError = (v: any) => _ms({ loginInitialError: isFunction(v) ? v(_gs().loginInitialError) : v });
   const setTutorialDrawerOpen = (v: any) =>
     _ms({ tutorialDrawerOpen: isFunction(v) ? v(_gs().tutorialDrawerOpen) : v });
   const setUpdateLogOpen = (v: any) => _ms({ updateLogOpen: isFunction(v) ? v(_gs().updateLogOpen) : v });
@@ -158,9 +150,6 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
   const setPortfolioEarningsOpen = (v: any) =>
     _ms({ portfolioEarningsOpen: isFunction(v) ? v(_gs().portfolioEarningsOpen) : v });
   const setSuccessModal = (v: any) => _ms({ successModal: isFunction(v) ? v(_gs().successModal) : v });
-  const setCloudConfigModal = (v: any) => _ms({ cloudConfigModal: isFunction(v) ? v(_gs().cloudConfigModal) : v });
-  const setDeviceConflictModal = (v: any) =>
-    _ms({ deviceConflictModal: isFunction(v) ? v(_gs().deviceConflictModal) : v });
   const setFundDeleteConfirm = (v: any) => _ms({ fundDeleteConfirm: isFunction(v) ? v(_gs().fundDeleteConfirm) : v });
   const setFundDeleteBulkConfirm = (v: any) =>
     _ms({ fundDeleteBulkConfirm: isFunction(v) ? v(_gs().fundDeleteBulkConfirm) : v });
@@ -842,50 +831,6 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
         )}
       </AnimatePresence>
 
-      {/* ===== Modal: 设备冲突 ===== */}
-      <AnimatePresence>
-        {deviceConflictModal.open && (
-          <ConfirmModal
-            title="其它设备登录提示"
-            onCancel={() => {
-              setDeviceConflictModal({ ...deviceConflictModal, open: false });
-              if (cb.current.skipSyncRef) cb.current.skipSyncRef.current = false;
-              if (cb.current.refreshCycleStartRef) cb.current.refreshCycleStartRef.current = Date.now();
-            }}
-            onConfirm={async () => {
-              const { userId } = deviceConflictModal;
-              setDeviceConflictModal({ ...deviceConflictModal, open: false });
-              if (cb.current.refreshCycleStartRef) cb.current.refreshCycleStartRef.current = Date.now();
-              await cb.current.fetchCloudConfig?.(userId, false, { forceTakeover: true });
-            }}
-            message={deviceConflictModal.message}
-            confirmText="确认接管"
-            icon={<RefreshCw width="20" height="20" className="shrink-0 text-[var(--primary)]" />}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ===== Modal: 云配置同步 ===== */}
-      <AnimatePresence>
-        {cloudConfigModal.open && (
-          <CloudConfigModal
-            type={cloudConfigModal.type}
-            onConfirm={cb.current.handleSyncLocalConfig}
-            onCancel={() => {
-              if (cloudConfigModal.type === 'conflict' && cloudConfigModal.cloudData) {
-                cb.current.applyCloudConfig?.(cloudConfigModal.cloudData);
-                cb.current.syncUserConfig?.(cloudConfigModal.userId, false, cloudConfigModal.cloudData, false, {
-                  forceTakeover: true
-                });
-              } else {
-                if (cb.current.skipSyncRef) cb.current.skipSyncRef.current = false;
-              }
-              setCloudConfigModal({ open: false, userId: null });
-            }}
-          />
-        )}
-      </AnimatePresence>
-
       {/* ===== Modal: 扫描识别 - 选择 ===== */}
       <AnimatePresence>
         {scanModalOpen && (
@@ -958,21 +903,6 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
       {/* ===== Modal: 扫描导入进度 ===== */}
       <AnimatePresence>
         {isScanImporting && <ScanImportProgressModal scanImportProgress={scanImportProgress} />}
-      </AnimatePresence>
-
-      {/* ===== Modal: 登录 ===== */}
-      <AnimatePresence>
-        {loginModalOpen && (
-          <LoginModal
-            onClose={() => {
-              setLoginModalOpen(false);
-              setLoginInitialError('');
-            }}
-            showToast={cb.current.showToast}
-            isExplicitLoginRef={cb.current.isExplicitLoginRef}
-            initialError={loginInitialError}
-          />
-        )}
       </AnimatePresence>
 
       {/* ===== Modal: 排序个性化设置 ===== */}

@@ -33,44 +33,24 @@ export default function MineTab({
       <section className="mine-profile-card glass" aria-label="个人信息" style={{ position: 'relative' }}>
         <div className="mine-profile-row">
           <div className="mine-profile-avatar">
-            {user ? (
-              userAvatar ? (
-                <Image
-                  src={userAvatar}
-                  alt="用户头像"
-                  width={56}
-                  height={56}
-                  unoptimized
-                  style={{ borderRadius: '50%', objectFit: 'cover' }}
-                />
-              ) : (
-                <span className="mine-profile-avatar-fallback">{user.email?.charAt(0).toUpperCase() || 'U'}</span>
-              )
+            {userAvatar ? (
+              <Image
+                src={userAvatar}
+                alt="用户头像"
+                width={56}
+                height={56}
+                unoptimized
+                style={{ borderRadius: '50%', objectFit: 'cover' }}
+              />
             ) : (
-              <span className="mine-profile-avatar-fallback muted">?</span>
+              <span className="mine-profile-avatar-fallback">基</span>
             )}
           </div>
           <div className="mine-profile-text">
-            {user ? (
-              <>
-                <div className="mine-profile-title">{user.email || '已登录用户'}</div>
-                <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-                  已登录 · 可使用云端同步
-                </div>
-                {lastSyncDisplay && (
-                  <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>
-                    同步于 {lastSyncDisplay}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="mine-profile-title">私有账本</div>
-                <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-                  已解锁访问
-                </div>
-              </>
-            )}
+            <div className="mine-profile-title">基估宝</div>
+            <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+              实时基金估值与持仓管理
+            </div>
           </div>
         </div>
       </section>

@@ -7,20 +7,16 @@ import type { User } from '@/types';
 
 export interface FooterProps {
   isMobile: boolean;
-  user: User | null;
+  user?: User | null;
   onOpenFeedback: () => void;
 }
 
-export default function Footer({ isMobile, user, onOpenFeedback }: FooterProps) {
+export default function Footer({ isMobile, onOpenFeedback }: FooterProps) {
   if (isMobile) {
     return <div className="footer" />;
   }
 
   const handleFeedbackClick = () => {
-    if (!user?.id) {
-      sonnerToast.error('请先登录后再提交反馈');
-      return;
-    }
     onOpenFeedback();
   };
 

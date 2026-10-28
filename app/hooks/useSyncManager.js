@@ -13,7 +13,6 @@ import {
   ensurePresetGroups,
   SORT_DISPLAY_MODES
 } from '../stores';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { withRetry } from '../lib/asyncHelper';
 import { fetchSqliteData, saveSqliteData } from '../lib/sqliteClient';
 import { DAILY_EARNINGS_SCOPE_ALL, DCA_SCOPE_GLOBAL, DEFAULT_FUND_TAG_THEME } from '@/app/constants';
@@ -78,7 +77,7 @@ export function useSyncManager({ showToast, refreshAllRef, setTempSeconds, setFu
 
   const syncDebounceRef = useRef(null);
   const lastSyncedRef = useRef('');
-  const skipSyncRef = useRef(isSupabaseConfigured);
+  const skipSyncRef = useRef(false);
   const userIdRef = useRef(null);
   const deviceConflictModalOpenRef = useRef(false);
   const dirtyKeysRef = useRef(new Set());
@@ -670,7 +669,7 @@ export function useSyncManager({ showToast, refreshAllRef, setTempSeconds, setFu
       const payload = collectLocalPayload(dirtyKeys.size > 0 ? dirtyKeys : null);
       dirtyKeysRef.current.clear();
 
-      // 1. 自动同步保存至本地 SQLite 数据库
+      // 自动同步保存至本地 SQLite 数据库
       try {
         const res = await saveSqliteData(payload);
         if (res?.success) {
@@ -681,162 +680,33 @@ export function useSyncManager({ showToast, refreshAllRef, setTempSeconds, setFu
       } catch (err) {
         console.warn('[SyncManager] SQLite auto-sync error:', err);
       }
-
-      // 2. 若存在 Supabase 登录，同时执行云端增量同步
-      const doSync = syncUserConfigRef.current;
-      if (doSync && userIdRef.current && isSupabaseConfigured) {
-        if (dirtyKeys.size > 0) {
-          doSync(userIdRef.current, false, payload, true);
-        } else {
-          const next = getComparablePayload(payload);
-          if (next === lastSyncedRef.current) return;
-          lastSyncedRef.current = next;
-          doSync(userIdRef.current, false, payload, false);
-        }
-      }
     }, 1000 * 1.5);
   }, []);
 
-  // --- syncUserConfig (defined after scheduleSync but referenced by it) ---
+  // --- syncUserConfig ---
   const syncUserConfig = useCallback(
-    async (userId, showTip = true, payload = null, isPartial = false, options = {}) => {
-      const forceTakeover = options?.forceTakeover || false;
+    async (_userId = null, showTip = true, payload = null) => {
       try {
         setIsSyncing(true);
         const baseData = payload || collectLocalPayload();
         const now = nowInTz().toISOString();
 
-        // 优先保存至本地 SQLite
+        // 保存至本地 SQLite
         await saveSqliteData(baseData);
         storageStore.setItem('localUpdatedAt', now);
         setLastSyncTime(now);
-
-        let dataToSync = baseData;
-
-        // 如果配置了 Supabase 并且已登录
-        if (userId && isSupabaseConfigured) {
-          let deviceId = deviceIdRef.current || '';
-          if (!deviceId) {
-            try {
-              const key = 'rtfDeviceId';
-              deviceId = storageStore.getItem(key) || '';
-              if (!deviceId) {
-                deviceId = uuidv4();
-                storageStore.setItem(key, deviceId);
-              }
-              deviceIdRef.current = deviceId;
-            } catch {
-              deviceId = uuidv4();
-              deviceIdRef.current = deviceId;
-            }
-          }
-          dataToSync = isPlainObject(baseData)
-            ? {
-                ...baseData,
-                _syncMeta: {
-                  ...(isPlainObject(baseData._syncMeta) ? baseData._syncMeta : {}),
-                  deviceId,
-                  at: now
-                }
-              }
-            : { _syncMeta: { deviceId, at: now } };
-
-          if (isPartial) {
-            const { error: rpcError } = await withRetry(() =>
-              supabase.rpc('update_user_config_partial', {
-                payload: dataToSync,
-                p_last_device_id: deviceId,
-                p_force_takeover: forceTakeover
-              })
-            );
-
-            if (rpcError) {
-              if (rpcError.message?.includes('DEVICE_CONFLICT')) {
-                setIsSyncing(false);
-                skipSyncRef.current = true;
-                useModalStore.setState({
-                  deviceConflictModal: {
-                    open: true,
-                    message:
-                      '您的账号已在其他设备登录。当前设备的同步已被拦截。是否确认拉取云端最新数据覆盖本地并恢复同步？',
-                    userId,
-                    payload,
-                    isPartial
-                  }
-                });
-                return;
-              }
-              console.error('增量同步失败，尝试全量同步', rpcError);
-              const fullPayload = collectLocalPayload();
-              const { error: fullError } = await withRetry(() =>
-                supabase.rpc('update_user_config_full', {
-                  payload: fullPayload,
-                  p_last_device_id: deviceId,
-                  p_force_takeover: forceTakeover
-                })
-              );
-              if (fullError) {
-                if (fullError.message?.includes('DEVICE_CONFLICT')) {
-                  setIsSyncing(false);
-                  skipSyncRef.current = true;
-                  useModalStore.setState({
-                    deviceConflictModal: {
-                      open: true,
-                      message:
-                        '您的账号已在其他设备登录。当前设备的同步已被拦截。是否确认拉取云端最新数据覆盖本地并恢复同步？',
-                      userId,
-                      payload,
-                      isPartial
-                    }
-                  });
-                  return;
-                }
-                throw fullError;
-              }
-            }
-          } else {
-            const { error } = await withRetry(() =>
-              supabase.rpc('update_user_config_full', {
-                payload: dataToSync,
-                p_last_device_id: deviceId,
-                p_force_takeover: forceTakeover
-              })
-            );
-            if (error) {
-              if (error.message?.includes('DEVICE_CONFLICT')) {
-                setIsSyncing(false);
-                skipSyncRef.current = true;
-                useModalStore.setState({
-                  deviceConflictModal: {
-                    open: true,
-                    message:
-                      '您的账号已在其他设备登录。当前设备的同步已被拦截。是否确认拉取云端最新数据覆盖本地并恢复同步？',
-                    userId,
-                    payload,
-                    isPartial
-                  }
-                });
-                return;
-              }
-              throw error;
-            }
-          }
-        }
-
-        if (forceTakeover) {
-          lastSyncedRef.current = getComparablePayload(dataToSync);
-        }
 
         if (showTip) {
           useModalStore.setState({
             successModal: {
               open: true,
-              message: userId && isSupabaseConfigured ? '已同步云端与本地 SQLite' : '已保存至本地 SQLite 数据库'
+              message: '配置与数据已成功保存'
             }
           });
         }
       } catch (e) {
-        console.error('同步云端配置异常', e);
+        console.error('同步数据异常', e);
+        showToast('数据保存失败，请重试', 'error');
       } finally {
         setIsSyncing(false);
         skipSyncRef.current = false;
@@ -1296,64 +1166,14 @@ export function useSyncManager({ showToast, refreshAllRef, setTempSeconds, setFu
     };
   }, [applyCloudConfig]);
 
-  // --- fetchCloudConfig ---
-  const fetchCloudConfig = useCallback(
-    async (userId, checkConflict = false, options = {}) => {
-      if (!userId) return;
-      try {
-        const { data: meta, error: metaError } = await withRetry(() =>
-          supabase.from('user_configs').select('id, data, updated_at').eq('user_id', userId).maybeSingle()
-        );
-
-        if (metaError) throw metaError;
-
-        if (!meta?.id) {
-          const { error: insertError } = await withRetry(() =>
-            supabase.from('user_configs').insert({ user_id: userId })
-          );
-          if (insertError) throw insertError;
-          useModalStore.setState({ cloudConfigModal: { open: true, userId, type: 'empty' } });
-          return;
-        }
-
-        if (checkConflict) {
-          useModalStore.setState({ cloudConfigModal: { open: true, userId, type: 'conflict', cloudData: meta.data } });
-          return;
-        }
-
-        if (meta.data && isPlainObject(meta.data) && Object.keys(meta.data).length > 0) {
-          await applyCloudConfig(meta.data, meta.updated_at, { ...options, userId });
-          return;
-        }
-
-        useModalStore.setState({ cloudConfigModal: { open: true, userId, type: 'empty' } });
-      } catch (e) {
-        console.error('获取云端配置失败', e);
-        skipSyncRef.current = false;
-      }
-    },
-    [applyCloudConfig]
-  );
-
-  // --- handleSyncLocalConfig ---
-  const handleSyncLocalConfig = useCallback(async () => {
-    const cloudConfigModal = useModalStore.getState().cloudConfigModal;
-    const userId = cloudConfigModal.userId;
-    useModalStore.setState({ cloudConfigModal: { open: false, userId: null } });
-    await syncUserConfig(userId, true, null, false, { forceTakeover: true });
-  }, [syncUserConfig]);
-
   return {
     isSyncing,
     lastSyncTime,
     scheduleSync,
     syncUserConfig,
-    fetchCloudConfig,
     applyCloudConfig,
-    handleSyncLocalConfig,
     triggerCustomSettingsSync,
     skipSyncRef,
-    deviceConflictModalOpenRef,
     storageHelper
   };
 }

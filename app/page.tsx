@@ -39,7 +39,6 @@ import RefreshButton from './components/RefreshButton';
 const UpdateChecker = dynamic(() => import('./components/UpdateChecker'), { ssr: false });
 import MarketIndexAccordion from './components/MarketIndexAccordion';
 import githubImg from './assets/github.svg';
-import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { getAllValuationSeries, clearFund } from './lib/valuationTimeseries';
 import { aggregatePortfolioDailyEarnings } from './lib/dailyEarnings';
 import { loadHolidaysForYears, isTradingDay as isDateTradingDay } from './lib/tradingCalendar';
@@ -74,8 +73,6 @@ import { useIsMobile } from './hooks/useIsMobile';
 import { useShallow } from 'zustand/react/shallow';
 import {
   useUserStore,
-  clearAuthUser,
-  setAuthUser,
   useStorageStore,
   storageStore,
   normalizePendingTrades,
@@ -248,8 +245,6 @@ export default function HomePage() {
   }, [fundTagRecords, funds]);
 
   const [error, setError] = useState('');
-  const isLoggingOutRef = useRef(false);
-  const isExplicitLoginRef = useRef(false);
 
   // 刷新频率与布局配置状态
   const {
@@ -373,8 +368,6 @@ export default function HomePage() {
   const setGroupManageOpen = (v) => _ms({ groupManageOpen: isFunction(v) ? v(_gs().groupManageOpen) : v });
   const setAddFundToGroupOpen = (v) => _ms({ addFundToGroupOpen: isFunction(v) ? v(_gs().addFundToGroupOpen) : v });
   const setSortSettingOpen = (v) => _ms({ sortSettingOpen: isFunction(v) ? v(_gs().sortSettingOpen) : v });
-  const setLoginModalOpen = (v) => _ms({ loginModalOpen: isFunction(v) ? v(_gs().loginModalOpen) : v });
-  const setLoginInitialError = (v) => _ms({ loginInitialError: isFunction(v) ? v(_gs().loginInitialError) : v });
   const setFeedbackOpen = (v) => _ms({ feedbackOpen: isFunction(v) ? v(_gs().feedbackOpen) : v });
   const setFeedbackNonce = (v) => _ms({ feedbackNonce: isFunction(v) ? v(_gs().feedbackNonce) : v });
   const setDonateOpen = (v) => _ms({ donateOpen: isFunction(v) ? v(_gs().donateOpen) : v });
@@ -1760,14 +1753,6 @@ export default function HomePage() {
 
   // 定投计划自动生成买入队列的逻辑会在 storageHelper 定义之后实现
 
-  const handleOpenLogin = () => {
-    if (!isSupabaseConfigured) {
-      showToast('未配置 Supabase，无法登录', 'error');
-      return;
-    }
-    setLoginModalOpen(true);
-  };
-
   const {
     setScanConfirmModalOpen,
     scannedFunds,
@@ -1801,13 +1786,11 @@ export default function HomePage() {
   const {
     isSyncing,
     lastSyncTime,
+    scheduleSync,
     syncUserConfig,
-    fetchCloudConfig,
     applyCloudConfig,
-    handleSyncLocalConfig,
     triggerCustomSettingsSync,
     skipSyncRef,
-    deviceConflictModalOpenRef,
     storageHelper
   } = useSyncManager({
     showToast,
@@ -2260,8 +2243,7 @@ export default function HomePage() {
 
   const { refreshing, refreshCycleStartRef, manualRefresh, refreshAll } = useRefreshManager({
     scheduleDcaTrades,
-    processPendingQueue,
-    deviceConflictModalOpenRef
+    processPendingQueue
   });
   useEffect(() => {
     refreshAllRef.current = refreshAll;
@@ -2345,15 +2327,8 @@ export default function HomePage() {
       initFundDividends();
       initSort();
       try {
-        // 已登录用户：不在此处调用 refreshAll，等 fetchCloudConfig 完成后由 applyCloudConfig 统一刷新
-        let shouldRefreshFromLocal = true;
-        if (isSupabaseConfigured) {
-          const { data, error } = await supabase.auth.getSession();
-          if (!cancelled && !error && data?.session?.user) {
-            shouldRefreshFromLocal = false;
-          }
-        }
         if (cancelled) return;
+        const shouldRefreshFromLocal = true;
 
         const saved = storageStore.getItem('funds', []);
         if (isArray(saved) && saved.length) {
@@ -2444,7 +2419,7 @@ export default function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [isSupabaseConfigured]);
+  }, []);
 
   // 切换分组后，页面自动回到顶部（跳过首次初始化恢复）
   useEffect(() => {
@@ -2462,157 +2437,13 @@ export default function HomePage() {
 
   // 主题同步：已由 useTheme hook 内部的 useEffect 处理，此处无需重复
 
-  // 初始化认证状态监听
-  useEffect(() => {
-    if (!isSupabaseConfigured) {
-      clearAuthUser();
-      return;
-    }
-    const clearAuthState = () => {
-      clearAuthUser();
-      skipSyncRef.current = false;
-    };
-
-    const handleSession = async (session, event, isExplicitLogin = false) => {
-      if (!session?.user) {
-        if (event === 'SIGNED_OUT' && !isLoggingOutRef.current) {
-          setLoginInitialError('会话已过期，请重新登录');
-          setLoginModalOpen(true);
-        }
-        isLoggingOutRef.current = false;
-        clearAuthState();
-        skipSyncRef.current = false;
-        return;
-      }
-      if (session.expires_at && session.expires_at * 1000 <= Date.now()) {
-        isLoggingOutRef.current = true;
-        await supabase.auth.signOut({ scope: 'local' });
-        try {
-          const storageKeys = Object.keys(localStorage);
-          storageKeys.forEach((key) => {
-            if (key === 'supabase.auth.token' || (key.startsWith('sb-') && key.endsWith('-auth-token'))) {
-              storageHelper.removeItem(key);
-            }
-          });
-        } catch {}
-        try {
-          const sessionKeys = Object.keys(sessionStorage);
-          sessionKeys.forEach((key) => {
-            if (key === 'supabase.auth.token' || (key.startsWith('sb-') && key.endsWith('-auth-token'))) {
-              sessionStorage.removeItem(key);
-            }
-          });
-        } catch {}
-        clearAuthState();
-        setLoginInitialError('会话已过期，请重新登录');
-        showToast('会话已过期，请重新登录', 'error');
-        setLoginModalOpen(true);
-        return;
-      }
-      setAuthUser(session.user);
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-        setLoginModalOpen(false);
-        setLoginInitialError('');
-      }
-      // 仅在明确的登录动作（SIGNED_IN）时检查冲突；INITIAL_SESSION（刷新页面等）不检查，直接以云端为准
-      fetchCloudConfig(session.user.id, isExplicitLogin, {
-        refreshAfterApply: event === 'INITIAL_SESSION'
-      });
-    };
-
-    supabase.auth.getSession().then(async ({ data, error }) => {
-      if (error) {
-        clearAuthState();
-        return;
-      }
-      await handleSession(data?.session ?? null, 'INITIAL_SESSION');
-    });
-
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // INITIAL_SESSION 会由 getSession() 主动触发，这里不再重复处理
-      if (event === 'INITIAL_SESSION') return;
-      const isExplicitLogin = event === 'SIGNED_IN' && isExplicitLoginRef.current;
-      await handleSession(session ?? null, event, isExplicitLogin);
-      if (event === 'SIGNED_IN') {
-        isExplicitLoginRef.current = false;
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // // 实时同步
-  // useEffect(() => {
-  //   if (!isSupabaseConfigured || !user?.id) return;
-  //   const deviceId = deviceIdRef.current;
-  //   if (!deviceId) return; // 确保设备ID已初始化
-  //
-  //   const channel = supabase
-  //     .channel(`user-configs-${user.id}`)
-  //     .on('postgres_changes', { event: '*', schema: 'public', table: 'user_configs', filter: `last_device_id=neq.${deviceId}` }, async (payload) => {
-  //       if (deviceConflictModalOpenRef.current) return; // 如果有拦截弹窗，忽略实时推送，防止覆盖本地数据
-  //       if (payload.eventType !== 'INSERT' && payload.eventType !== 'UPDATE') return;
-  //       const incoming = payload?.new?.data;
-  //       if (!isPlainObject(incoming)) return;
-  //       const incomingDeviceId = incoming?._syncMeta?.deviceId ? String(incoming._syncMeta.deviceId) : '';
-  //       if (incomingDeviceId && deviceIdRef.current && incomingDeviceId === deviceIdRef.current) return;
-  //       const incomingComparable = getComparablePayload(incoming);
-  //       if (!incomingComparable || incomingComparable === lastSyncedRef.current) return;
-  //       await applyCloudConfig(incoming, payload.new.updated_at);
-  //     })
-  //     .subscribe();
-  //   return () => {
-  //     supabase.removeChannel(channel);
-  //   };
-  // }, [user?.id]);
-
-  // 登出
+  // 锁定访问 / 退出登录
   const handleLogout = async () => {
-    isLoggingOutRef.current = true;
-    if (!isSupabaseConfigured) {
-      setLoginModalOpen(false);
-      setLoginInitialError('');
-      clearAuthUser();
-      return;
-    }
     try {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession();
-      if (session) {
-        const { error } = await supabase.auth.signOut({ scope: 'local' });
-        if (error && error.code !== 'session_not_found') {
-          throw error;
-        }
-      }
-    } catch (err) {
-      showToast(err.message, 'error');
-      console.error('登出失败', err);
-    } finally {
-      try {
-        await supabase.auth.signOut({ scope: 'local' });
-      } catch {}
-      try {
-        const storageKeys = Object.keys(localStorage);
-        storageKeys.forEach((key) => {
-          if (key === 'supabase.auth.token' || (key.startsWith('sb-') && key.endsWith('-auth-token'))) {
-            storageHelper.removeItem(key);
-          }
-        });
-      } catch {}
-      try {
-        const sessionKeys = Object.keys(sessionStorage);
-        sessionKeys.forEach((key) => {
-          if (key === 'supabase.auth.token' || (key.startsWith('sb-') && key.endsWith('-auth-token'))) {
-            sessionStorage.removeItem(key);
-          }
-        });
-      } catch {}
-      setLoginModalOpen(false);
-      setLoginInitialError('');
-      clearAuthUser();
+      await useAuthStore.getState().logout();
+      showToast('已锁定访问', 'info');
+    } catch (err: any) {
+      showToast(err?.message || '锁定失败', 'error');
     }
   };
 
@@ -4114,7 +3945,6 @@ export default function HomePage() {
     handleUpdateGroups,
     handleAddFundsToGroup,
     handleDataSourceSelect,
-    handleSyncLocalConfig,
     handleSaveFundTags,
     handleAddPoolTag,
     handleDeleteGlobalTag,
@@ -4130,8 +3960,6 @@ export default function HomePage() {
       applyCloudConfig(data);
     },
     syncUserConfig,
-    fetchCloudConfig: (userId: any, isInitialSync?: any, remoteData?: any, isPartial?: any, opts?: any) =>
-      (fetchCloudConfig as any)?.(userId, isInitialSync, remoteData, isPartial, opts),
     refreshAll: (codes) => refreshAll?.(codes),
     showToast,
     cancelScan,
@@ -4192,7 +4020,6 @@ export default function HomePage() {
     mobileBatchClearSelectionRef,
     skipSyncRef,
     refreshCycleStartRef,
-    isExplicitLoginRef,
     // Setters
     setPendingTrades,
     setHoldings,
@@ -4282,7 +4109,6 @@ export default function HomePage() {
             syncUserConfig={syncUserConfig}
             setSettingsOpen={setSettingsOpen}
             setPortfolioEarningsOpen={setPortfolioEarningsOpen}
-            handleOpenLogin={handleOpenLogin}
             handleLogout={handleLogout}
             setIsLogoutConfirmOpen={setIsLogoutConfirmOpen}
             setTutorialDrawerOpen={setTutorialDrawerOpen}
@@ -4526,7 +4352,6 @@ export default function HomePage() {
           user={user}
           userAvatar={userAvatar}
           lastSyncDisplay={lastSyncTime ? dayjs(lastSyncTime).format('MM-DD HH:mm') : null}
-          onLogin={handleOpenLogin}
           onMyEarnings={() => setPortfolioEarningsOpen(true)}
           onTutorial={() => {
             if (isMobile) {
@@ -4537,10 +4362,6 @@ export default function HomePage() {
           }}
           onUpdateLog={() => setUpdateLogOpen(true)}
           onFeedback={() => {
-            if (!user?.id) {
-              sonnerToast.error('请先登录后再提交反馈');
-              return;
-            }
             setFeedbackNonce((n) => n + 1);
             setFeedbackOpen(true);
           }}

@@ -74,10 +74,10 @@ export default function LockScreen() {
 
         {/* 标题与描述 */}
         <h2 className="text-xl font-bold mb-2 text-foreground text-center">
-          {isInitialized ? '私有访问锁' : '设置访问密码'}
+          {isInitialized ? '安全访问锁' : '设置访问密码'}
         </h2>
         <p className="text-xs text-center text-[var(--muted)] leading-relaxed mb-6">
-          {isInitialized ? '持仓与资产隐私已加密保护，请输入密码解锁' : '首次使用部署，请为你的基估宝创建私有访问密码'}
+          {isInitialized ? '持仓与资产隐私已加密保护，请输入密码解锁' : '首次使用，请为基估宝创建访问密码'}
         </p>
 
         {/* 错误提示 */}
