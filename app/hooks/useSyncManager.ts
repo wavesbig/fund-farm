@@ -705,35 +705,70 @@ export function useSyncManager({
     }
   };
 
-  // --- scheduleSync ---
-  // 无论是否登录 Supabase，所有数据变动自动防抖同步保存至本地 SQLite 数据库
+  // --- flushSync & scheduleSync ---
+  // 所有数据变动实时微批处理（100ms 内连带变动合并）保存至本地 SQLite 数据库
+  const flushSync = useCallback(async (options: { keepalive?: boolean } = {}) => {
+    if (skipSyncRef.current) return;
+    if (syncDebounceRef.current) {
+      clearTimeout(syncDebounceRef.current);
+      syncDebounceRef.current = null;
+    }
+    const dirtyKeys = new Set(dirtyKeysRef.current);
+    if (dirtyKeys.size === 0) return;
+    dirtyKeysRef.current.clear();
+
+    const payload = collectLocalPayload(dirtyKeys);
+
+    try {
+      setIsSyncing(true);
+      const res = await saveSqliteData(payload, options);
+      if (res?.success) {
+        const now = res.updatedAt || nowInTz().toISOString();
+        storageStore.setItem('localUpdatedAt', now);
+        setLastSyncTime(now);
+      }
+    } catch (err) {
+      console.warn('[SyncManager] SQLite real-time save error:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
   const scheduleSync = useCallback(() => {
     if (skipSyncRef.current) return;
     if (syncDebounceRef.current) clearTimeout(syncDebounceRef.current);
-    syncDebounceRef.current = setTimeout(async () => {
-      const dirtyKeys = new Set(dirtyKeysRef.current);
-      const payload = collectLocalPayload(dirtyKeys.size > 0 ? dirtyKeys : null);
-      dirtyKeysRef.current.clear();
+    syncDebounceRef.current = setTimeout(() => {
+      flushSync();
+    }, 100);
+  }, [flushSync]);
 
-      // 自动同步保存至本地 SQLite 数据库
-      try {
-        const res = await saveSqliteData(payload);
-        if (res?.success) {
-          const now = res.updatedAt || nowInTz().toISOString();
-          storageStore.setItem('localUpdatedAt', now);
-          setLastSyncTime(now);
-        }
-      } catch (err) {
-        console.warn('[SyncManager] SQLite auto-sync error:', err);
+  // 页面关闭或切换后台时，立即冲刷未落盘数据，利用 keepalive 保证请求送达
+  useEffect(() => {
+    const handleFlushOnExit = () => {
+      if (dirtyKeysRef.current.size > 0) {
+        flushSync({ keepalive: true }).catch(() => {});
       }
-    }, 1000 * 1.5);
-  }, []);
+    };
+
+    window.addEventListener('beforeunload', handleFlushOnExit);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleFlushOnExit();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleFlushOnExit);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [flushSync]);
 
   // --- syncUserConfig ---
   const syncUserConfig = useCallback(
     async (
       _userId: string | null = null,
-      showTip = true,
+      showTip = false,
       payload: any = null,
       _isPartial = false,
       _options: any = null
@@ -743,7 +778,7 @@ export function useSyncManager({
         const baseData = payload || collectLocalPayload();
         const now = nowInTz().toISOString();
 
-        // 保存至本地 SQLite
+        // 立即保存至本地 SQLite
         await saveSqliteData(baseData);
         storageStore.setItem('localUpdatedAt', now);
         setLastSyncTime(now);
@@ -757,7 +792,7 @@ export function useSyncManager({
           });
         }
       } catch (e) {
-        console.error('同步数据异常', e);
+        console.error('实时同步数据异常', e);
         showToast('数据保存失败，请重试', 'error');
       } finally {
         setIsSyncing(false);

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { AnimatePresence } from 'framer-motion';
-import { CircleHelp, CloudUpload, History, Loader2, LogOut, Settings, TrendingUp, User } from 'lucide-react';
+import { CircleHelp, History, LogOut, Settings, TrendingUp, User } from 'lucide-react';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import ConfirmModal from './ConfirmModal';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
@@ -23,9 +23,6 @@ export interface UserMenuProps {
   user?: any;
   userAvatar?: string | null;
   navbarHeight?: number;
-  lastSyncTime?: string | number | Date | null;
-  isSyncing?: boolean;
-  onSync?: () => Promise<void> | void;
   onOpenSettings?: () => void;
   onOpenPortfolioEarnings?: () => void;
   onLogout?: () => void;
@@ -36,8 +33,6 @@ export interface UserMenuProps {
 
 export default function UserMenu({
   userAvatar,
-  isSyncing,
-  onSync,
   onOpenSettings,
   onOpenPortfolioEarnings,
   onLogout,
@@ -127,17 +122,6 @@ export default function UserMenu({
           )}
 
           <DropdownMenuGroup>
-            <DropdownMenuItem
-              disabled={isSyncing}
-              onClick={async () => {
-                setUserMenuOpen(false);
-                await onSync?.();
-              }}
-            >
-              {isSyncing ? <Loader2 className="animate-spin text-primary" /> : <CloudUpload />}
-              <span>{isSyncing ? '正在同步数据...' : '同步数据'}</span>
-            </DropdownMenuItem>
-
             <DropdownMenuItem
               onClick={() => {
                 setUserMenuOpen(false);

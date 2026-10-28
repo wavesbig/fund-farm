@@ -161,7 +161,7 @@ export const Navbar = memo(function Navbar({
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{isSyncing ? '正在同步数据...' : undefined}</p>
+            <p>{isSyncing ? '正在实时保存...' : '已实时保存至本地 SQLite'}</p>
           </TooltipContent>
         </Tooltip>
         <span>基估宝</span>
@@ -261,9 +261,6 @@ export const Navbar = memo(function Navbar({
           user={user}
           userAvatar={userAvatar}
           navbarHeight={navbarHeight}
-          lastSyncTime={lastSyncTime}
-          isSyncing={isSyncing}
-          onSync={() => syncUserConfig?.(null, true)}
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenPortfolioEarnings={() => setPortfolioEarningsOpen(true)}
           onLogout={handleLogout}

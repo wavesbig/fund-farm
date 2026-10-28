@@ -36,12 +36,13 @@ export async function fetchSqliteData(): Promise<any> {
   }
 }
 
-export async function saveSqliteData(dataMap: unknown): Promise<any> {
+export async function saveSqliteData(dataMap: unknown, options: { keepalive?: boolean } = {}): Promise<any> {
   try {
     const res = await fetch('/api/sync', {
       method: 'POST',
       headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ data: dataMap })
+      body: JSON.stringify({ data: dataMap }),
+      keepalive: options.keepalive ?? true
     });
 
     if (res.status === 401) {
@@ -61,12 +62,13 @@ export async function saveSqliteData(dataMap: unknown): Promise<any> {
   }
 }
 
-export async function saveSqliteKey(key: string, value: unknown): Promise<any> {
+export async function saveSqliteKey(key: string, value: unknown, options: { keepalive?: boolean } = {}): Promise<any> {
   try {
     const res = await fetch('/api/sync', {
       method: 'POST',
       headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ key, value })
+      body: JSON.stringify({ key, value }),
+      keepalive: options.keepalive ?? true
     });
 
     if (res.status === 401) {
