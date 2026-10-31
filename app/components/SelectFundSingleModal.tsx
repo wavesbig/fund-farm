@@ -98,7 +98,7 @@ export default function SelectFundSingleModal({
                   <div
                     key={fund.code}
                     className={`flex items-center p-3 rounded-xl border transition-all cursor-pointer ${
-                      active ? 'border-primary bg-primary/10' : 'border-border bg-white/5 hover:bg-white/10'
+                      active ? 'border-primary bg-primary/10' : 'border-border bg-muted/30 hover:bg-muted/60'
                     }`}
                     onClick={() => setSelectedCode(fund.code)}
                   >
@@ -125,7 +125,7 @@ export default function SelectFundSingleModal({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="flex-1 bg-white/5 border-border hover:bg-white/10 text-foreground"
+            className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
           >
             取消
           </Button>

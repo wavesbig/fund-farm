@@ -519,7 +519,7 @@ const FundNameCell = memo(
                       <Badge
                         key={`${item.name}-${idx}`}
                         variant={variant}
-                        className={cn('font-normal text-[11px]', themeCls)}
+                        className={cn('font-normal text-xs', themeCls)}
                         title={canEditFundTags ? '编辑标签' : undefined}
                         style={{ cursor: canEditFundTags ? 'pointer' : 'default' }}
                         onClick={(e) => {
@@ -544,7 +544,7 @@ const FundNameCell = memo(
                     onFundTagsClickRef.current?.(original);
                   }}
                 >
-                  <Badge variant="outline" className="font-normal text-[11px]">
+                  <Badge variant="outline" className="font-normal text-xs">
                     <Plus className="h-3 w-3" />
                     添加标签
                   </Badge>
@@ -1676,7 +1676,7 @@ const PcFundTable = memo(function PcFundTable({
                 <Badge
                   variant="outline"
                   className={cn(
-                    'font-normal text-[11px] cursor-pointer hover:border-primary/50 transition-colors',
+                    'font-normal text-xs cursor-pointer hover:border-primary/50 transition-colors',
                     autoSource ? 'border-primary/30 text-primary bg-primary/5' : 'text-muted-foreground border-border'
                   )}
                   style={autoSource ? { gap: '2px' } : {}}
@@ -1730,7 +1730,7 @@ const PcFundTable = memo(function PcFundTable({
                     style={{
                       fontWeight: 700,
                       textAlign: 'right',
-                      fontSize: 'clamp(10px, 1.2vw, 14px)',
+                      fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -1749,7 +1749,7 @@ const PcFundTable = memo(function PcFundTable({
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     textAlign: 'right',
-                    fontSize: pctText != null ? '11px' : '14px'
+                    fontSize: pctText != null ? '12px' : '15px'
                   }}
                 >
                   {firstLine}
@@ -1779,7 +1779,7 @@ const PcFundTable = memo(function PcFundTable({
                   className={cls}
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -1809,7 +1809,7 @@ const PcFundTable = memo(function PcFundTable({
                   className={cls}
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -1839,7 +1839,7 @@ const PcFundTable = memo(function PcFundTable({
                   className={cls}
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -1869,7 +1869,7 @@ const PcFundTable = memo(function PcFundTable({
                   className={cls}
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -1899,7 +1899,7 @@ const PcFundTable = memo(function PcFundTable({
                   className={cls}
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -1926,7 +1926,7 @@ const PcFundTable = memo(function PcFundTable({
                 <div
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -1934,7 +1934,7 @@ const PcFundTable = memo(function PcFundTable({
                 >
                   {info.getValue() ?? '—'}
                 </div>
-                <span className="muted" style={{ fontSize: '11px' }}>
+                <span className="muted" style={{ fontSize: '12px' }}>
                   {date}
                 </span>
               </div>
@@ -1961,7 +1961,7 @@ const PcFundTable = memo(function PcFundTable({
                 <div
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -1970,7 +1970,7 @@ const PcFundTable = memo(function PcFundTable({
                   {estimateNav ?? '—'}
                 </div>
                 {hasEstimateNav && date && date !== '-' ? (
-                  <span className="muted" style={{ fontSize: '11px' }}>
+                  <span className="muted" style={{ fontSize: '12px' }}>
                     {date}
                   </span>
                 ) : null}
@@ -1999,7 +1999,7 @@ const PcFundTable = memo(function PcFundTable({
                   className={cls}
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -2007,7 +2007,7 @@ const PcFundTable = memo(function PcFundTable({
                 >
                   {info.getValue() ?? '—'}
                 </div>
-                <span className="muted" style={{ fontSize: '11px' }}>
+                <span className="muted" style={{ fontSize: '12px' }}>
                   {date}
                 </span>
               </div>
@@ -2038,7 +2038,7 @@ const PcFundTable = memo(function PcFundTable({
                   className={cls}
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -2047,7 +2047,7 @@ const PcFundTable = memo(function PcFundTable({
                   {text ?? '—'}
                 </div>
                 {hasText && time && time !== '-' ? (
-                  <span className="muted" style={{ fontSize: '11px' }}>
+                  <span className="muted" style={{ fontSize: '12px' }}>
                     {time}
                   </span>
                 ) : null}
@@ -2078,7 +2078,7 @@ const PcFundTable = memo(function PcFundTable({
                   className={cls}
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -2089,7 +2089,7 @@ const PcFundTable = memo(function PcFundTable({
                 {hasText && displayDate ? (
                   <span
                     className="muted"
-                    style={{ fontSize: '11px' }}
+                    style={{ fontSize: '12px' }}
                     title={rawDate && rawDate !== displayDate ? rawDate : undefined}
                   >
                     {displayDate}
@@ -2123,7 +2123,7 @@ const PcFundTable = memo(function PcFundTable({
                   style={{
                     fontWeight: 700,
                     display: 'block',
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -2136,7 +2136,7 @@ const PcFundTable = memo(function PcFundTable({
                     className={`${cls} estimate-profit-percent`}
                     style={{
                       display: 'block',
-                      fontSize: 'clamp(9px, 0.9vw, 11px)',
+                      fontSize: 'clamp(12px, 0.95vw, 13px)',
                       opacity: 0.9,
                       fontWeight: 500,
                       whiteSpace: 'nowrap',
@@ -2212,7 +2212,7 @@ const PcFundTable = memo(function PcFundTable({
                   <span
                     style={{
                       fontWeight: 700,
-                      fontSize: 'clamp(10px, 1.2vw, 14px)',
+                      fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -2271,7 +2271,7 @@ const PcFundTable = memo(function PcFundTable({
                   fontWeight: 700,
                   display: 'block',
                   textAlign: 'right',
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
+                  fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -2313,7 +2313,7 @@ const PcFundTable = memo(function PcFundTable({
                 <span
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     display: 'block',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -2350,7 +2350,7 @@ const PcFundTable = memo(function PcFundTable({
                   fontWeight: 700,
                   display: 'block',
                   textAlign: 'right',
-                  fontSize: 'clamp(10px, 1.2vw, 14px)',
+                  fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -2407,7 +2407,7 @@ const PcFundTable = memo(function PcFundTable({
                   style={{
                     fontWeight: 700,
                     display: 'block',
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -2420,7 +2420,7 @@ const PcFundTable = memo(function PcFundTable({
                     className={`${cls} today-profit-percent`}
                     style={{
                       display: 'block',
-                      fontSize: 'clamp(9px, 0.9vw, 11px)',
+                      fontSize: 'clamp(12px, 0.95vw, 13px)',
                       opacity: 0.9,
                       fontWeight: 500,
                       whiteSpace: 'nowrap',
@@ -2461,7 +2461,7 @@ const PcFundTable = memo(function PcFundTable({
                   style={{
                     fontWeight: 700,
                     display: 'block',
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -2474,7 +2474,7 @@ const PcFundTable = memo(function PcFundTable({
                     className={`${pctCls} yesterday-profit-percent`}
                     style={{
                       display: 'block',
-                      fontSize: 'clamp(9px, 0.9vw, 11px)',
+                      fontSize: 'clamp(12px, 0.95vw, 13px)',
                       opacity: 0.9,
                       fontWeight: 500,
                       whiteSpace: 'nowrap',
@@ -2512,7 +2512,7 @@ const PcFundTable = memo(function PcFundTable({
                   style={{
                     fontWeight: 700,
                     display: 'block',
-                    fontSize: 'clamp(10px, 1.2vw, 14px)',
+                    fontSize: 'clamp(14.5px, 1.2vw, 16.5px)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -2525,7 +2525,7 @@ const PcFundTable = memo(function PcFundTable({
                     className={`${cls} holding-profit-percent`}
                     style={{
                       display: 'block',
-                      fontSize: 'clamp(9px, 0.9vw, 11px)',
+                      fontSize: 'clamp(12px, 0.95vw, 13px)',
                       opacity: 0.9,
                       fontWeight: 500,
                       whiteSpace: 'nowrap',
@@ -2824,7 +2824,7 @@ const PcFundTable = memo(function PcFundTable({
                       display: 'inline-flex',
                       flexDirection: 'column',
                       lineHeight: 1,
-                      fontSize: '8px',
+                      fontSize: '9px',
                       opacity: isSorted ? 1 : 0.3
                     }}
                   >
@@ -2877,7 +2877,7 @@ const PcFundTable = memo(function PcFundTable({
                 <div className="pc-fund-table" ref={tableContainerRef} style={tableCssVariables}>
                   <style>{`
         .table-row-scroll {
-          --row-bg: var(--bg);
+          --row-bg: var(--card);
           background-color: var(--row-bg) !important;
         }
 
@@ -2959,7 +2959,7 @@ const PcFundTable = memo(function PcFundTable({
         .resizer.isResizing::after {
           opacity: 1;
           background: var(--primary);
-          box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.2);
+          box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent);
         }
         
         .table-header-cell:hover .resizer::after {
@@ -3224,7 +3224,7 @@ const PcFundTable = memo(function PcFundTable({
                                           display: 'inline-flex',
                                           flexDirection: 'column',
                                           lineHeight: 1,
-                                          fontSize: '8px',
+                                          fontSize: '9px',
                                           opacity: isSorted ? 1 : 0.3
                                         }}
                                       >
@@ -3491,7 +3491,7 @@ function BatchRemoveHeader({
             style={{ width: 14, height: 14, accentColor: 'var(--primary)', cursor: 'pointer' }}
             aria-label="全选"
           />
-          <span className="muted" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+          <span className="muted" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>
             已选 {selectedCount}/{totalCount}
           </span>
         </label>
@@ -3502,7 +3502,7 @@ function BatchRemoveHeader({
               e.stopPropagation?.();
               onClear?.();
             }}
-            style={{ fontSize: 12, opacity: 0.9 }}
+            style={{ fontSize: 13, opacity: 0.9 }}
             type="button"
           >
             清空
@@ -3534,7 +3534,7 @@ function BatchRemoveHeader({
           }}
         >
           <FolderPlusIcon width="14" height="14" />
-          <span style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>移动分组</span>
+          <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>移动分组</span>
         </button>
         <button
           className="icon-button"
@@ -3559,7 +3559,7 @@ function BatchRemoveHeader({
           }}
         >
           <TrashIcon width="14" height="14" />
-          <span style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>批量删除</span>
+          <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>批量删除</span>
         </button>
         {onClose && (
           <button

@@ -227,7 +227,7 @@ export default function MobileSettingModal({
         handleOnly={isReordering}
       >
         <DrawerContent className="glass" defaultHeight="77vh" minHeight="40vh" maxHeight="90vh">
-          <DrawerHeader className="flex-row items-center justify-between gap-2 py-3.5 px-4 text-base font-semibold border-b border-border/60 bg-muted/10 shrink-0">
+          <DrawerHeader className="flex-row items-center justify-between gap-2 py-3.5 px-4 text-base font-semibold border-b border-border bg-card shrink-0">
             <div className="flex min-w-0 items-center gap-2.5">
               <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
                 <Settings2 className="size-4" />

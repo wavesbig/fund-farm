@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   useStorageStore,
   storageStore,
-  useUserStore,
   useModalStore,
   getFundCodesSignature,
   ensurePresetGroups,
@@ -145,12 +144,6 @@ export function useSyncManager({
       setLastSyncTime(null);
     }
   }, []);
-
-  // user → userIdRef
-  const user = useUserStore((s) => s.user);
-  useEffect(() => {
-    userIdRef.current = user?.id || null;
-  }, [user]);
 
   // deviceConflictModalOpenRef sync
   useEffect(() => {
@@ -1190,8 +1183,7 @@ export function useSyncManager({
         }
 
         if (options.forceTakeover) {
-          const currentUser = useUserStore.getState().user;
-          const currentUserId = options.userId || userIdRef.current || currentUser?.id;
+          const currentUserId = options.userId || userIdRef.current;
           if (currentUserId) {
             await syncUserConfig(currentUserId, true, null, false, { forceTakeover: true });
           }
@@ -1206,8 +1198,7 @@ export function useSyncManager({
           if (shouldRefreshAfterApply && isFunction(refreshAllRef.current)) {
             await refreshAllRef.current(codes);
           }
-          const currentUser = useUserStore.getState().user;
-          const currentUserId = userIdRef.current || currentUser?.id;
+          const currentUserId = userIdRef.current;
           if (currentUserId) {
             try {
               const latestFunds = storageStore.getItem('funds', []) as any[];

@@ -50,10 +50,10 @@ export default function SearchBar({
     <>
       <form className="form flex items-center gap-2 w-full" onSubmit={addFund}>
         <div className="relative flex-1 flex items-center min-w-0">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10 opacity-70" />
           <Input
             ref={inputRef}
-            className="h-[38px] w-full rounded-full pl-10 pr-12 text-[16PX] md:text-sm bg-[#0b1220]/90 dark:bg-[#0b1220]/90 [html[data-theme='light']_&]:bg-white/95 border-border/50 text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary/40"
+            className="h-[38px] w-full rounded-lg pl-10 pr-12 text-[16PX] md:text-sm bg-card border-border shadow-[0_1px_2px_rgba(50,50,93,0.06),0_1px_1px_rgba(0,0,0,0.04)] text-foreground placeholder:text-muted-foreground/80 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all"
             placeholder="搜索基金名称或代码..."
             value={searchTerm}
             onChange={handleSearchInput}
@@ -76,7 +76,7 @@ export default function SearchBar({
         <Button
           type="submit"
           onMouseDown={(e) => e.preventDefault()}
-          className="h-[38px] px-4 font-medium shrink-0 hidden sm:inline-flex"
+          className="h-[38px] px-4 font-medium rounded-md shrink-0 hidden sm:inline-flex shadow-sm transition-colors"
         >
           添加
         </Button>

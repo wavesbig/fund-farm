@@ -53,7 +53,7 @@ export function ConsecutiveTrendBadge({ trend }: ConsecutiveTrendBadgeProps) {
             alignItems: 'center',
             gap: '1px',
             color: color,
-            fontSize: '11px',
+            fontSize: '12px',
             fontWeight: 'bold',
             marginRight: '4px',
             verticalAlign: 'middle',
@@ -165,7 +165,7 @@ export function NumericInput({ value, onChange, step = 1, min = 0, placeholder }
       />
       <div className="absolute right-1 top-1 bottom-1 flex flex-col justify-center gap-1">
         <button
-          className="icon-button flex items-center justify-center w-10 h-5 hover:bg-white/10 active:scale-95 transition-all rounded cursor-pointer"
+          className="icon-button flex items-center justify-center w-10 h-5 hover:bg-white/10 transition-colors rounded cursor-pointer"
           type="button"
           onClick={inc}
           aria-label="增加数值"
@@ -173,7 +173,7 @@ export function NumericInput({ value, onChange, step = 1, min = 0, placeholder }
           <PlusIcon width="12" height="12" />
         </button>
         <button
-          className="icon-button flex items-center justify-center w-10 h-5 hover:bg-white/10 active:scale-95 transition-all rounded cursor-pointer"
+          className="icon-button flex items-center justify-center w-10 h-5 hover:bg-white/10 transition-colors rounded cursor-pointer"
           type="button"
           onClick={dec}
           aria-label="减少数值"
@@ -194,14 +194,24 @@ export interface StatProps {
 export function Stat({ label, value, delta }: StatProps) {
   const dir = delta !== undefined ? (delta > 0 ? 'up' : delta < 0 ? 'down' : '') : '';
   return (
-    <div className="stat" style={{ flexDirection: 'column', gap: 4, minWidth: 0 }}>
+    <div className="stat" style={{ flexDirection: 'column', gap: 3, minWidth: 0 }}>
       <span
         className="label"
-        style={{ fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+        style={{
+          fontSize: '12px',
+          fontWeight: 500,
+          color: 'var(--muted)',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }}
       >
         {label}
       </span>
-      <span className={`value ${dir} tabular-nums`} style={{ fontSize: '15px', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+      <span
+        className={`value ${dir} tabular-nums`}
+        style={{ fontSize: '17px', fontWeight: 600, lineHeight: 1.25, whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}
+      >
         {value}
       </span>
     </div>

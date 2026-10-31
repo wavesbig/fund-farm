@@ -154,10 +154,10 @@ export default function AddHistoryModal({ fund, onClose, onConfirm }: AddHistory
                 variant={type === 'buy' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setType('buy')}
-                className={`h-9 text-xs font-medium ${
+                className={`h-9 text-xs font-medium transition-all ${
                   type === 'buy'
-                    ? 'bg-cyan-500 text-white'
-                    : 'bg-white/5 border-border text-muted-foreground hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                    : 'bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 }`}
               >
                 买入
@@ -167,10 +167,10 @@ export default function AddHistoryModal({ fund, onClose, onConfirm }: AddHistory
                 variant={type === 'sell' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setType('sell')}
-                className={`h-9 text-xs font-medium ${
+                className={`h-9 text-xs font-medium transition-all ${
                   type === 'sell'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-white/5 border-border text-muted-foreground hover:text-foreground'
+                    ? 'bg-destructive text-destructive-foreground font-semibold shadow-sm'
+                    : 'bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 }`}
               >
                 卖出
@@ -224,7 +224,7 @@ export default function AddHistoryModal({ fund, onClose, onConfirm }: AddHistory
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 bg-white/5 border-border hover:bg-white/10 text-foreground"
+              className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
             >
               取消
             </Button>

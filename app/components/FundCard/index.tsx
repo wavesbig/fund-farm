@@ -18,7 +18,6 @@ import { fetchFundHoldings, fetchFundData } from '@/app/api/fund';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Stat, ConsecutiveTrendBadge } from '../Common';
 import FundTrendChart from '../FundTrendChart';
-import FundValuationTrendChart from '../FundValuationTrendChart';
 import FundIntradayChart from '../FundIntradayChart';
 import FundDailyEarnings from '../FundDailyEarnings';
 import { ChevronIcon, SettingsIcon, StarIcon, SwitchIcon, TrashIcon, LinkIcon } from '../Icons';
@@ -449,7 +448,6 @@ const FundCard = memo(function Index({
 
   const isTrendExpanded = !collapsedTrends?.has(fundCode);
   const isValuationTrendExpanded = !collapsedValuationTrends?.has(fundCode);
-  const showValuationTrend = Boolean(userId);
 
   return (
     <motion.div
@@ -571,7 +569,7 @@ const FundCard = memo(function Index({
                       <Badge
                         key={`${item.name}-${idx}`}
                         variant={variant}
-                        className={cn('font-normal text-[11px]', themeCls)}
+                        className={cn('font-normal text-xs', themeCls)}
                         style={{ cursor: onFundTagsClick ? 'pointer' : 'default' }}
                         onClick={(e) => {
                           if (onFundTagsClick) {
@@ -601,13 +599,13 @@ const FundCard = memo(function Index({
                 style={{
                   cursor: 'pointer',
                   background: f.autoSource
-                    ? 'color-mix(in srgb, var(--primary) 12%, transparent)'
-                    : 'var(--primary-light, rgba(34, 211, 238, 0.1))',
+                    ? 'color-mix(in srgb, var(--primary) 14%, transparent)'
+                    : 'color-mix(in srgb, var(--primary) 8%, transparent)',
                   color: 'var(--primary)',
                   border: f.autoSource
-                    ? '1px solid color-mix(in srgb, var(--primary) 25%, transparent)'
-                    : '1px solid transparent',
-                  boxShadow: f.autoSource ? '0 0 8px color-mix(in srgb, var(--primary) 10%, transparent)' : 'none',
+                    ? '1px solid color-mix(in srgb, var(--primary) 28%, transparent)'
+                    : '1px solid var(--border)',
+                  boxShadow: f.autoSource ? '0 1px 4px color-mix(in srgb, var(--primary) 15%, transparent)' : 'none',
                   transition: 'all 0.2s ease'
                 }}
                 onClick={() => onDataSourceClick?.(f)}
@@ -711,7 +709,7 @@ const FundCard = memo(function Index({
                   <span
                     className="value"
                     style={{
-                      fontSize: '15px',
+                      fontSize: '16px',
                       lineHeight: 1.2,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -744,7 +742,7 @@ const FundCard = memo(function Index({
                   <div
                     className="value muted"
                     style={{
-                      fontSize: '14px',
+                      fontSize: '15px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 4,
@@ -951,7 +949,6 @@ const FundCard = memo(function Index({
           <TabsList className="w-full flex">
             {hasHoldings && <TabsTrigger value="holdings">前10重仓</TabsTrigger>}
             <TabsTrigger value="trend">业绩走势</TabsTrigger>
-            {showValuationTrend && <TabsTrigger value="valuation_trend">估值走势</TabsTrigger>}
             {hasHoldingAmount && <TabsTrigger value="earnings">我的收益</TabsTrigger>}
           </TabsList>
           {hasHoldings && (
@@ -1015,11 +1012,6 @@ const FundCard = memo(function Index({
               hideHeader
             />
           </TabsContent>
-          {showValuationTrend && (
-            <TabsContent value="valuation_trend" className="mt-3 outline-none">
-              <FundValuationTrendChart code={f.code} isExpanded theme={theme} userId={userId} hideHeader />
-            </TabsContent>
-          )}
           {hasHoldingAmount && (
             <TabsContent value="earnings" className="mt-3 outline-none">
               {displayDailyEarningsSeries.length > 0 ? (
@@ -1127,15 +1119,6 @@ const FundCard = memo(function Index({
             transactions={profit ? transactions?.[f.code] || [] : []}
             theme={theme}
           />
-          {showValuationTrend && (
-            <FundValuationTrendChart
-              code={f.code}
-              isExpanded={isValuationTrendExpanded}
-              onToggleExpand={() => onToggleValuationTrendCollapse?.(f.code)}
-              theme={theme}
-              userId={userId}
-            />
-          )}
           {hasHoldingAmount && (
             <>
               <div
@@ -1156,7 +1139,7 @@ const FundCard = memo(function Index({
                       }}
                     />
                   </div>
-                  <span className="muted" style={{ fontSize: 11 }}>
+                  <span className="muted" style={{ fontSize: 12 }}>
                     {dailyEarningsSeries.length > 0 ? `共 ${dailyEarningsSeries.length} 天` : '未记录'}
                   </span>
                 </div>

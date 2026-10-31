@@ -102,7 +102,7 @@ function SettingSwitchCard({
           >
             {title}
           </Label>
-          {description && <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{description}</p>}
+          {description && <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{description}</p>}
         </div>
       </div>
       <Switch
@@ -400,7 +400,7 @@ export default function SettingsModal({
                   </div>
                 </div>
               </div>
-              <div className="flex justify-between text-[11px] text-muted-foreground pt-0.5 font-medium tabular-nums">
+              <div className="flex justify-between text-xs text-muted-foreground pt-0.5 font-medium tabular-nums">
                 <span>紧凑 (600px)</span>
                 <span>标准 (1200px)</span>
                 <span>自适应宽屏</span>
@@ -537,13 +537,13 @@ export default function SettingsModal({
     >
       <DialogContent
         overlayClassName={cn(sliderDragging && 'opacity-20 backdrop-blur-none transition-opacity')}
-        className="sm:max-w-[820px] md:max-w-[880px] w-[95vw] h-[85vh] max-h-[720px] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl"
+        className="sm:max-w-[820px] md:max-w-[880px] w-[95vw] h-[85vh] max-h-[720px] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
         showCloseButton={true}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
         {/* 顶部标题栏 Header */}
-        <DialogHeader className="px-6 py-4 border-b border-border/60 shrink-0 text-left bg-muted/10">
+        <DialogHeader className="px-6 py-4 border-b border-border shrink-0 text-left bg-card">
           <div className="flex items-center gap-3">
             <div className="size-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
               <Settings className="size-5" />
@@ -558,41 +558,41 @@ export default function SettingsModal({
         {/* 主体侧边栏布局：手机端与PC端根据 isMobile 彻底隔离渲染 */}
         {isMobile ? (
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden w-full max-w-full">
-            {/* 移动端标签栏 */}
-            <div className="flex items-center gap-1.5 p-2 bg-card/50 border-b border-border/60 shrink-0 w-full select-none">
-              {NAV_ITEMS.map((item) => {
-                const isActive = activeTab === item.id;
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setActiveTab(item.id)}
-                    className={cn(
-                      'flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium tracking-tight transition-all cursor-pointer truncate border',
-                      isActive
-                        ? 'bg-primary/15 text-primary border-primary/30 shadow-xs font-semibold'
-                        : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-card/70'
-                    )}
-                  >
-                    <Icon className="size-3.5 shrink-0" />
-                    <span className="truncate">{item.title}</span>
-                  </button>
-                );
-              })}
+            {/* 移动端顶部标签栏 */}
+            <div className="p-2.5 bg-card border-b border-border shrink-0 w-full select-none">
+              <div className="grid grid-cols-3 gap-1 p-1 bg-muted/40 rounded-lg border border-border/50">
+                {NAV_ITEMS.map((item) => {
+                  const isActive = activeTab === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setActiveTab(item.id)}
+                      className={cn(
+                        'flex items-center justify-center gap-1.5 py-2 px-2 rounded-md text-xs font-medium transition-all cursor-pointer',
+                        isActive
+                          ? 'bg-card text-foreground shadow-xs font-semibold border border-border/50'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      <Icon className={cn('size-3.5 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} />
+                      <span className="truncate">{item.title}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* 移动端下方主内容区 */}
-            <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 scrollbar-y-styled">
-              {renderMainContent()}
-            </main>
+            <main className="flex-1 min-w-0 overflow-y-auto p-4 scrollbar-y-styled">{renderMainContent()}</main>
           </div>
         ) : (
           <div className="flex-1 flex flex-row min-h-0 overflow-hidden w-full max-w-full">
-            {/* PC 端垂直侧边栏 */}
-            <aside className="w-[210px] shrink-0 border-r border-border/60 bg-card/40 backdrop-blur-md p-3.5 flex flex-col select-none">
+            {/* PC 端垂直侧边栏 - 背景色纯净统一为 bg-card，消除突兀杂色 */}
+            <aside className="w-[210px] shrink-0 border-r border-border bg-card p-3.5 flex flex-col justify-between select-none">
               <nav className="flex flex-col gap-1">
-                <div className="text-[11px] font-semibold text-muted-foreground/60 px-2.5 pb-1 uppercase tracking-wider">
+                <div className="text-xs font-semibold text-muted-foreground px-2.5 pb-1 uppercase tracking-wider">
                   分类导航
                 </div>
                 {NAV_ITEMS.map((item) => {
@@ -604,10 +604,10 @@ export default function SettingsModal({
                       type="button"
                       onClick={() => setActiveTab(item.id)}
                       className={cn(
-                        'flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[13px] font-medium tracking-tight transition-all cursor-pointer group border',
+                        'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-colors cursor-pointer group w-full',
                         isActive
-                          ? 'bg-primary/15 text-primary border-primary/30 font-semibold shadow-xs'
-                          : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-card/70'
+                          ? 'bg-secondary text-foreground font-semibold shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
                       )}
                     >
                       <Icon
@@ -619,10 +619,10 @@ export default function SettingsModal({
                       <span className="truncate flex-1">{item.title}</span>
                       {item.badge && (
                         <Badge
-                          variant="outline"
+                          variant={isActive ? 'default' : 'secondary'}
                           className={cn(
-                            'text-[9px] px-1.5 py-0 h-4 font-normal border rounded-md',
-                            isActive ? 'bg-primary/20 text-primary border-primary/30' : 'text-muted-foreground/80'
+                            'text-xs px-1.5 py-0 h-4 font-normal rounded-md',
+                            isActive ? 'bg-primary/15 text-primary border-primary/25' : 'text-muted-foreground'
                           )}
                         >
                           {item.badge}
@@ -632,17 +632,22 @@ export default function SettingsModal({
                   );
                 })}
               </nav>
+
+              <div className="pt-3 border-t border-border/50 text-xs text-muted-foreground px-2 flex items-center justify-between">
+                <span>基估宝</span>
+                <span className="font-mono text-xs text-muted-foreground">v2.4.1</span>
+              </div>
             </aside>
 
             {/* PC 端右侧主内容区域 */}
-            <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-5 sm:p-6 scrollbar-y-styled">
+            <main className="flex-1 min-w-0 overflow-y-auto p-5 sm:p-6 scrollbar-y-styled bg-card">
               {renderMainContent()}
             </main>
           </div>
         )}
 
         {/* 底部保存与关闭栏 Footer */}
-        <DialogFooter className="px-6 py-3.5 border-t border-border/60 shrink-0 bg-muted/20 flex flex-row items-center justify-end">
+        <DialogFooter className="px-6 py-3.5 border-t border-border shrink-0 bg-card flex flex-row items-center justify-end">
           <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
             <Button
               type="button"

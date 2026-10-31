@@ -21,12 +21,12 @@ export default function AiConfigModal({ onClose }: AiConfigModalProps) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className="max-w-[560px] w-[94vw] p-0 gap-0 overflow-hidden rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl z-[99]"
+        className="max-w-[560px] w-[94vw] p-0 gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl z-[99]"
         showCloseButton={true}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader className="px-6 py-4 border-b border-border/60 shrink-0 text-left bg-muted/10">
+        <DialogHeader className="px-6 py-4 border-b border-border shrink-0 text-left bg-card">
           <div className="flex items-center gap-3">
             <div className="size-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
               <Sparkles className="size-5" />
@@ -46,7 +46,7 @@ export default function AiConfigModal({ onClose }: AiConfigModalProps) {
           <AiConfigSection showImmediateSaveButton={false} />
         </div>
 
-        <DialogFooter className="px-6 py-3.5 border-t border-border/60 shrink-0 bg-muted/20 flex flex-row items-center justify-end">
+        <DialogFooter className="px-6 py-3.5 border-t border-border shrink-0 bg-card flex flex-row items-center justify-end">
           <Button
             type="button"
             size="sm"

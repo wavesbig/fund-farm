@@ -291,9 +291,9 @@ export default function TradeModal({
         <div className="flex items-center justify-between mb-5 font-semibold text-base text-foreground">
           <div className="flex items-center gap-2">
             {isBuy ? (
-              <ArrowDownLeft className="w-5 h-5 text-cyan-400" />
+              <ArrowDownLeft className="w-5 h-5 text-primary" />
             ) : (
-              <ArrowUpRight className="w-5 h-5 text-red-400" />
+              <ArrowUpRight className="w-5 h-5 text-destructive" />
             )}
             <span>{showConfirm ? (isBuy ? '买入确认' : '卖出确认') : isBuy ? '加仓' : '减仓'}</span>
           </div>
@@ -403,7 +403,7 @@ export default function TradeModal({
                   type="button"
                   variant="outline"
                   onClick={() => setShowConfirm(false)}
-                  className="flex-1 bg-white/5 border-border hover:bg-white/10 text-foreground"
+                  className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
                 >
                   返回修改
                 </Button>
@@ -494,7 +494,7 @@ export default function TradeModal({
                   type="button"
                   variant="outline"
                   onClick={() => setShowConfirm(false)}
-                  className="flex-1 bg-white/5 border-border hover:bg-white/10 text-foreground"
+                  className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
                 >
                   返回修改
                 </Button>
@@ -502,7 +502,7 @@ export default function TradeModal({
                   type="button"
                   onClick={handleFinalConfirm}
                   disabled={loadingPrice}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium"
+                  className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium shadow-sm"
                 >
                   {loadingPrice ? '请稍候' : price ? '确认卖出' : '加入待处理队列'}
                 </Button>
@@ -727,7 +727,7 @@ export default function TradeModal({
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1 bg-white/5 border-border hover:bg-white/10 text-foreground"
+                className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
               >
                 取消
               </Button>

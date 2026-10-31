@@ -7,17 +7,11 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { isArray, isNumber, isPlainObject, isString } from 'lodash';
 
-import { useStorageStore, storageStore, useUserStore } from '../stores';
+import { useStorageStore, storageStore } from '../stores';
 import { recordValuation, setValuationSeries as persistValuationSeries } from '../lib/valuationTimeseries';
 import { DAILY_EARNINGS_SCOPE_ALL } from '@/app/constants';
 import { asyncPool } from '../lib/asyncHelper';
-import {
-  fetchFundData,
-  fetchNetValueRangeFromTrend,
-  fetchFundDividends,
-  fetchFundConfirmDays,
-  fetchFundsBestSources
-} from '../api/fund';
+import { fetchFundData, fetchNetValueRangeFromTrend, fetchFundDividends, fetchFundConfirmDays } from '../api/fund';
 import { TZ } from '../lib/fundHelpers';
 import { getQueryClient } from '../lib/get-query-client';
 
@@ -248,49 +242,23 @@ export function useRefreshManager({
         const nextFundDividends = { ...currentFundDividends };
         let dividendsChanged = false;
 
-        let bestSourcesMap: Record<string, any> = {};
         try {
           const currentFunds = useStorageStore.getState().funds || [];
-          const user = useUserStore.getState().user;
-
-          if (!user) {
-            const hasAutoSource = currentFunds.some((f) => f.autoSource);
-            if (hasAutoSource) {
-              useStorageStore
-                .getState()
-                .setFunds((prev) => prev.map((f) => (f.autoSource ? { ...f, autoSource: false } : f)));
-            }
-          } else {
-            const autoSourceCodes = currentFunds
-              .filter((f) => f.autoSource && uniqueCodes.includes(f.code))
-              .map((f) => f.code);
-
-            if (autoSourceCodes.length > 0) {
-              bestSourcesMap = await fetchFundsBestSources(autoSourceCodes);
-              if (Object.keys(bestSourcesMap).length > 0) {
-                useStorageStore.getState().setFunds((prev) => {
-                  let changed = false;
-                  const next = prev.map((f) => {
-                    if (f.autoSource && bestSourcesMap[f.code] && f.dataSource !== bestSourcesMap[f.code]) {
-                      changed = true;
-                      return { ...f, dataSource: bestSourcesMap[f.code] };
-                    }
-                    return f;
-                  });
-                  return changed ? next : prev;
-                });
-              }
-            }
+          const hasAutoSource = currentFunds.some((f) => f.autoSource);
+          if (hasAutoSource) {
+            useStorageStore
+              .getState()
+              .setFunds((prev) => prev.map((f) => (f.autoSource ? { ...f, autoSource: false } : f)));
           }
         } catch (e) {
-          console.error('批量获取自动数据源失败', e);
+          console.error('检查自动数据源失败', e);
         }
 
         await asyncPool(3, uniqueCodes, async (c) => {
           if (!fundCodeStillInStorage(c)) return;
           let data: any = null;
           try {
-            data = await fetchFundData(c, bestSourcesMap[c]);
+            data = await fetchFundData(c);
           } catch (e) {
             console.error(`刷新基金 ${c} 失败`, e);
             if (fundCodeStillInStorage(c)) {

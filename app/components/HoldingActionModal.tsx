@@ -79,7 +79,7 @@ export default function HoldingActionModal({
                   variant="outline"
                   size="sm"
                   onClick={() => onAction('history')}
-                  className="h-7 px-2.5 text-xs flex items-center gap-1 relative bg-white/5 border-border hover:bg-white/10"
+                  className="h-7 px-2.5 text-xs flex items-center gap-1 relative bg-muted/30 border-border hover:bg-muted/60 text-foreground"
                 >
                   <History className="w-3.5 h-3.5 text-muted-foreground" />
                   <span>交易记录</span>
@@ -121,7 +121,7 @@ export default function HoldingActionModal({
             type="button"
             variant="outline"
             onClick={() => onAction('buy')}
-            className="bg-cyan-500/10 border-cyan-500/30 text-cyan-500 hover:bg-cyan-500/20 text-sm font-medium h-9"
+            className="bg-primary/10 border-primary/25 text-primary hover:bg-primary/20 hover:border-primary/40 text-sm font-medium h-9 transition-colors"
           >
             加仓
           </Button>
@@ -129,7 +129,7 @@ export default function HoldingActionModal({
             type="button"
             variant="outline"
             onClick={() => onAction('sell')}
-            className="bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20 text-sm font-medium h-9"
+            className="bg-destructive/10 border-destructive/25 text-destructive hover:bg-destructive/20 hover:border-destructive/40 text-sm font-medium h-9 transition-colors"
           >
             减仓
           </Button>
@@ -137,7 +137,7 @@ export default function HoldingActionModal({
             type="button"
             variant="outline"
             onClick={() => onAction('dca')}
-            className="dca-btn text-sm font-medium h-9"
+            className="dca-btn text-sm font-medium h-9 transition-colors"
           >
             定投
           </Button>
@@ -145,7 +145,7 @@ export default function HoldingActionModal({
             type="button"
             variant="outline"
             onClick={() => onAction('convert')}
-            className="bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 text-sm font-medium h-9"
+            className="bg-accent/10 border-accent/25 text-accent hover:bg-accent/20 hover:border-accent/40 text-sm font-medium h-9 transition-colors"
           >
             转换
           </Button>
@@ -153,7 +153,7 @@ export default function HoldingActionModal({
             type="button"
             variant="outline"
             onClick={() => onAction('dividend')}
-            className="col-span-2 bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-sm font-medium h-9"
+            className="col-span-2 bg-amber-500/10 border-amber-500/25 text-amber-500 dark:text-amber-400 hover:bg-amber-500/20 hover:border-amber-500/40 text-sm font-medium h-9 transition-colors"
           >
             分红方式
           </Button>
@@ -161,7 +161,7 @@ export default function HoldingActionModal({
             type="button"
             variant="outline"
             onClick={() => onAction('edit')}
-            className="col-span-2 bg-white/5 border-border text-foreground hover:bg-white/10 text-sm font-medium h-9"
+            className="col-span-2 bg-muted/30 border-border text-foreground hover:bg-muted/60 text-sm font-medium h-9 transition-colors"
           >
             编辑持仓
           </Button>
@@ -169,7 +169,7 @@ export default function HoldingActionModal({
             type="button"
             variant="destructive"
             onClick={() => onAction('clear')}
-            className="col-span-2 mt-2 bg-gradient-to-b from-red-500 to-red-600 text-white font-medium h-9 hover:from-red-600 hover:to-red-700"
+            className="col-span-2 mt-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 font-medium h-9 shadow-sm hover:shadow transition-all"
           >
             清空持仓
           </Button>

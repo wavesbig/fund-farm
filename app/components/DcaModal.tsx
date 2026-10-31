@@ -413,7 +413,7 @@ export default function DcaModal({ fund, plan, onClose, onConfirm, onReset }: Dc
                           className={`h-7 text-xs tabular-nums ${
                             active
                               ? 'bg-primary text-primary-foreground font-semibold'
-                              : 'text-muted-foreground hover:text-foreground hover:bg-white/10'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                           }`}
                         >
                           {day}日
@@ -447,7 +447,7 @@ export default function DcaModal({ fund, plan, onClose, onConfirm, onReset }: Dc
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 bg-white/5 border-border hover:bg-white/10 text-foreground"
+              className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
             >
               取消
             </Button>

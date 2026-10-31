@@ -87,9 +87,9 @@ export default function UserMenu({
             <>
               <DropdownMenuGroup>
                 <DropdownMenuItem
-                  onClick={() => {
+                  onSelect={() => {
                     setUserMenuOpen(false);
-                    onOpenPortfolioEarnings?.();
+                    setTimeout(() => onOpenPortfolioEarnings?.(), 100);
                   }}
                 >
                   <TrendingUp />
@@ -97,9 +97,9 @@ export default function UserMenu({
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  onClick={() => {
+                  onSelect={() => {
                     setUserMenuOpen(false);
-                    onTutorial?.();
+                    setTimeout(() => onTutorial?.(), 100);
                   }}
                 >
                   <CircleHelp />
@@ -107,9 +107,9 @@ export default function UserMenu({
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  onClick={() => {
+                  onSelect={() => {
                     setUserMenuOpen(false);
-                    onUpdateLog?.();
+                    setTimeout(() => onUpdateLog?.(), 100);
                   }}
                 >
                   <History />
@@ -123,9 +123,9 @@ export default function UserMenu({
 
           <DropdownMenuGroup>
             <DropdownMenuItem
-              onClick={() => {
+              onSelect={() => {
                 setUserMenuOpen(false);
-                onOpenSettings?.();
+                setTimeout(() => onOpenSettings?.(), 100);
               }}
             >
               <Settings />

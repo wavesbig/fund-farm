@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" sizes="180x180" href="/Icon-60@3x.png?v=1" />
         <link rel="manifest" href="/manifest.webmanifest" />
         {/* 初始为暗色；ThemeColorSync 会按 data-theme 同步为亮/暗 */}
-        <meta name="theme-color" content="#0f172a" />
+        <meta name="theme-color" content="#0b0f19" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         {/* 尽早设置 data-theme，减少首屏主题闪烁；与 suppressHydrationWarning 配合避免服务端/客户端 html 属性不一致报错 */}
         <script

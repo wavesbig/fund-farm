@@ -3,11 +3,9 @@
 import * as React from 'react';
 import { toast as sonnerToast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import type { User } from '@/types';
 
 export interface FooterProps {
   isMobile: boolean;
-  user?: User | null;
   onOpenFeedback: () => void;
 }
 

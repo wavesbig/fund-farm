@@ -72,11 +72,11 @@ export default function SyncPersonalSettingsModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={true}
-        className="max-w-[460px] w-[92vw] p-0 gap-0 overflow-hidden rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl z-[10003]"
+        className="max-w-[460px] w-[92vw] p-0 gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl z-[10003]"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader className="px-6 py-4.5 border-b border-border/60 shrink-0 text-left bg-muted/10">
+        <DialogHeader className="px-6 py-4.5 border-b border-border shrink-0 text-left bg-card">
           <div className="flex items-center gap-3">
             <div className="size-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
               <RefreshCw className="size-5" />
@@ -127,7 +127,7 @@ export default function SyncPersonalSettingsModal({
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-3.5 border-t border-border/60 shrink-0 bg-muted/20 flex flex-row items-center justify-end gap-2.5">
+        <DialogFooter className="px-6 py-3.5 border-t border-border shrink-0 bg-card flex flex-row items-center justify-end gap-2.5">
           <Button
             type="button"
             variant="ghost"

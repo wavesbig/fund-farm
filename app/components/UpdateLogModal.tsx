@@ -5,8 +5,15 @@ import { useEffect, useState } from 'react';
 import { X, Loader2, GitCommit } from 'lucide-react';
 import dayjs from 'dayjs';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from '@/components/ui/drawer';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerClose
+} from '@/components/ui/drawer';
 import { withRetry } from '@/app/lib/asyncHelper';
 
 export interface UpdateLogModalProps {
@@ -111,6 +118,13 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
     </div>
   );
 
+  const mountTimeRef = React.useRef(Date.now());
+  React.useEffect(() => {
+    if (open) {
+      mountTimeRef.current = Date.now();
+    }
+  }, [open]);
+
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
@@ -121,6 +135,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
               <X className="w-4 h-4" />
             </DrawerClose>
           </DrawerHeader>
+          <DrawerDescription className="sr-only">更新日志列表</DrawerDescription>
           {content}
         </DrawerContent>
       </Drawer>
@@ -129,9 +144,22 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+      <DialogContent
+        className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden z-[99]"
+        onPointerDownOutside={(e) => {
+          if (Date.now() - mountTimeRef.current < 400) {
+            e.preventDefault();
+          }
+        }}
+        onInteractOutside={(e) => {
+          if (Date.now() - mountTimeRef.current < 400) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader className="shrink-0 px-6 pt-5 pb-3 border-b border-[var(--border)]">
           <DialogTitle className="text-base font-semibold text-foreground">更新日志</DialogTitle>
+          <DialogDescription className="sr-only">更新日志记录</DialogDescription>
         </DialogHeader>
         {content}
       </DialogContent>

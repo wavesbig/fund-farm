@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, TrendingUp, BarChart3, Activity, CheckCircle, PlusCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useReactTable, getCoreRowModel, flexRender, ColumnDef } from '@tanstack/react-table';
 import { fetchFundValuationRanking, fetchFundPeriodReturns } from '../api/fund';
 import { cn } from '@/lib/utils';
 import { useStorageStore, useModalStore } from '../stores';
-import { supabase } from '../lib/supabase';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -97,20 +95,10 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
 
   const funds = useStorageStore((s) => s.funds);
 
-  // Queries for Hot Sectors (Supabase)
+  // Queries for Hot Sectors
   const { data: sectorEstimates, isLoading: sectorsLoading } = useQuery({
     queryKey: ['hotSectors'],
-    queryFn: async () => {
-      try {
-        if (!supabase) return [];
-        const { data, error } = await (supabase.from('fund_topic') as any).select('*');
-        if (error) throw error;
-        return data || [];
-      } catch (e) {
-        console.error('Fetch hot sectors error:', e);
-        return [];
-      }
-    },
+    queryFn: async () => [],
     enabled: Boolean(isActive),
     staleTime: 120000
   });
@@ -208,16 +196,16 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
                   </TooltipContent>
                 </Tooltip>
                 <span
-                  className="font-medium text-sm whitespace-normal break-all leading-snug cursor-pointer hover:text-primary transition-colors"
+                  className="font-medium text-sm sm:text-base whitespace-normal break-all leading-snug cursor-pointer hover:text-primary transition-colors"
                   onClick={() => setDetailFund(fund)}
                 >
                   {fund.jjjc}
                 </span>
               </div>
               <div className="flex items-center gap-2 pl-5">
-                <span className="text-xs opacity-50">#{fund.bzdm}</span>
+                <span className="text-xs text-muted-foreground font-mono">#{fund.bzdm}</span>
                 {fund.FType && (
-                  <span className="fund-tag text-[10px] px-1 rounded-sm opacity-60 border border-current">
+                  <span className="fund-tag text-xs px-1.5 py-0.5 rounded-sm opacity-75 border border-current">
                     {fund.FType.split('-')[0]}
                   </span>
                 )}
@@ -234,8 +222,10 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
           const fund = info.row.original;
           return (
             <div className="flex flex-col items-end justify-center w-full">
-              <span className={cn('text-sm font-medium', getColorClass(fund.jzzzl))}>{formatPercent(fund.jzzzl)}</span>
-              <span className="text-xs opacity-50 mt-0.5">{fund.gxrq?.slice(5)}</span>
+              <span className={cn('text-sm sm:text-base font-semibold', getColorClass(fund.jzzzl))}>
+                {formatPercent(fund.jzzzl)}
+              </span>
+              <span className="text-xs text-muted-foreground mt-0.5">{fund.gxrq?.slice(5)}</span>
             </div>
           );
         }
@@ -248,7 +238,9 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
           const fund = info.row.original;
           return (
             <div className="flex flex-col items-end justify-center w-full">
-              <span className={cn('text-sm font-bold', getColorClass(fund.gszzl))}>{formatPercent(fund.gszzl)}</span>
+              <span className={cn('text-sm sm:text-base font-bold', getColorClass(fund.gszzl))}>
+                {formatPercent(fund.gszzl)}
+              </span>
             </div>
           );
         }
@@ -280,13 +272,13 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
               >
                 <ToggleGroupItem
                   value="industry"
-                  className="h-6 px-2 text-[10px] rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
+                  className="h-7 px-2.5 text-xs rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
                 >
                   行业
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="concept"
-                  className="h-6 px-2 text-[10px] rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
+                  className="h-7 px-2.5 text-xs rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
                 >
                   概念
                 </ToggleGroupItem>
@@ -307,7 +299,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
               >
                 <ToggleGroupItem
                   value="change_pct"
-                  className="h-6 px-2 text-[10px] flex items-center gap-0.5 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
+                  className="h-7 px-2.5 text-xs flex items-center gap-0.5 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
                 >
                   按涨幅
                   <span
@@ -315,8 +307,8 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
                       display: 'inline-flex',
                       flexDirection: 'column',
                       lineHeight: 1,
-                      fontSize: '8px',
-                      transform: 'scale(0.8)',
+                      fontSize: '9px',
+                      transform: 'scale(0.85)',
                       transformOrigin: 'center',
                       opacity: sectorSort === 'change_pct' ? 1 : 0.3
                     }}
@@ -331,7 +323,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="net_inflow"
-                  className="h-6 px-2 text-[10px] flex items-center gap-0.5 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
+                  className="h-7 px-2.5 text-xs flex items-center gap-0.5 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
                 >
                   按资金流入
                   <span
@@ -339,8 +331,8 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
                       display: 'inline-flex',
                       flexDirection: 'column',
                       lineHeight: 1,
-                      fontSize: '8px',
-                      transform: 'scale(0.8)',
+                      fontSize: '9px',
+                      transform: 'scale(0.85)',
                       transformOrigin: 'center',
                       opacity: sectorSort === 'net_inflow' ? 1 : 0.3
                     }}
@@ -371,68 +363,49 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
             </button>
           </div>
 
-          <motion.div layout className="market-sector-grid">
-            <AnimatePresence mode="popLayout">
-              {sectorsLoading
-                ? Array.from({ length: isMobile ? 4 : 10 }).map((_, i) => (
-                    <motion.div
-                      key={`skeleton-sector-${i}`}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ type: 'spring', stiffness: 250, damping: 25, mass: 1 }}
-                      className="market-sector-card glass"
-                    >
-                      <div className="market-sector-main items-center mt-0.5">
-                        <Skeleton className="h-5 w-16" />
-                        <Skeleton className="h-4 w-12" />
-                      </div>
-                      <div className="market-sector-leader flex items-center mt-1 h-[18px]">
-                        <Skeleton className="h-3 w-20" />
-                      </div>
-                    </motion.div>
-                  ))
-                : filteredAndSortedSectors?.map((sector: any) => {
-                    const pctStr = sector.change_pct != null ? String(sector.change_pct) : '0.00';
+          <div className="market-sector-grid">
+            {sectorsLoading
+              ? Array.from({ length: isMobile ? 4 : 10 }).map((_, i) => (
+                  <div key={`skeleton-sector-${i}`} className="market-sector-card glass">
+                    <div className="market-sector-main items-center mt-0.5">
+                      <Skeleton className="h-5 w-16" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                    <div className="market-sector-leader flex items-center mt-1 h-[18px]">
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </div>
+                ))
+              : filteredAndSortedSectors?.map((sector: any) => {
+                  const pctStr = sector.change_pct != null ? String(sector.change_pct) : '0.00';
 
-                    return (
-                      <motion.div
-                        layout
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ type: 'spring', stiffness: 250, damping: 25, mass: 1 }}
-                        key={sector.id || sector.sector_id}
-                        className="market-sector-card glass"
-                      >
-                        <div className="market-sector-main">
-                          <span className="market-sector-name">{sector.sector_name}</span>
-                          {sectorSort === 'change_pct' ? (
-                            <span className={cn('market-sector-pct', getColorClass(pctStr))}>
-                              {formatPercent(pctStr)}
-                            </span>
-                          ) : (
-                            <span className={cn('market-sector-pct', getColorClass(sector.net_inflow))}>
-                              {sector.net_inflow ? (sector.net_inflow / 100000000).toFixed(2) + '亿' : '--'}
-                            </span>
-                          )}
-                        </div>
-                        <div className="market-sector-leader">
-                          {sectorSort === 'change_pct' ? (
-                            <>
-                              资金流入: {sector.net_inflow ? (sector.net_inflow / 100000000).toFixed(2) + '亿' : '--'}
-                            </>
-                          ) : (
-                            <>
-                              涨跌幅: <span className={getColorClass(pctStr)}>{formatPercent(pctStr)}</span>
-                            </>
-                          )}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-            </AnimatePresence>
-          </motion.div>
+                  return (
+                    <div key={sector.id || sector.sector_id} className="market-sector-card glass">
+                      <div className="market-sector-main">
+                        <span className="market-sector-name">{sector.sector_name}</span>
+                        {sectorSort === 'change_pct' ? (
+                          <span className={cn('market-sector-pct', getColorClass(pctStr))}>
+                            {formatPercent(pctStr)}
+                          </span>
+                        ) : (
+                          <span className={cn('market-sector-pct', getColorClass(sector.net_inflow))}>
+                            {sector.net_inflow ? (sector.net_inflow / 100000000).toFixed(2) + '亿' : '--'}
+                          </span>
+                        )}
+                      </div>
+                      <div className="market-sector-leader">
+                        {sectorSort === 'change_pct' ? (
+                          <>资金流入: {sector.net_inflow ? (sector.net_inflow / 100000000).toFixed(2) + '亿' : '--'}</>
+                        ) : (
+                          <>
+                            涨跌幅: <span className={getColorClass(pctStr)}>{formatPercent(pctStr)}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+          </div>
         </div>
       )}
 
@@ -442,68 +415,50 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
           <div className="tabs-container">
             <div className="tabs-scroll-area">
               <div className="tabs">
-                <AnimatePresence mode="popLayout">
-                  <motion.button
-                    layout
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    key="increase"
-                    className={cn('tab', activeTab === 'increase' && 'active')}
-                    onClick={() => {
-                      setActiveTab('increase');
-                      setPageIndex(1);
-                    }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }}
-                  >
-                    估值涨幅
-                  </motion.button>
-                  <motion.button
-                    layout
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    key="decrease"
-                    className={cn('tab', activeTab === 'decrease' && 'active')}
-                    onClick={() => {
-                      setActiveTab('decrease');
-                      setPageIndex(1);
-                    }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }}
-                  >
-                    估值跌幅
-                  </motion.button>
-                  <motion.button
-                    layout
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    key="hot"
-                    className={cn('tab', activeTab === 'hot' && 'active')}
-                    onClick={() => {
-                      setActiveTab('hot');
-                      setPageIndex(1);
-                    }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }}
-                  >
-                    成交热度
-                  </motion.button>
-                  <motion.button
-                    layout
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    key="actual"
-                    className={cn('tab', activeTab === 'actual' && 'active')}
-                    onClick={() => {
-                      setActiveTab('actual');
-                      setPageIndex(1);
-                    }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }}
-                  >
-                    实际涨幅
-                  </motion.button>
-                </AnimatePresence>
+                <button
+                  type="button"
+                  key="increase"
+                  className={cn('tab', activeTab === 'increase' && 'active')}
+                  onClick={() => {
+                    setActiveTab('increase');
+                    setPageIndex(1);
+                  }}
+                >
+                  估值涨幅
+                </button>
+                <button
+                  type="button"
+                  key="decrease"
+                  className={cn('tab', activeTab === 'decrease' && 'active')}
+                  onClick={() => {
+                    setActiveTab('decrease');
+                    setPageIndex(1);
+                  }}
+                >
+                  估值跌幅
+                </button>
+                <button
+                  type="button"
+                  key="hot"
+                  className={cn('tab', activeTab === 'hot' && 'active')}
+                  onClick={() => {
+                    setActiveTab('hot');
+                    setPageIndex(1);
+                  }}
+                >
+                  成交热度
+                </button>
+                <button
+                  type="button"
+                  key="actual"
+                  className={cn('tab', activeTab === 'actual' && 'active')}
+                  onClick={() => {
+                    setActiveTab('actual');
+                    setPageIndex(1);
+                  }}
+                >
+                  实际涨幅
+                </button>
               </div>
             </div>
           </div>

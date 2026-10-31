@@ -70,14 +70,7 @@ import { useRefreshManager } from './hooks/useRefreshManager';
 import { useSyncManager, normalizeFundDailyEarningsScoped } from './hooks/useSyncManager';
 import { useIsMobile } from './hooks/useIsMobile';
 import { useShallow } from 'zustand/react/shallow';
-import {
-  useUserStore,
-  useStorageStore,
-  storageStore,
-  normalizePendingTrades,
-  useModalStore,
-  useSettingsStore
-} from './stores';
+import { useStorageStore, storageStore, normalizePendingTrades, useModalStore, useSettingsStore } from './stores';
 import ModalsLayer from './components/ModalsLayer';
 
 import {
@@ -309,16 +302,8 @@ export default function HomePage() {
   const [viewMode, setViewMode] = useState('list'); // card, list
   // 全局隐藏金额状态（影响分组汇总、列表和卡片）
   const [maskAmounts, setMaskAmounts] = useState(false);
-
-  // 用户认证状态（Supabase 会话仍由客户端持久化；用户信息由 zustand 全局管理）
-  const user = useUserStore((s) => s.user);
-  const userAvatar = useMemo(() => {
-    if (!user?.id) return '';
-    return createAvatar(identicon, {
-      seed: user.id,
-      size: 80
-    }).toDataUri();
-  }, [user?.id]);
+  const user = null;
+  const userAvatar = '';
 
   // 搜索相关状态
   const [searchTerm, setSearchTerm] = useState('');
@@ -4074,6 +4059,7 @@ export default function HomePage() {
           <Announcement />
           <Navbar
             navbarRef={navbarRef}
+            containerWidth={containerWidth}
             refreshing={refreshing}
             isSyncing={isSyncing}
             isSearchFocused={isSearchFocused}
@@ -4327,7 +4313,6 @@ export default function HomePage() {
 
             <Footer
               isMobile={isMobile}
-              user={user}
               onOpenFeedback={() => {
                 setFeedbackNonce((n) => n + 1);
                 setFeedbackOpen(true);

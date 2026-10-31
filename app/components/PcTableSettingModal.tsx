@@ -265,14 +265,14 @@ export default function PcTableSettingModal({
           onClick={onClose}
         >
           <motion.aside
-            className="w-[380px] max-w-[90vw] h-full flex flex-col bg-card/95 backdrop-blur-2xl border-l border-border/80 shadow-2xl"
+            className="w-[380px] max-w-[90vw] h-full flex flex-col bg-card border-l border-border shadow-2xl"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 border-b border-border/60 bg-muted/10 shrink-0">
+            <div className="flex items-center justify-between p-4 border-b border-border bg-card shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
                   <Settings2 className="size-4" />

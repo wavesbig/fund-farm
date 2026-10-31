@@ -90,9 +90,12 @@ fabric.properties
 # Sentry Config File
 .env.sentry-build-plugin
 
-# CLI
+# CLI & AI Agent Skills
 cli/
 .agents/
+.agent/
+.claude/
+.trae/
 /CLI.md
 /.mcp.json
 /.codex/

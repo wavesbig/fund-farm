@@ -18,6 +18,7 @@ const UpdateChecker = dynamic<{ onModalOpenChange?: (open: boolean) => void }>((
 
 export interface NavbarProps {
   navbarRef: RefObject<HTMLDivElement | null>;
+  containerWidth?: string | number;
   refreshing: boolean;
   isSyncing: boolean;
   isSearchFocused: boolean;
@@ -60,6 +61,7 @@ export interface NavbarProps {
 
 export const Navbar = memo(function Navbar({
   navbarRef,
+  containerWidth,
   refreshing,
   isSyncing,
   isSearchFocused,
@@ -100,180 +102,187 @@ export const Navbar = memo(function Navbar({
   setUpdateLogOpen
 }: NavbarProps) {
   return (
-    <div className="navbar glass" ref={navbarRef}>
+    <header className="navbar" ref={navbarRef}>
       {refreshing && <div className="loading-bar"></div>}
-      <div className="brand">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div
-              style={{
-                width: 24,
-                height: 24,
-                marginRight: 4,
-                position: 'relative',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden'
-              }}
-            >
-              {/* 同步中图标 */}
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+      <div
+        className="navbar-inner"
+        style={{
+          maxWidth: containerWidth ? (isMobile ? '100%' : `${containerWidth}px`) : '1200px'
+        }}
+      >
+        <div className="brand">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
                 style={{
-                  position: 'absolute',
-                  inset: 0,
-                  margin: 'auto',
-                  opacity: isSyncing ? 1 : 0,
-                  transform: isSyncing ? 'translateY(0px)' : 'translateY(4px)',
-                  transition: 'opacity 0.25s ease, transform 0.25s ease'
+                  width: 24,
+                  height: 24,
+                  marginRight: 4,
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden'
                 }}
               >
-                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" stroke="var(--primary)" />
-                <path d="M12 12v9" stroke="var(--accent)" />
-                <path d="m16 16-4-4-4 4" stroke="var(--accent)" />
-              </svg>
-              {/* 默认图标 */}
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  margin: 'auto',
-                  opacity: isSyncing ? 0 : 1,
-                  transform: isSyncing ? 'translateY(-4px)' : 'translateY(0px)',
-                  transition: 'opacity 0.25s ease, transform 0.25s ease'
-                }}
-              >
-                <circle cx="12" cy="12" r="10" stroke="var(--accent)" strokeWidth="2" />
-                <path d="M5 14c2-4 7-6 14-5" stroke="var(--primary)" strokeWidth="2" />
-              </svg>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{isSyncing ? '正在实时保存...' : '已实时保存至本地 SQLite'}</p>
-          </TooltipContent>
-        </Tooltip>
-        <span>基估宝</span>
-      </div>
+                {/* 同步中图标 */}
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    margin: 'auto',
+                    opacity: isSyncing ? 1 : 0,
+                    transform: isSyncing ? 'translateY(0px)' : 'translateY(4px)',
+                    transition: 'opacity 0.25s ease, transform 0.25s ease'
+                  }}
+                >
+                  <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" stroke="var(--primary)" />
+                  <path d="M12 12v9" stroke="var(--accent)" />
+                  <path d="m16 16-4-4-4 4" stroke="var(--accent)" />
+                </svg>
+                {/* 默认图标 */}
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    margin: 'auto',
+                    opacity: isSyncing ? 0 : 1,
+                    transform: isSyncing ? 'translateY(-4px)' : 'translateY(0px)',
+                    transition: 'opacity 0.25s ease, transform 0.25s ease'
+                  }}
+                >
+                  <circle cx="12" cy="12" r="10" stroke="var(--accent)" strokeWidth="2" />
+                  <path d="M5 14c2-4 7-6 14-5" stroke="var(--primary)" strokeWidth="2" />
+                </svg>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{isSyncing ? '正在实时保存...' : '已实时保存至本地 SQLite'}</p>
+            </TooltipContent>
+          </Tooltip>
+          <span className="text-[17px] font-semibold tracking-tight text-foreground">基估宝</span>
+        </div>
 
-      <div className="navbar-add-fund" role="region" aria-label="添加基金">
-        <div className="search-container" ref={dropdownRef}>
-          {selectedFunds.length > 0 && (
-            <div className="selected-inline-chips" style={{ marginBottom: 8, marginLeft: 0 }}>
-              {selectedFunds.map((fund) => (
-                <div key={fund.CODE} className="fund-chip">
-                  <span>{fund.NAME}</span>
-                  <button onClick={() => toggleSelectFund(fund)} className="remove-chip">
-                    <CloseIcon width="14" height="14" />
-                  </button>
-                </div>
-              ))}
+        <div className="navbar-add-fund" role="region" aria-label="添加基金">
+          <div className="search-container" ref={dropdownRef}>
+            {selectedFunds.length > 0 && (
+              <div className="selected-inline-chips" style={{ marginBottom: 8, marginLeft: 0 }}>
+                {selectedFunds.map((fund) => (
+                  <div key={fund.CODE} className="fund-chip">
+                    <span>{fund.NAME}</span>
+                    <button onClick={() => toggleSelectFund(fund)} className="remove-chip">
+                      <CloseIcon width="14" height="14" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <SearchBar
+              inputRef={inputRef}
+              searchTerm={searchTerm}
+              handleSearchInput={handleSearchInput}
+              showDropdown={showDropdown}
+              setShowDropdown={setShowDropdown}
+              isSearchFocused={isSearchFocused}
+              setIsSearchFocused={setIsSearchFocused}
+              searchResults={searchResults}
+              isSearching={isSearching}
+              selectedFunds={selectedFunds}
+              toggleSelectFund={toggleSelectFund}
+              isScanning={isScanning}
+              handleScanClick={handleScanClick}
+              addFund={addFund}
+            />
+          </div>
+          {error && (
+            <div className="muted" style={{ marginTop: 8, color: 'var(--danger)' }}>
+              {error}
             </div>
           )}
-          <SearchBar
-            inputRef={inputRef}
-            searchTerm={searchTerm}
-            handleSearchInput={handleSearchInput}
-            showDropdown={showDropdown}
-            setShowDropdown={setShowDropdown}
-            isSearchFocused={isSearchFocused}
-            setIsSearchFocused={setIsSearchFocused}
-            searchResults={searchResults}
-            isSearching={isSearching}
-            selectedFunds={selectedFunds}
-            toggleSelectFund={toggleSelectFund}
-            isScanning={isScanning}
-            handleScanClick={handleScanClick}
-            addFund={addFund}
-          />
         </div>
-        {error && (
-          <div className="muted" style={{ marginTop: 8, color: 'var(--danger)' }}>
-            {error}
-          </div>
-        )}
-      </div>
 
-      <div className="actions">
-        <UpdateChecker onModalOpenChange={setIsUpdateModalOpen} />
-        {process.env.NEXT_PUBLIC_GITHUB_REPO_URL && (
-          <span className="github-icon-wrap">
-            <Image
-              unoptimized
-              alt="项目Github地址"
-              src={githubImg}
-              style={{ width: '30px', height: '30px', cursor: 'pointer' }}
-              onClick={() => window.open(process.env.NEXT_PUBLIC_GITHUB_REPO_URL, '_blank')}
-            />
-          </span>
-        )}
-        {isMobile && (
+        <div className="actions">
+          <UpdateChecker onModalOpenChange={setIsUpdateModalOpen} />
+          {process.env.NEXT_PUBLIC_GITHUB_REPO_URL && (
+            <span className="github-icon-wrap">
+              <Image
+                unoptimized
+                alt="项目Github地址"
+                src={githubImg}
+                style={{ width: '30px', height: '30px', cursor: 'pointer' }}
+                onClick={() => window.open(process.env.NEXT_PUBLIC_GITHUB_REPO_URL, '_blank')}
+              />
+            </span>
+          )}
+          {isMobile && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-primary/5 dark:hover:bg-white/10 transition-colors"
+                  aria-label="筛选基金"
+                  onClick={handleMobileSearchClick}
+                >
+                  <Search className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>筛选</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          <RefreshButton
+            refreshMs={refreshMs}
+            manualRefresh={manualRefresh}
+            refreshing={refreshing}
+            fundsLength={fundsLength}
+            refreshCycleStartRef={refreshCycleStartRef}
+          />
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-8 text-muted-foreground hover:text-foreground"
-                aria-label="筛选基金"
-                onClick={handleMobileSearchClick}
+                className="size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-primary/5 dark:hover:bg-white/10 transition-colors"
+                aria-label={theme === 'dark' ? '切换到亮色主题' : '切换到暗色主题'}
+                onClick={handleThemeToggle}
               >
-                <Search className="size-4" />
+                {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>筛选</p>
+              <p>{theme === 'dark' ? '亮色' : '暗色'}</p>
             </TooltipContent>
           </Tooltip>
-        )}
-        <RefreshButton
-          refreshMs={refreshMs}
-          manualRefresh={manualRefresh}
-          refreshing={refreshing}
-          fundsLength={fundsLength}
-          refreshCycleStartRef={refreshCycleStartRef}
-        />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 text-muted-foreground hover:text-foreground"
-              aria-label={theme === 'dark' ? '切换到亮色主题' : '切换到暗色主题'}
-              onClick={handleThemeToggle}
-            >
-              {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{theme === 'dark' ? '亮色' : '暗色'}</p>
-          </TooltipContent>
-        </Tooltip>
-        <UserMenu
-          user={user}
-          userAvatar={userAvatar}
-          navbarHeight={navbarHeight}
-          onOpenSettings={() => setSettingsOpen(true)}
-          onOpenPortfolioEarnings={() => setPortfolioEarningsOpen(true)}
-          onLogout={handleLogout}
-          onLogoutConfirmOpenChange={setIsLogoutConfirmOpen}
-          onTutorial={() => {
-            setTutorialDrawerOpen(true);
-          }}
-          onUpdateLog={() => setUpdateLogOpen(true)}
-        />
+          <UserMenu
+            user={user}
+            userAvatar={userAvatar}
+            navbarHeight={navbarHeight}
+            onOpenSettings={() => setSettingsOpen(true)}
+            onOpenPortfolioEarnings={() => setPortfolioEarningsOpen(true)}
+            onLogout={handleLogout}
+            onLogoutConfirmOpenChange={setIsLogoutConfirmOpen}
+            onTutorial={() => {
+              setTutorialDrawerOpen(true);
+            }}
+            onUpdateLog={() => setUpdateLogOpen(true)}
+          />
+        </div>
       </div>
-    </div>
+    </header>
   );
 });
 

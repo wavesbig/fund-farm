@@ -34,26 +34,26 @@ const TOOLTIP_SIZE = {
 
 const CHART_COLORS = {
   dark: {
-    danger: '#f87171',
-    success: '#34d399',
-    primary: '#22d3ee',
-    muted: '#9ca3af',
-    border: '#1f2937',
-    text: '#e5e7eb',
-    crosshairText: '#0f172a',
-    grandLine: ['rgba(34,211,238,0.55)', 'rgba(156,163,175,0.55)', 'rgba(251,146,60,0.55)', 'rgba(229,231,235,0.45)'],
-    grandLegend: ['rgba(34,211,238,0.55)', 'rgba(156,163,175,0.55)', 'rgba(251,146,60,0.55)', 'rgba(229,231,235,0.45)']
+    danger: '#df1b41',
+    success: '#00d46a',
+    primary: '#635bff',
+    muted: '#8898aa',
+    border: 'rgba(255, 255, 255, 0.1)',
+    text: '#f6f9fc',
+    crosshairText: '#ffffff',
+    grandLine: ['rgba(99,91,255,0.8)', 'rgba(0,212,255,0.7)', 'rgba(255,193,7,0.7)', 'rgba(246,249,252,0.45)'],
+    grandLegend: ['rgba(99,91,255,0.8)', 'rgba(0,212,255,0.7)', 'rgba(255,193,7,0.7)', 'rgba(246,249,252,0.45)']
   },
   light: {
-    danger: '#dc2626',
-    success: '#059669',
-    primary: '#0891b2',
-    muted: '#475569',
-    border: '#e2e8f0',
-    text: '#0f172a',
+    danger: '#df1b41',
+    success: '#00a651',
+    primary: '#635bff',
+    muted: '#697386',
+    border: '#e3e8ee',
+    text: '#0a2540',
     crosshairText: '#ffffff',
-    grandLine: ['rgba(8,145,178,0.5)', 'rgba(71,85,105,0.45)', 'rgba(249,115,22,0.5)', 'rgba(15,23,42,0.35)'],
-    grandLegend: ['rgba(8,145,178,0.5)', 'rgba(71,85,105,0.45)', 'rgba(249,115,22,0.5)', 'rgba(15,23,42,0.35)']
+    grandLine: ['rgba(99,91,255,0.85)', 'rgba(0,166,81,0.75)', 'rgba(243,114,44,0.75)', 'rgba(10,37,64,0.35)'],
+    grandLegend: ['rgba(99,91,255,0.85)', 'rgba(0,166,81,0.75)', 'rgba(243,114,44,0.75)', 'rgba(10,37,64,0.35)']
   }
 };
 

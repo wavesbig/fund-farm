@@ -239,7 +239,7 @@ function MobileEditBatchHeader({
             style={{ width: 14, height: 14, accentColor: 'var(--primary)', cursor: 'pointer' }}
             aria-label="全选"
           />
-          <span className="muted" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+          <span className="muted" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>
             已选 {selectedCount}/{totalCount}
           </span>
         </label>
@@ -1895,7 +1895,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 <Badge
                   variant="outline"
                   className={cn(
-                    'font-normal text-[11px] cursor-pointer hover:border-primary/50 transition-colors',
+                    'font-normal text-xs cursor-pointer hover:border-primary/50 transition-colors',
                     autoSource ? 'border-primary/30 text-primary bg-primary/5' : 'text-muted-foreground border-border'
                   )}
                   style={autoSource ? { gap: '2px' } : {}}
@@ -1961,7 +1961,7 @@ const MobileFundTable = memo(function MobileFundTable({
                         <Badge
                           key={`${item.name}-${idx}`}
                           variant={variant}
-                          className={cn('text-[11px] font-normal', themeCls)}
+                          className={cn('text-xs font-normal', themeCls)}
                         >
                           {item.name}
                         </Badge>
@@ -2010,7 +2010,7 @@ const MobileFundTable = memo(function MobileFundTable({
                     style={{
                       fontWeight: 700,
                       textAlign: 'right',
-                      fontSize: 'clamp(9px, 2.5vw, 12px)',
+                      fontSize: 'clamp(11px, 2.8vw, 13px)',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
@@ -2028,7 +2028,7 @@ const MobileFundTable = memo(function MobileFundTable({
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     textAlign: 'right',
-                    fontSize: pctText != null ? '10px' : '12px'
+                    fontSize: pctText != null ? '11px' : '13px'
                   }}
                 >
                   {firstLine}
@@ -2053,7 +2053,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 style={{
                   fontWeight: 700,
                   textAlign: 'right',
-                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  fontSize: 'clamp(14px, 3.8vw, 16px)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -2080,7 +2080,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 style={{
                   fontWeight: 700,
                   textAlign: 'right',
-                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  fontSize: 'clamp(14px, 3.8vw, 16px)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -2107,7 +2107,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 style={{
                   fontWeight: 700,
                   textAlign: 'right',
-                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  fontSize: 'clamp(14px, 3.8vw, 16px)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -2134,7 +2134,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 style={{
                   fontWeight: 700,
                   textAlign: 'right',
-                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  fontSize: 'clamp(14px, 3.8vw, 16px)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -2161,7 +2161,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 style={{
                   fontWeight: 700,
                   textAlign: 'right',
-                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  fontSize: 'clamp(14px, 3.8vw, 16px)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -2192,7 +2192,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 style={{
                   fontWeight: 700,
                   textAlign: 'right',
-                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  fontSize: 'clamp(14px, 3.8vw, 16px)',
                   display: 'block',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -2222,7 +2222,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 style={{
                   fontWeight: 700,
                   textAlign: 'right',
-                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  fontSize: 'clamp(14px, 3.8vw, 16px)',
                   display: 'block',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -2252,7 +2252,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 style={{
                   fontWeight: 700,
                   textAlign: 'right',
-                  fontSize: 'clamp(10px, 3vw, 14px)',
+                  fontSize: 'clamp(14px, 3.8vw, 16px)',
                   display: 'block',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -2277,7 +2277,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 <span style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      fontSize: 'clamp(14px, 3.8vw, 16px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -2287,7 +2287,7 @@ const MobileFundTable = memo(function MobileFundTable({
                     {info.getValue() ?? '—'}
                   </span>
                 </span>
-                <span className="muted" style={{ fontSize: '10px' }}>
+                <span className="muted" style={{ fontSize: '12px' }}>
                   {displayDate}
                 </span>
               </div>
@@ -2310,7 +2310,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 <span style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      fontSize: 'clamp(14px, 3.8vw, 16px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -2321,7 +2321,7 @@ const MobileFundTable = memo(function MobileFundTable({
                   </span>
                 </span>
                 {hasEstimateNav && displayDate && displayDate !== '-' ? (
-                  <span className="muted" style={{ fontSize: '10px' }}>
+                  <span className="muted" style={{ fontSize: '12px' }}>
                     {displayDate}
                   </span>
                 ) : null}
@@ -2344,7 +2344,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      fontSize: 'clamp(14px, 3.8vw, 16px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -2354,7 +2354,7 @@ const MobileFundTable = memo(function MobileFundTable({
                     {info.getValue() ?? '—'}
                   </span>
                 </span>
-                <span className="muted" style={{ fontSize: '10px' }}>
+                <span className="muted" style={{ fontSize: '12px' }}>
                   {displayDate}
                 </span>
               </div>
@@ -2379,7 +2379,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      fontSize: 'clamp(14px, 3.8vw, 16px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -2390,7 +2390,7 @@ const MobileFundTable = memo(function MobileFundTable({
                   </span>
                 </span>
                 {hasText && displayTime && displayTime !== '-' ? (
-                  <span className="muted" style={{ fontSize: '10px' }}>
+                  <span className="muted" style={{ fontSize: '12px' }}>
                     {displayTime}
                   </span>
                 ) : null}
@@ -2415,7 +2415,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      fontSize: 'clamp(14px, 3.8vw, 16px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -2428,7 +2428,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 {hasText && displayDate ? (
                   <span
                     className="muted"
-                    style={{ fontSize: '10px' }}
+                    style={{ fontSize: '12px' }}
                     title={rawDate && rawDate !== displayDate ? rawDate : undefined}
                   >
                     {displayDate}
@@ -2455,7 +2455,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      fontSize: 'clamp(14px, 3.8vw, 16px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -2472,7 +2472,7 @@ const MobileFundTable = memo(function MobileFundTable({
                   >
                     <span
                       style={{
-                        fontSize: 'clamp(9px, 2.3vw, 11px)',
+                        fontSize: 'clamp(12px, 2.8vw, 13px)',
                         display: 'block',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -2520,7 +2520,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      fontSize: 'clamp(14px, 3.8vw, 16px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -2537,7 +2537,7 @@ const MobileFundTable = memo(function MobileFundTable({
                   >
                     <span
                       style={{
-                        fontSize: 'clamp(9px, 2.3vw, 11px)',
+                        fontSize: 'clamp(12px, 2.8vw, 13px)',
                         display: 'block',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -2571,7 +2571,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      fontSize: 'clamp(14px, 3.8vw, 16px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -2588,7 +2588,7 @@ const MobileFundTable = memo(function MobileFundTable({
                   >
                     <span
                       style={{
-                        fontSize: 'clamp(9px, 2.3vw, 11px)',
+                        fontSize: 'clamp(12px, 2.8vw, 13px)',
                         display: 'block',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -2619,7 +2619,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 <span className={cls} style={{ display: 'block', width: '100%', fontWeight: 700 }}>
                   <span
                     style={{
-                      fontSize: 'clamp(10px, 3vw, 14px)',
+                      fontSize: 'clamp(14px, 3.8vw, 16px)',
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -2636,7 +2636,7 @@ const MobileFundTable = memo(function MobileFundTable({
                   >
                     <span
                       style={{
-                        fontSize: 'clamp(9px, 2.3vw, 11px)',
+                        fontSize: 'clamp(12px, 2.8vw, 13px)',
                         display: 'block',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -2925,7 +2925,7 @@ const MobileFundTable = memo(function MobileFundTable({
                       display: 'inline-flex',
                       flexDirection: 'column',
                       lineHeight: 1,
-                      fontSize: '8px',
+                      fontSize: '9px',
                       opacity: isSorted ? 1 : 0.3
                     }}
                   >

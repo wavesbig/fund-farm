@@ -17,10 +17,10 @@ export default function EmptyStateCard({ fundsLength = 0, currentTab = 'all', on
   const isGroupTab = currentTab !== 'all' && currentTab !== 'fav' && currentTab !== SUMMARY_TAB_ID;
 
   return (
-    <div className="glass rounded-xl p-8 md:p-14 my-3 flex flex-col items-center justify-center">
+    <div className="glass rounded-xl md:rounded-2xl p-8 md:p-12 my-3 flex flex-col items-center justify-center border border-border shadow-sm">
       <Empty className="border-none p-0">
         <EmptyHeader>
-          <EmptyMedia variant="icon" className="size-16 rounded-2xl bg-primary/10 text-primary mb-3">
+          <EmptyMedia variant="icon" className="size-14 rounded-xl bg-primary/10 text-primary mb-3">
             <FolderOpenIcon className="size-8" />
           </EmptyMedia>
           <EmptyTitle className="text-base font-semibold text-foreground/90">

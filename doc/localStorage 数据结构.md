@@ -35,12 +35,11 @@
     yesterdayZzl: number | null,   // 昨日（再前一交易日）实际涨跌幅
     yesterdayNavDelta: number | null, // 昨日（再前一交易日）单位净值变动净额
     noValuation: boolean,          // 是否无估值数据（true 时界面将不展示估值，仅显示历史净值）
-    valuationSource: string | null, // 估值数据来源标识（如 'fundgz', 'sina_ds2', 'sina_ds3', 'supabase_qdii', 'fallback'）
+    valuationSource: string | null, // 估值数据来源标识（如 'fundgz', 'sina_ds2', 'sina_ds3', 'fallback'）
     dataSource: number,            // 估值数据源设置（1=天天基金，2=新浪基金口径一，3=新浪基金口径二，默认为1）
     addedAt: number,               // 基金添加时间戳（毫秒数）
     addBaseNav: number | null,     // 基金添加时的基准净值（用于计算“自添加来”收益率）
     addBaseDate: string | null,    // 基金添加时的基准净值日期（格式: "YYYY-MM-DD" 或估值时间）
-    gzstatus?: string | null,      // 可选。从 Supabase 获取的 QDII 估值状态
     showImageChart?: boolean       // 可选。用户是否选择在实时估值分时处展示净值估算图
   }
 ]
@@ -698,9 +697,9 @@ groupId; // 分组ID，如 'group_xxx'
 
 ## 数据同步机制
 
-### 云端同步
+### 本地 SQLite 同步与持久化
 
-项目支持通过 Supabase 进行云端数据同步。以下键参与云端同步：
+项目通过本地 Node 22 原生 SQLite (`data/fund.db`) 实现自动落盘与持久化存储。以下键参与 SQLite 实时保存与导入导出：
 
 **参与云端同步的键**:
 
@@ -905,7 +904,6 @@ const SYNC_KEYS = new Set([
 - `app/components/PcFundTable.jsx` - PC端基金表格组件
 - `app/components/MobileFundTable.jsx` - 移动端基金表格组件
 - `app/components/MarketIndexAccordion.jsx` - 市场指数组件
-- `app/lib/supabase.js` - Supabase 客户端配置
 - `app/lib/valuationTimeseries.js` - 估值分时数据管理
 - `app/lib/dailyEarnings.js` - 每日收益数据管理（按作用域分桶）
 

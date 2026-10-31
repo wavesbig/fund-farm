@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { useStorageStore, useUserStore } from '@/app/stores';
+import { useStorageStore } from '@/app/stores';
 import DataSourceAccuracyBadge from './DataSourceAccuracyBadge';
 import { cn } from '@/lib/utils';
 
@@ -38,7 +38,6 @@ export interface FundDataSourceSelectorProps {
 
 export default function FundDataSourceSelector({ fund, onClose, onSelect }: FundDataSourceSelectorProps) {
   const isAdded = useStorageStore((s) => s.funds?.some((item) => item.code === fund?.code));
-  const user = useUserStore((s) => s.user);
   const [sourceId, setSourceId] = useState('1');
   const [loading, setLoading] = useState(true);
   const [estimates, setEstimates] = useState<Record<number, string | null>>({
@@ -216,24 +215,6 @@ export default function FundDataSourceSelector({ fund, onClose, onSelect }: Fund
         <DialogTitle className="sr-only">切换数据源</DialogTitle>
         <div className="title flex items-center justify-between gap-4 mb-5">
           <span className="text-lg font-semibold text-foreground shrink-0">切换数据源</span>
-          {isAdded && user && (
-            <div
-              className={cn(
-                'flex items-center gap-2 py-1 pl-3 pr-2 rounded-full border transition-all text-xs',
-                autoSource
-                  ? 'bg-primary/10 border-primary/20 text-primary'
-                  : 'bg-[var(--secondary)] border-[var(--border)] text-[var(--muted)]'
-              )}
-            >
-              <Label
-                htmlFor="auto-source-switch"
-                className="flex items-center gap-1 text-xs cursor-pointer font-medium m-0"
-              >
-                {autoLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>自动</span>}
-              </Label>
-              <Switch id="auto-source-switch" checked={autoSource} onCheckedChange={handleAutoToggle} />
-            </div>
-          )}
         </div>
 
         <div className="mb-6">

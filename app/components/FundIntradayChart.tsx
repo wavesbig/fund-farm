@@ -27,21 +27,21 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip,
 
 const CHART_COLORS = {
   dark: {
-    danger: '#f87171',
-    success: '#34d399',
-    primary: '#22d3ee',
-    muted: '#9ca3af',
-    border: '#1f2937',
-    text: '#e5e7eb',
-    crosshairText: '#0f172a'
+    danger: '#df1b41',
+    success: '#00d46a',
+    primary: '#635bff',
+    muted: '#8898aa',
+    border: 'rgba(255, 255, 255, 0.1)',
+    text: '#f6f9fc',
+    crosshairText: '#ffffff'
   },
   light: {
-    danger: '#dc2626',
-    success: '#059669',
-    primary: '#0891b2',
-    muted: '#475569',
-    border: '#e2e8f0',
-    text: '#0f172a',
+    danger: '#df1b41',
+    success: '#00a651',
+    primary: '#635bff',
+    muted: '#697386',
+    border: '#e3e8ee',
+    text: '#0a2540',
     crosshairText: '#ffffff'
   }
 };

@@ -13,9 +13,8 @@ import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { cn, formatMoney } from '@/lib/utils';
-import { supabase, isSupabaseConfigured } from '@/app/lib/supabase';
 import { calculateYtdReturnRate, mergeAllScopedDailyEarnings, mergeAllHoldings } from '@/app/lib/dailyEarnings';
-import { storageStore, useUserStore, useStorageStore } from '@/app/stores';
+import { storageStore, useStorageStore } from '@/app/stores';
 import { searchFunds } from '@/app/api/fund';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import FitText from './FitText';
@@ -199,7 +198,6 @@ export default function MyEarningsCalendarPage({
 }: MyEarningsCalendarPageProps) {
   const isMobile = useIsMobile();
   const reduceMotion = useReducedMotion();
-  const user = useUserStore((state) => state.user);
   const fundDailyEarnings = useStorageStore((state) => state.fundDailyEarnings);
   const funds = useStorageStore((state) => state.funds);
 
@@ -314,16 +312,8 @@ export default function MyEarningsCalendarPage({
         if (cancelled) return;
         setYtdRate(rate);
         setPercentile(null);
-
-        if (!isSupabaseConfigured || !user) return;
-
-        const { data, error } = await supabase.rpc('get_ytd_percentile', { p_ytd_rate: rate });
-        const nextPercentile = Number(data);
-        if (!cancelled && !error && Number.isFinite(nextPercentile) && nextPercentile >= 0) {
-          setPercentile(nextPercentile);
-        }
       } catch (e) {
-        console.error('Failed to fetch YTD percentile', e);
+        console.error('Failed to calculate YTD return rate', e);
         if (!cancelled) setPercentile(null);
       }
     };
@@ -331,7 +321,7 @@ export default function MyEarningsCalendarPage({
     return () => {
       cancelled = true;
     };
-  }, [open, user, fundDailyEarnings]);
+  }, [open, fundDailyEarnings]);
 
   const earningsByDate = useMemo(() => {
     const map = new Map<string, { amount: number; rate: number | null }>();

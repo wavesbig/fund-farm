@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 
 const THEME_COLORS: Record<string, string> = {
-  dark: '#0f172a',
-  light: '#ffffff'
+  dark: '#0b0f19',
+  light: '#f1f5f9'
 };
 
 function getThemeColor(): string {

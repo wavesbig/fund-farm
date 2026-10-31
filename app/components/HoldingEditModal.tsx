@@ -222,7 +222,7 @@ export default function HoldingEditModal({ fund, holding, nav, onClose, onSave, 
                 variant="outline"
                 size="sm"
                 onClick={onOpenTrade}
-                className="h-7 px-2.5 rounded-full text-xs bg-white/5 border-border text-primary hover:bg-white/10"
+                className="h-7 px-2.5 rounded-full text-xs bg-primary/10 border-primary/20 text-primary hover:bg-primary/20"
               >
                 今日买入？去加仓
               </Button>
@@ -385,7 +385,7 @@ export default function HoldingEditModal({ fund, holding, nav, onClose, onSave, 
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 bg-white/5 border-border hover:bg-white/10 text-foreground"
+              className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
             >
               取消
             </Button>

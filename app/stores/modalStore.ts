@@ -105,14 +105,6 @@ export interface HoldingMigrateDialogState {
   [key: string]: any;
 }
 
-export interface CloudConfigModalState {
-  open: boolean;
-  userId?: string | null;
-  type?: string | null;
-  cloudData?: any;
-  [key: string]: any;
-}
-
 export interface DeviceConflictModalState {
   open: boolean;
   message?: string;
@@ -167,7 +159,6 @@ const DEFAULTS = {
   addHistoryModal: { open: false, fundCode: null, groupId: undefined } as AddHistoryModalState,
   fundTagsEdit: { open: false, code: null, name: '', tags: [] } as FundTagsEditState,
   holdingMigrateDialog: { open: false, code: null, name: '', targetGroupId: null } as HoldingMigrateDialogState,
-  cloudConfigModal: { open: false, userId: null, type: null, cloudData: null } as CloudConfigModalState,
   deviceConflictModal: {
     open: false,
     message: '',
@@ -183,8 +174,6 @@ const getClosedModalState = () => ({
   feedbackOpen: false,
   weChatOpen: false,
   donateOpen: false,
-  loginModalOpen: false,
-  loginInitialError: '',
   tutorialDrawerOpen: false,
   updateLogOpen: false,
   isUpdateModalOpen: false,
@@ -213,7 +202,6 @@ const getClosedModalState = () => ({
   fundDeleteConfirm: null as any,
   fundDeleteBulkConfirm: null as any,
   holdingMigrateDialog: { ...DEFAULTS.holdingMigrateDialog },
-  cloudConfigModal: { ...DEFAULTS.cloudConfigModal },
   deviceConflictModal: { ...DEFAULTS.deviceConflictModal },
   successModal: { ...DEFAULTS.successModal },
   scanModalOpen: false,
@@ -234,8 +222,6 @@ export interface ModalStoreState {
   feedbackNonce: number;
   weChatOpen: boolean;
   donateOpen: boolean;
-  loginModalOpen: boolean;
-  loginInitialError: string;
   tutorialDrawerOpen: boolean;
   updateLogOpen: boolean;
   isUpdateModalOpen: boolean;
@@ -271,7 +257,6 @@ export interface ModalStoreState {
   fundDeleteBulkConfirm: any;
   holdingMigrateDialog: HoldingMigrateDialogState;
 
-  cloudConfigModal: CloudConfigModalState;
   deviceConflictModal: DeviceConflictModalState;
   successModal: SuccessModalState;
 
@@ -302,8 +287,6 @@ export const useModalStore = create<ModalStoreState>((set, get) => ({
   feedbackNonce: 0,
   weChatOpen: false,
   donateOpen: false,
-  loginModalOpen: false,
-  loginInitialError: '',
   tutorialDrawerOpen: false,
   updateLogOpen: false,
   isUpdateModalOpen: false,
@@ -343,7 +326,6 @@ export const useModalStore = create<ModalStoreState>((set, get) => ({
   holdingMigrateDialog: { ...DEFAULTS.holdingMigrateDialog },
 
   // ---- Cloud/sync modals ----
-  cloudConfigModal: { ...DEFAULTS.cloudConfigModal },
   deviceConflictModal: { ...DEFAULTS.deviceConflictModal },
   successModal: { ...DEFAULTS.successModal },
 

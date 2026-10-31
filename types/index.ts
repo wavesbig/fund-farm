@@ -228,18 +228,3 @@ export interface HoldingProfitResult {
   principalToday: number;
   costNav?: number;
 }
-
-/**
- * 用户身份信息（Supabase Auth）
- */
-export interface User {
-  id: string;
-  email?: string;
-  user_metadata?: {
-    avatar_url?: string;
-    custom_avatar?: string;
-    [key: string]: any;
-  };
-  app_metadata?: Record<string, any>;
-  [key: string]: any;
-}

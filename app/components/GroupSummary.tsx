@@ -233,9 +233,9 @@ export default function GroupSummary({
 
   return (
     <div className={isSticky ? 'group-summary-sticky' : ''} style={style}>
-      <div className="glass card group-summary-card mb-2 p-4 md:px-5 md:py-4 bg-white/[0.03] relative rounded-2xl border border-border">
+      <div className="glass card group-summary-card mb-3 p-4 md:px-6 md:py-5 relative rounded-xl border border-border shadow-sm">
         <span
-          className="sticky-toggle-btn absolute top-1 right-1 w-6 h-6 p-1 opacity-60 z-10 text-muted-foreground hover:opacity-100 cursor-pointer"
+          className="sticky-toggle-btn absolute top-2 right-2 w-7 h-7 p-1.5 opacity-80 rounded-md z-10 text-muted-foreground hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors flex items-center justify-center"
           onClick={() => {
             onToggleSticky?.(!isSticky);
           }}
@@ -244,14 +244,14 @@ export default function GroupSummary({
         </span>
         <div className="flex items-end justify-between min-w-0">
           <div className="flex-[4] min-w-0">
-            <div className="flex items-center gap-1.5 mb-1">
-              <div className="text-xs text-muted-foreground" key={portfolioTabId}>
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <div className="text-sm font-medium text-muted-foreground tracking-wide" key={portfolioTabId}>
                 {portfolioScopeLabel}
               </div>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    className="fav-button p-0.5 inline-flex items-center cursor-pointer text-muted-foreground hover:text-foreground"
+                    className="fav-button p-0.5 inline-flex items-center cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() => {
                       if (onToggleMasked) {
                         onToggleMasked();
@@ -261,7 +261,7 @@ export default function GroupSummary({
                     }}
                     aria-label={isMasked ? '显示资产' : '隐藏资产'}
                   >
-                    {isMasked ? <EyeOffIcon width="16" height="16" /> : <EyeIcon width="16" height="16" />}
+                    {isMasked ? <EyeOffIcon width="15" height="15" /> : <EyeIcon width="15" height="15" />}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -270,14 +270,14 @@ export default function GroupSummary({
               </Tooltip>
             </div>
             <div
-              className="text-2xl font-bold font-mono min-w-0 cursor-pointer overflow-hidden tabular-nums"
+              className="text-2xl md:text-3xl font-bold tracking-tight min-w-0 cursor-pointer overflow-hidden tabular-nums"
               onClick={() => setIsAssetMasked((v) => !v)}
             >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="block w-full">
                     {isMasked || isAssetMasked ? (
-                      <span className="mask-text relative top-1" style={{ fontSize: assetSize }}>
+                      <span className="mask-text relative top-0.5" style={{ fontSize: assetSize }}>
                         ******
                       </span>
                     ) : (
@@ -291,21 +291,21 @@ export default function GroupSummary({
               </Tooltip>
             </div>
           </div>
-          <div className="flex gap-3 flex-[5] min-w-0">
+          <div className="flex gap-4 flex-[5] min-w-0">
             <div className="text-right flex-1 min-w-0">
-              <div className="text-xs text-muted-foreground mb-1 flex justify-end items-center gap-0.5">
-                当日收益{showTodayPercent ? '(%)' : ''} <SwitchIcon style={{ opacity: 0.4 }} />
+              <div className="text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1">
+                当日收益{showTodayPercent ? '(%)' : ''} <SwitchIcon className="opacity-70" />
               </div>
               <div
                 className={`${
                   summary.hasAnyTodayData
                     ? summary.totalProfitToday > 0
-                      ? 'up text-red-400'
+                      ? 'up'
                       : summary.totalProfitToday < 0
-                        ? 'down text-emerald-400'
+                        ? 'down'
                         : 'text-foreground'
                     : 'text-muted-foreground'
-                } text-lg font-bold font-mono tabular-nums overflow-hidden ${
+                } text-lg md:text-xl font-semibold tracking-tight tabular-nums overflow-hidden ${
                   summary.hasAnyTodayData ? 'cursor-pointer' : 'cursor-default'
                 }`}
                 onClick={() => summary.hasAnyTodayData && setShowTodayPercent(!showTodayPercent)}
@@ -326,7 +326,7 @@ export default function GroupSummary({
                                 prefix={todayProfitPrefix}
                                 suffix="%"
                                 maxFontSize={metricSize}
-                                minFontSize={12}
+                                minFontSize={14}
                                 as="div"
                                 style={{ textAlign: 'right' }}
                               />
@@ -335,7 +335,7 @@ export default function GroupSummary({
                                 value={Math.abs(summary.totalProfitToday)}
                                 prefix={todayProfitPrefix}
                                 maxFontSize={metricSize}
-                                minFontSize={12}
+                                minFontSize={14}
                                 as="div"
                                 style={{ textAlign: 'right' }}
                               />
@@ -356,17 +356,13 @@ export default function GroupSummary({
               </div>
             </div>
             <div className={`text-right ${isMobile ? 'flex-1' : ''} min-w-0`}>
-              <div className="text-xs text-muted-foreground mb-1 flex justify-end items-center gap-0.5">
-                持有收益{showPercent ? '(%)' : ''} <SwitchIcon style={{ opacity: 0.4 }} />
+              <div className="text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1">
+                持有收益{showPercent ? '(%)' : ''} <SwitchIcon className="opacity-70" />
               </div>
               <div
                 className={`${
-                  summary.totalHoldingReturn > 0
-                    ? 'up text-red-400'
-                    : summary.totalHoldingReturn < 0
-                      ? 'down text-emerald-400'
-                      : 'text-foreground'
-                } text-lg font-bold font-mono tabular-nums cursor-pointer overflow-hidden`}
+                  summary.totalHoldingReturn > 0 ? 'up' : summary.totalHoldingReturn < 0 ? 'down' : 'text-foreground'
+                } text-lg md:text-xl font-semibold tracking-tight tabular-nums cursor-pointer overflow-hidden`}
                 onClick={() => setShowPercent(!showPercent)}
               >
                 <Tooltip>
@@ -384,7 +380,7 @@ export default function GroupSummary({
                               prefix={holdingReturnPrefix}
                               suffix="%"
                               maxFontSize={metricSize}
-                              minFontSize={12}
+                              minFontSize={14}
                               as="div"
                               style={{ textAlign: 'right' }}
                             />
@@ -392,7 +388,7 @@ export default function GroupSummary({
                             <CountUp
                               value={Math.abs(summary.totalHoldingReturn)}
                               maxFontSize={metricSize}
-                              minFontSize={12}
+                              minFontSize={14}
                               as="div"
                               style={{ textAlign: 'right' }}
                             />

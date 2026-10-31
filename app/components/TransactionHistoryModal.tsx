@@ -207,7 +207,7 @@ export default function TransactionHistoryModal({
                         type="button"
                         size="xs"
                         variant="destructive"
-                        className="h-6 px-2.5 text-xs bg-red-500/15 border border-red-500/30 text-red-400 hover:bg-red-500/25"
+                        className="h-6 px-2.5 text-xs bg-destructive/10 border border-destructive/25 text-destructive hover:bg-destructive/20 hover:border-destructive/40 transition-colors"
                         onClick={() => handleDeleteClick(item, 'pending')}
                       >
                         撤销
@@ -261,7 +261,7 @@ export default function TransactionHistoryModal({
                         type="button"
                         size="xs"
                         variant="destructive"
-                        className="h-6 px-2.5 text-xs bg-red-500/15 border border-red-500/30 text-red-400 hover:bg-red-500/25"
+                        className="h-6 px-2.5 text-xs bg-destructive/10 border border-destructive/25 text-destructive hover:bg-destructive/20 hover:border-destructive/40 transition-colors"
                         onClick={() => handleDeleteClick(item, 'history')}
                       >
                         删除记录

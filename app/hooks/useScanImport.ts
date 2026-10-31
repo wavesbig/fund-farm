@@ -10,8 +10,7 @@ import {
 } from '../api/fund';
 import { recordValuation } from '../lib/valuationTimeseries';
 import { useFundFuzzyMatcher } from './useFundFuzzyMatcher';
-import { useStorageStore, useUserStore, useModalStore } from '../stores';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { useStorageStore, useModalStore } from '../stores';
 
 export interface UseScanImportDeps {
   setCurrentTab: (tab: string) => void;
@@ -522,86 +521,6 @@ export function useScanImport({
           }
         });
         if (Object.keys(nextSeries).length > 0) setValuationSeries((prev) => ({ ...prev, ...nextSeries }));
-
-        // 自动查询并添加推荐标签
-        if (isSupabaseConfigured && autoImportTags) {
-          try {
-            const currentTags = useStorageStore.getState().getItem('tags', []) as any[];
-            let tagsModified = false;
-
-            for (const f of newFunds) {
-              const code = f.code;
-              try {
-                const { data, error } = await supabase.rpc('get_fund_recommended_tags', { p_fund_code: code });
-                if (!error && isArray(data) && data.length > 0) {
-                  let tagsAddedForThisFund = 0;
-                  for (const row of data) {
-                    if (tagsAddedForThisFund >= 2) break;
-
-                    const topicStr = String(row?.topic ?? '').trim();
-                    const sectorIdStr = String(row?.sector_id ?? '').trim();
-                    if (!topicStr || !sectorIdStr) continue;
-
-                    const topics = topicStr
-                      .split(';')
-                      .map((t) => t.trim())
-                      .filter(Boolean);
-                    const sectorIds = sectorIdStr
-                      .split(';')
-                      .map((t) => t.trim())
-                      .filter(Boolean);
-
-                    for (let i = 0; i < topics.length; i++) {
-                      if (tagsAddedForThisFund >= 2) break;
-
-                      const topic = topics[i];
-                      const sectorId = sectorIds[i];
-                      if (!topic || !sectorId) continue;
-
-                      tagsAddedForThisFund++;
-
-                      const targetId = `default_${sectorId}`;
-                      const existingInPool = currentTags.find((t: any) => String(t.id).trim() === targetId);
-
-                      const displayName = existingInPool ? existingInPool.name : topic;
-                      const displayTheme = existingInPool ? existingInPool.theme : 'default';
-
-                      const tagIndex = currentTags.findIndex((t: any) => String(t.id).trim() === targetId);
-                      if (tagIndex >= 0) {
-                        const tagObj = currentTags[tagIndex];
-                        const fCodes = isArray(tagObj.fundCodes) ? [...tagObj.fundCodes] : [];
-                        if (!fCodes.includes(code)) {
-                          fCodes.push(code);
-                          tagObj.fundCodes = fCodes;
-                          tagsModified = true;
-                        }
-                      } else {
-                        currentTags.push({
-                          id: targetId,
-                          name: displayName,
-                          theme: displayTheme,
-                          fundCodes: [code]
-                        });
-                        tagsModified = true;
-                      }
-                    }
-                  }
-                }
-              } catch (e) {
-                console.error('fetch recommended tags error:', e);
-              }
-            }
-
-            if (tagsModified) {
-              useStorageStore.getState().setItem('tags', JSON.stringify(currentTags));
-              if (isFunction(setFundTagRecords)) {
-                setFundTagRecords(currentTags);
-              }
-            }
-          } catch (e) {
-            console.error('auto add tags error:', e);
-          }
-        }
       }
 
       if (Object.keys(newHoldings).length > 0) {

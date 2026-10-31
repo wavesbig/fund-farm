@@ -44,13 +44,13 @@ npm run build
 The project includes a `Dockerfile` for containerized deployments using Nginx.
 - **Build image**:
   ```bash
-  docker build -t real-time-fund --build-arg NEXT_PUBLIC_SUPABASE_URL=xxx --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx .
+  docker build -t real-time-fund .
   ```
 - **Run container**:
   ```bash
-  docker run -d -p 3000:3000 --name real-time-fund real-time-fund
+  docker run -d -p 3000:3000 -v $(pwd)/data:/app/data --name real-time-fund real-time-fund
   ```
-  *(Environment variables can also be injected at runtime using `-e` or `--env-file` because `entrypoint.sh` handles replacing placeholders in the generated static files).*
+  *(Environment variables can also be injected at runtime using `-e` or `--env-file`).*
 
 ## Development Conventions
 

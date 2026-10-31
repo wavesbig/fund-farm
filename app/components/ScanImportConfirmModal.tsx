@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { formatMoney, cn } from '@/lib/utils';
-import { useUserStore } from '@/app/stores';
 
 export interface ScannedFundItem {
   code: string;
@@ -48,10 +47,9 @@ export default function ScanImportConfirmModal({
   isOcrScan = false,
   currentGroup = 'all'
 }: ScanImportConfirmModalProps) {
-  const user = useUserStore((s) => s.user);
   const [selectedGroupId, setSelectedGroupId] = useState(currentGroup);
   const [expandAfterAdd, setExpandAfterAdd] = useState(true);
-  const [autoDataSource, setAutoDataSource] = useState(Boolean(user));
+  const [autoDataSource, setAutoDataSource] = useState(false);
   const [autoImportTags, setAutoImportTags] = useState(true);
   const allCodeSet = useMemo(() => new Set((existingAllCodes || []).filter(Boolean)), [existingAllCodes]);
   const favCodeSet = useMemo(() => new Set((existingFavCodes || []).filter(Boolean)), [existingFavCodes]);
@@ -212,12 +210,6 @@ export default function ScanImportConfirmModal({
                 <span className="text-xs text-[var(--muted)]">添加后展开详情</span>
                 <Switch checked={expandAfterAdd} onCheckedChange={(checked) => setExpandAfterAdd(Boolean(checked))} />
               </div>
-              {user && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-[var(--muted)]">自动数据源</span>
-                  <Switch checked={autoDataSource} onCheckedChange={(checked) => setAutoDataSource(Boolean(checked))} />
-                </div>
-              )}
               <div className="flex items-center justify-between">
                 <span className="text-xs text-[var(--muted)]">导入基金标签</span>
                 <Switch checked={autoImportTags} onCheckedChange={(checked) => setAutoImportTags(Boolean(checked))} />

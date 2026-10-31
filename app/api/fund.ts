@@ -8,7 +8,6 @@ import { getStoredToken } from '../lib/authClient';
 import { withRetry } from '../lib/asyncHelper';
 import { getQueryClient } from '../lib/get-query-client';
 import * as qk from '../lib/query-keys';
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { isTradingDay } from '../lib/tradingCalendar';
 
 import { DEFAULT_TZ, ONE_DAY_MS } from '@/app/constants';
@@ -54,251 +53,20 @@ const getNetValueStaleTime = () => {
 };
 
 // ============================================================================
-// fund_related & fund_secid 批量微任务合并与防抖去重合并加载器 (DataLoader Pattern)
+// 关联板块与 Secid 查询接口（纯前端空实现，已移除 Supabase 依赖）
 // ============================================================================
 
-// 1. fund_related 缓存和队列
-const relatedSectorsInflight = new Map<string, { promise: Promise<string>; resolve: (val: string) => void }>(); // key = "code|seg" -> { promise, resolve }
-const relatedSectorsQueue = new Map<string, Set<string>>(); // key = seg -> Set(code)
-let relatedSectorsTimeout: NodeJS.Timeout | null = null;
-
-// 2. fund_secid 缓存和队列
-const fundSecidsInflight = new Map<string, { promise: Promise<string>; resolve: (val: string) => void }>(); // key = label -> { promise, resolve }
-const fundSecidsQueue = new Set<string>(); // Set(label)
-let fundSecidsTimeout: NodeJS.Timeout | null = null;
-
-const processRelatedSectorsQueue = async () => {
-  if (relatedSectorsQueue.size === 0) return;
-
-  const currentQueues = new Map(relatedSectorsQueue);
-  relatedSectorsQueue.clear();
-  relatedSectorsTimeout = null;
-
-  for (const [seg, codesSet] of currentQueues.entries()) {
-    const missingCodes = Array.from(codesSet);
-    if (missingCodes.length === 0) continue;
-
-    try {
-      const { data, error } = await withRetry(
-        async () =>
-          await supabase.from('fund_related').select('fund_code, related_sector').in('fund_code', missingCodes)
-      );
-
-      if (error) throw error;
-
-      const foundMap = new Map<string, string>();
-      if (isArray(data)) {
-        data.forEach((item: any) => {
-          const c = String(item.fund_code).trim();
-          const v = item.related_sector != null ? String(item.related_sector).trim() : '';
-          foundMap.set(c, v);
-        });
-      }
-
-      const qc = getQueryClient();
-      for (const code of missingCodes) {
-        const value = foundMap.get(code) || '';
-        qc.setQueryData(qk.relatedSectors(code, seg), value);
-
-        const key = `${code}|${seg}`;
-        const resolver = relatedSectorsInflight.get(key);
-        if (resolver) {
-          resolver.resolve(value);
-          relatedSectorsInflight.delete(key);
-        }
-      }
-    } catch {
-      for (const code of missingCodes) {
-        const key = `${code}|${seg}`;
-        const resolver = relatedSectorsInflight.get(key);
-        if (resolver) {
-          resolver.resolve('');
-          relatedSectorsInflight.delete(key);
-        }
-      }
-    }
-  }
-};
-
-const processFundSecidsQueue = async () => {
-  if (fundSecidsQueue.size === 0) return;
-
-  const missingLabels = Array.from(fundSecidsQueue);
-  fundSecidsQueue.clear();
-  fundSecidsTimeout = null;
-
-  try {
-    const { data, error } = await withRetry(
-      async () => await supabase.from('fund_secid').select('related_sector, secid').in('related_sector', missingLabels)
-    );
-
-    if (error) throw error;
-
-    const foundMap = new Map<string, string>();
-    if (isArray(data)) {
-      data.forEach((item: any) => {
-        const l = String(item.related_sector).trim();
-        const s = item.secid != null ? String(item.secid).trim() : '';
-        foundMap.set(l, s);
-      });
-    }
-
-    const qc = getQueryClient();
-    for (const label of missingLabels) {
-      const value = foundMap.get(label) || '';
-      qc.setQueryData(qk.fundSecid(label), value);
-
-      const resolver = fundSecidsInflight.get(label);
-      if (resolver) {
-        resolver.resolve(value);
-        fundSecidsInflight.delete(label);
-      }
-    }
-  } catch {
-    for (const label of missingLabels) {
-      const resolver = fundSecidsInflight.get(label);
-      if (resolver) {
-        resolver.resolve('');
-        fundSecidsInflight.delete(label);
-      }
-    }
-  }
-};
-
-/**
- * 批量获取基金「关联板块」
- * @param {string[]} codes
- */
 export const fetchRelatedSectorsBatch = async (
-  codes: string[],
-  { authSegment = 'anon' }: { cacheTime?: number; authSegment?: string } = {}
-): Promise<Record<string, string>> => {
-  if (!isArray(codes) || codes.length === 0) return {};
-  if (!isSupabaseConfigured) return {};
-
-  const seg = authSegment != null && authSegment !== '' ? String(authSegment) : 'anon';
-  const qc = getQueryClient();
-  const results: Record<string, string> = {};
-
-  const promisesToWait: Promise<void>[] = [];
-
-  for (const c of codes) {
-    const normalized = String(c).trim();
-    if (!normalized) continue;
-
-    // 优先从 React Query 同步缓存中取
-    const cached = qc.getQueryData<string>(qk.relatedSectors(normalized, seg));
-    if (cached !== undefined) {
-      results[normalized] = cached;
-      continue;
-    }
-
-    const inflightKey = `${normalized}|${seg}`;
-    if (relatedSectorsInflight.has(inflightKey)) {
-      // 存在正在处理的相同请求，直接复用它的 Promise
-      promisesToWait.push(
-        relatedSectorsInflight.get(inflightKey)!.promise.then((val) => {
-          results[normalized] = val;
-        })
-      );
-    } else {
-      // 新增一个微任务合并的 Promise
-      let resolveFn!: (val: string) => void;
-      const promise = new Promise<string>((resolve) => {
-        resolveFn = resolve;
-      });
-      relatedSectorsInflight.set(inflightKey, { promise, resolve: resolveFn });
-
-      if (!relatedSectorsQueue.has(seg)) {
-        relatedSectorsQueue.set(seg, new Set());
-      }
-      relatedSectorsQueue.get(seg)!.add(normalized);
-
-      promisesToWait.push(
-        promise.then((val) => {
-          results[normalized] = val;
-        })
-      );
-    }
-  }
-
-  // 触发微任务级别的合并批量查询
-  if (relatedSectorsQueue.size > 0 && !relatedSectorsTimeout) {
-    relatedSectorsTimeout = setTimeout(processRelatedSectorsQueue, 0);
-  }
-
-  if (promisesToWait.length > 0) {
-    await Promise.all(promisesToWait);
-  }
-
-  return results;
-};
+  _codes: string[],
+  _options: { cacheTime?: number; authSegment?: string } = {}
+): Promise<Record<string, string>> => ({});
 
 const SECTOR_QUOTE_CACHE_MS = 60 * 1000;
 
-/**
- * 批量获取板块 secid
- * @param {string[]} labels
- */
 export const fetchFundSecidsBatch = async (
-  labels: string[],
+  _labels: string[],
   _options: { cacheTime?: number } = {}
-): Promise<Record<string, string>> => {
-  if (!isArray(labels) || labels.length === 0) return {};
-  if (!isSupabaseConfigured) return {};
-
-  const qc = getQueryClient();
-  const results: Record<string, string> = {};
-
-  const promisesToWait: Promise<void>[] = [];
-
-  for (const label of labels) {
-    const normalized = String(label).trim();
-    if (!normalized) continue;
-
-    // 优先从 React Query 同步缓存中取
-    const cached = qc.getQueryData<string>(qk.fundSecid(normalized));
-    if (cached !== undefined) {
-      results[normalized] = cached;
-      continue;
-    }
-
-    if (fundSecidsInflight.has(normalized)) {
-      // 存在正在处理的相同请求，直接复用它的 Promise
-      promisesToWait.push(
-        fundSecidsInflight.get(normalized)!.promise.then((val) => {
-          results[normalized] = val;
-        })
-      );
-    } else {
-      // 新增一个微任务合并的 Promise
-      let resolveFn!: (val: string) => void;
-      const promise = new Promise<string>((resolve) => {
-        resolveFn = resolve;
-      });
-      fundSecidsInflight.set(normalized, { promise, resolve: resolveFn });
-
-      fundSecidsQueue.add(normalized);
-
-      promisesToWait.push(
-        promise.then((val) => {
-          results[normalized] = val;
-        })
-      );
-    }
-  }
-
-  // 触发微任务级别的合并批量查询
-  if (fundSecidsQueue.size > 0 && !fundSecidsTimeout) {
-    fundSecidsTimeout = setTimeout(processFundSecidsQueue, 0);
-  }
-
-  if (promisesToWait.length > 0) {
-    await Promise.all(promisesToWait);
-  }
-
-  return results;
-};
+): Promise<Record<string, string>> => ({});
 
 /**
  * 批量获取东方财富板块/指数行情（单次请求）
@@ -1080,75 +848,14 @@ export interface UnifiedFundValuation {
   [key: string]: any;
 }
 
-/**
- * 从 Supabase gs_qdii 表获取 QDII 基金的估值数据（数据源 4）
- */
-export const fetchQdiiValuationFromSupabase = async (code: string): Promise<any> => {
-  if (!code || !isSupabaseConfigured) return null;
-  const normalized = String(code).trim();
-  if (!normalized) return null;
+export const fetchQdiiValuationFromSupabase = async (_code: string): Promise<any> => null;
 
-  try {
-    const { data, error } = await withRetry(
-      async () =>
-        await supabase.from('gs_qdii').select('gztime, gszzl, gzstatus').eq('fund_code', normalized).maybeSingle()
-    );
+export const isQdiiFund = async (_code: string): Promise<boolean> => false;
 
-    if (error || !data) return null;
-
-    // gszzl 在表中是 real，通常为百分比数值（如 1.23 表示 1.23%）
-    return {
-      gztime: data.gztime != null ? String(data.gztime).replace(/:(\d{2}):\d{2}$/, ':$1') : null,
-      gszzl: data.gszzl != null && Number.isFinite(Number(data.gszzl)) ? Number(data.gszzl) : null,
-      valuationSource: 'supabase_qdii',
-      gzstatus: data.gzstatus
-    };
-  } catch {
-    return null;
-  }
-};
-
-/**
- * 检查指定基金编码是否存在于 Supabase gs_qdii 表中
- * 结果通过 TanStack Query 缓存 12 小时。
- * @param {string} code - 基金编码
- * @returns {Promise<boolean>}
- */
-export const isQdiiFund = async (code: string): Promise<boolean> => {
-  if (!code || !isSupabaseConfigured) return false;
-  const normalized = String(code).trim();
-  if (!normalized) return false;
-
-  const qc = getQueryClient();
-  try {
-    return await qc.fetchQuery({
-      queryKey: qk.isQdiiFund(normalized),
-      queryFn: async () => {
-        const { data, error } = await withRetry(
-          async () => await supabase.from('gs_qdii').select('fund_code').eq('fund_code', normalized).maybeSingle()
-        );
-        return !error && data != null;
-      },
-      staleTime: 12 * 60 * 60 * 1000
-    });
-  } catch {
-    return false;
-  }
-};
-
-/**
- * 通过 Edge Function best-valuation-source 查询指定日期各数据源估值，
- * 与实际涨跌幅比对，返回最准确的数据源编号。
- *
- * @param {string} code - 基金代码
- * @param {string} jzrq - 最新净值日期（如 "2026-06-10"）
- * @param {number} actualZzl - 实际涨跌幅（百分比，如 1.23 表示 +1.23%）
- * @returns {Promise<{ bestSource: number|null, isYesterdayAccuracy: boolean, isTodayAccuracy: boolean, diffs: Record<string,number>, diff?: number }|null>}
- */
 export async function fetchBestValuationSource(
-  code: string,
-  jzrq: string,
-  actualZzl: number
+  _code: string,
+  _jzrq: string,
+  _actualZzl: number
 ): Promise<{
   bestSource: number | null;
   isYesterdayAccuracy: boolean;
@@ -1156,116 +863,15 @@ export async function fetchBestValuationSource(
   diffs: Record<string, number>;
   diff?: number;
 } | null> {
-  if (!isSupabaseConfigured || !supabase?.functions?.invoke) return null;
-  const c = code != null ? String(code).trim() : '';
-  if (!c || !jzrq || !isNumber(actualZzl) || !Number.isFinite(actualZzl)) return null;
-
-  const qc = getQueryClient();
-  const cacheKey = qk.bestValuationSource(c, jzrq, actualZzl);
-  const cached = qc.getQueryData<{
-    bestSource: number | null;
-    isYesterdayAccuracy: boolean;
-    isTodayAccuracy: boolean;
-    diffs: Record<string, number>;
-    diff?: number;
-  } | null>(cacheKey);
-  if (cached !== undefined) {
-    return cached;
-  }
-
-  try {
-    const { data, error } = await withRetry(() =>
-      supabase.functions.invoke('best-valuation-source', {
-        body: { code: c, jzrq, actualZzl }
-      })
-    );
-
-    if (error || !data?.success) return null;
-    const res = data.data || null;
-    qc.setQueryData(cacheKey, res);
-    return res;
-  } catch {
-    return null;
-  }
+  return null;
 }
 
-/**
- * 调用 Supabase RPC 获取基金最佳数据源（从 fund_pingzhongdata 表中预计算的 source 字段）
- * @param {string} fundCode - 基金编码
- * @returns {Promise<number|null>} 数据源 ID (1/2/3) 或 null
- */
-const SOURCE_NAME_TO_ID: Record<string, number> = { fundgz: 1, sina_ds2: 2, sina_ds3: 3, supabase_qdii: 4 };
-
-export async function fetchFundBestSource(fundCode: string): Promise<number | null> {
-  if (!isSupabaseConfigured) return null;
-  const code = fundCode != null ? String(fundCode).trim() : '';
-  if (!code) return null;
-
-  const qc = getQueryClient();
-  const cacheKey = qk.fundBestSource(code);
-  const cached = qc.getQueryData<number | null>(cacheKey);
-  if (cached !== undefined) {
-    return cached;
-  }
-
-  try {
-    const { data, error } = await supabase.rpc('get_fund_best_source', {
-      p_fund_code: code
-    });
-    if (error || !data?.source) return null;
-    const res = SOURCE_NAME_TO_ID[data.source] ?? null;
-    if (res != null) {
-      qc.setQueryData(cacheKey, res);
-    }
-    return res;
-  } catch {
-    return null;
-  }
+export async function fetchFundBestSource(_fundCode: string): Promise<number | null> {
+  return null;
 }
 
-/**
- * 批量获取多个基金的最佳数据源
- * @param {string[]} fundCodes - 基金编码数组
- * @returns {Promise<Record<string, number>>} 返回对象格式 { "110022": 1, "000001": 2 }
- */
-export async function fetchFundsBestSources(fundCodes: string[]): Promise<Record<string, number>> {
-  if (!isSupabaseConfigured || !isArray(fundCodes) || fundCodes.length === 0) return {};
-
-  const qc = getQueryClient();
-  const result: Record<string, number> = {};
-  const missingCodes: string[] = [];
-
-  for (const c of fundCodes) {
-    const code = c != null ? String(c).trim() : '';
-    if (!code) continue;
-    const cached = qc.getQueryData<number>(qk.fundBestSource(code));
-    if (cached !== undefined) {
-      result[code] = cached;
-    } else {
-      missingCodes.push(code);
-    }
-  }
-
-  if (missingCodes.length === 0) return result;
-
-  try {
-    const { data, error } = await supabase.rpc('get_fund_best_source', {
-      p_fund_codes: missingCodes
-    });
-    if (error || !data) return result;
-
-    // 返回的 data 类似 { "110022": "sina_ds2", "000001": "fundgz" }
-    Object.entries(data as Record<string, string>).forEach(([code, sourceName]) => {
-      const id = SOURCE_NAME_TO_ID[sourceName];
-      if (id != null) {
-        result[code] = id;
-        qc.setQueryData(qk.fundBestSource(code), id);
-      }
-    });
-    return result;
-  } catch {
-    return result;
-  }
+export async function fetchFundsBestSources(_fundCodes: string[]): Promise<Record<string, number>> {
+  return {};
 }
 
 /**
@@ -1283,15 +889,9 @@ export async function fetchFundValuationBySource(
 
   const ds = normalizeValuationDataSource(dataSource);
 
-  // 数据源 4：Supabase gs_qdii 表
+  // 数据源 4 已废弃
   if (ds === 4) {
-    const qdii = await fetchQdiiValuationFromSupabase(c);
-    if (!qdii) throw new Error('gs_qdii no data');
-    return {
-      code: c,
-      ...qdii,
-      gsz: null // 由 fetchFundData 等调用方配合 dwjz 计算
-    };
+    throw new Error('数据源 4 已废弃');
   }
 
   if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -1449,8 +1049,8 @@ export const fetchFundData = async (c: string, overrideDataSource?: number): Pro
       }
     }
 
-    // 针对 supabase_qdii 等仅提供 gszzl 的数据源，使用最新的 dwjz 计算 gsz
-    if (baseData.valuationSource === 'supabase_qdii' || (baseData.gsz == null && baseData.gszzl != null)) {
+    // 针对仅提供 gszzl 的数据源，使用最新的 dwjz 计算 gsz
+    if (baseData.gsz == null && baseData.gszzl != null) {
       const nav = Number(baseData.dwjz);
       const gszzl = Number(baseData.gszzl);
       if (Number.isFinite(nav) && Number.isFinite(gszzl)) {
@@ -2330,19 +1930,7 @@ export const fetchFundHistory = async (
   return [];
 };
 
-export const fetchFundValuationTrend = async (code: string, range = '3m'): Promise<any[]> => {
-  if (!isSupabaseConfigured) return [];
-  if (!supabase?.functions?.invoke) return [];
-
-  const { data, error } = await withRetry(() =>
-    supabase.functions.invoke('get-fund-valuation-trend', {
-      body: { fund_code: code, range }
-    })
-  );
-
-  if (error || !data || data.error) return [];
-  return isArray(data.data) ? data.data : [];
-};
+export const fetchFundValuationTrend = async (_code: string, _range = '3m'): Promise<any[]> => [];
 
 /**
  * 本地纯前端启发式解析 OCR 识别出来的文本（离线/免大模型/无限制兜底）
@@ -2441,62 +2029,19 @@ export const parseFundTextWithLLM = async (text: string): Promise<string | null>
     // 若未配置或本地 API 请求失败，继续向下尝试
   }
 
-  // 2. 兼容旧版 Supabase Edge Function（若用户另行配置了 Supabase）
-  if (isSupabaseConfigured && supabase?.functions?.invoke) {
-    try {
-      const { data, error } = await withRetry(() =>
-        supabase.functions.invoke('analyze-fund', {
-          body: { text }
-        })
-      );
-
-      // 忽略每日限流错误，直接回退本地处理，不中断用户流程
-      if (data?.error === 'DAILY_LIMIT_EXCEEDED') {
-        return null;
-      }
-
-      if (error) return null;
-      if (!data || data.success !== true) return null;
-      if (!isArray(data.data)) return null;
-
-      // 保持与旧实现兼容：返回 JSON 字符串，由调用方 JSON.parse
-      return JSON.stringify(data.data);
-    } catch {
-      return null;
-    }
-  }
-
   return null;
 };
 
 /**
- * 通过 Supabase Edge Function 获取天天基金估值排行
- * @param {string|number} sort 排序字段 (3:估值涨幅, 4:成交热度, 5:实际涨幅)
- * @param {string} order 排序方向 (desc | asc)
- * @param {number} page 页码
- * @param {number} pageSize 每页条数
- * @returns {Promise<{Data: {list: Array<any>, allRecords: number}} | null>}
+ * 获取估值排行（已离线化）
  */
 export const fetchFundValuationRanking = async (
-  sort: string | number = 3,
-  order = 'desc',
-  page = 1,
-  pageSize = 20
+  _sort: string | number = 3,
+  _order = 'desc',
+  _page = 1,
+  _pageSize = 20
 ): Promise<{ Data: { list: any[]; allRecords?: number } } | null> => {
-  if (!isSupabaseConfigured) return null;
-  if (!supabase?.functions?.invoke) return null;
-
-  const { data, error } = await withRetry(() =>
-    supabase.functions.invoke('fund-valuation-ranking', {
-      body: { sort, order, page, pageSize }
-    })
-  );
-
-  if (error) throw new Error(error.message || '加载估值排行失败');
-  if (!data || data.success !== true) throw new Error(data?.error || '加载估值排行失败');
-
-  // 保持与原 JSONP 返回结构一致：{ Data: { list: [...], ... } }
-  return { Data: data.data };
+  return null;
 };
 
 /**

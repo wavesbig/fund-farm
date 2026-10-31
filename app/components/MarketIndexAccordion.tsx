@@ -164,10 +164,10 @@ function IndexCard({ item }: { item: MarketIndexItem }) {
   const isUp = item.change >= 0;
   const colorClass = isUp ? 'text-[var(--danger)]' : 'text-[var(--success)]';
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-1.5 flex flex-col gap-0.5 w-full">
-      <div className="text-xs font-medium text-[var(--foreground)] truncate">{item.name}</div>
-      <div className={cn('text-sm font-semibold tabular-nums', colorClass)}>{item.price.toFixed(2)}</div>
-      <div className={cn('text-xs tabular-nums', colorClass)}>
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-2 flex flex-col gap-0.5 w-full">
+      <div className="text-sm font-medium text-[var(--foreground)] truncate">{item.name}</div>
+      <div className={cn('text-base font-semibold tabular-nums', colorClass)}>{item.price.toFixed(2)}</div>
+      <div className={cn('text-xs font-medium tabular-nums', colorClass)}>
         {(item.change >= 0 ? '+' : '') + item.change.toFixed(2)}{' '}
         {(item.changePercent >= 0 ? '+' : '') + item.changePercent.toFixed(2)}%
       </div>
@@ -341,7 +341,7 @@ export default function MarketIndexAccordion({
     return (
       <div
         ref={rootRef}
-        className="market-index-accordion-root mt-2 mb-2 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 py-3 flex items-center justify-between"
+        className="market-index-accordion-root mt-2 mb-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 flex items-center justify-between shadow-sm"
         style={stickyStyle}
       >
         <span className="text-sm text-[var(--muted-foreground)]">加载大盘指数…</span>
@@ -352,15 +352,12 @@ export default function MarketIndexAccordion({
   return (
     <div
       ref={rootRef}
-      className="market-index-accordion-root mt-2 mb-2 rounded-lg border border-[var(--border)] bg-[var(--card)] market-index-accordion"
+      className="market-index-accordion-root mt-2 mb-2 rounded-xl border border-[var(--border)] bg-[var(--card)] market-index-accordion shadow-sm"
       style={stickyStyle}
     >
       <style jsx>{`
         .market-index-accordion :global([data-slot='accordion-trigger'] > svg:last-of-type) {
           display: none;
-        }
-        :global([data-theme='dark'] .market-index-accordion-root) {
-          background-color: rgba(15, 23, 42);
         }
         .market-index-ticker {
           overflow: hidden;

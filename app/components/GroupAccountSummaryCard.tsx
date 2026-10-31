@@ -179,22 +179,24 @@ export default function GroupAccountSummaryCard({
           : undefined
       }
       style={{
-        marginBottom: 6,
-        padding: isMobile ? '10px 10px' : '10px 12px',
-        background: 'rgba(255, 255, 255, 0.04)',
+        marginBottom: 8,
+        padding: isMobile ? '12px 14px' : '14px 16px',
+        background: 'var(--card)',
         borderRadius: 12,
+        border: '1px solid var(--border)',
+        boxShadow: '0 2px 5px rgba(50, 50, 93, 0.05), 0 1px 1px rgba(0, 0, 0, 0.03)',
         cursor: interactive ? 'pointer' : undefined,
         outlineOffset: interactive ? 2 : undefined
       }}
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
+      <div className="flex items-center justify-between mb-2.5">
+        <div className="flex items-center gap-2 min-w-0">
           <span className="flex shrink-0 leading-none" aria-hidden>
             <GroupCardTitleIcon size={isMobile ? 20 : 22} />
           </span>
-          <span className="font-bold text-[15px] truncate text-foreground">{groupName}</span>
+          <span className="font-semibold text-[15px] truncate text-foreground">{groupName}</span>
         </div>
-        <div className="flex items-center gap-2.5 shrink-0 text-[13px] tabular-nums font-mono">
+        <div className="flex items-center gap-2.5 shrink-0 text-[13px] tabular-nums font-medium">
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="up">

@@ -14,8 +14,15 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from '@/components/ui/drawer';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerClose
+} from '@/components/ui/drawer';
 
 export interface TutorialDrawerProps {
   open: boolean;
@@ -113,6 +120,13 @@ export default function TutorialDrawer({ open, onOpenChange }: TutorialDrawerPro
     </div>
   );
 
+  const mountTimeRef = React.useRef(0);
+  React.useEffect(() => {
+    if (open) {
+      mountTimeRef.current = Date.now();
+    }
+  }, [open]);
+
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
@@ -126,6 +140,7 @@ export default function TutorialDrawer({ open, onOpenChange }: TutorialDrawerPro
               <X className="w-4 h-4" />
             </DrawerClose>
           </DrawerHeader>
+          <DrawerDescription className="sr-only">使用帮助指南说明</DrawerDescription>
           {content}
         </DrawerContent>
       </Drawer>
@@ -134,12 +149,25 @@ export default function TutorialDrawer({ open, onOpenChange }: TutorialDrawerPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass card modal max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden z-[99]">
+      <DialogContent
+        className="glass card modal max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden z-[99]"
+        onPointerDownOutside={(e) => {
+          if (Date.now() - mountTimeRef.current < 400) {
+            e.preventDefault();
+          }
+        }}
+        onInteractOutside={(e) => {
+          if (Date.now() - mountTimeRef.current < 400) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader className="shrink-0 px-6 pt-5 pb-3.5 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
             <DialogTitle className="text-base font-semibold text-foreground">基估宝 · 使用帮助指南</DialogTitle>
           </div>
+          <DialogDescription className="sr-only">基估宝使用帮助指南与功能介绍</DialogDescription>
         </DialogHeader>
         {content}
       </DialogContent>

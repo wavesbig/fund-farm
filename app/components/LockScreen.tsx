@@ -56,19 +56,19 @@ export default function LockScreen() {
   };
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-5 overflow-hidden bg-slate-950">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-5 overflow-hidden bg-[#0a2540]">
       {/* 背景动态流光质感装饰 */}
-      <div className="absolute w-[500px] h-[500px] rounded-full bg-radial from-sky-400/15 to-transparent blur-3xl top-1/5 left-1/4 pointer-events-none" />
-      <div className="absolute w-[400px] h-[400px] rounded-full bg-radial from-purple-500/10 to-transparent blur-3xl bottom-1/5 right-1/4 pointer-events-none" />
+      <div className="absolute w-[500px] h-[500px] rounded-full bg-radial from-[#635bff]/20 to-transparent blur-3xl top-1/5 left-1/4 pointer-events-none" />
+      <div className="absolute w-[400px] h-[400px] rounded-full bg-radial from-[#00d4ff]/15 to-transparent blur-3xl bottom-1/5 right-1/4 pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="glass card w-full max-w-[380px] p-8 relative rounded-3xl shadow-2xl border border-white/10 flex flex-col items-center backdrop-blur-2xl bg-black/40"
+        className="glass card w-full max-w-[400px] p-8 relative rounded-xl shadow-[0_13px_27px_-5px_rgba(50,50,93,0.25),0_8px_16px_-8px_rgba(0,0,0,0.3)] border border-white/10 flex flex-col items-center bg-[#122b46]"
       >
         {/* 顶部锁头图标 */}
-        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-sky-400/20 to-purple-500/20 border border-white/20 flex items-center justify-center mb-5 text-primary">
+        <div className="w-12 h-12 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center mb-5 text-primary">
           {isInitialized ? <Lock className="w-7 h-7" /> : <ShieldCheck className="w-7 h-7" />}
         </div>
 
@@ -110,7 +110,7 @@ export default function LockScreen() {
               }}
               placeholder={isInitialized ? '请输入访问密码...' : '设置管理员密码 (>=4位)'}
               autoFocus
-              className="w-full pl-9 pr-10 h-11 rounded-xl text-[16PX] md:text-sm bg-black/30"
+              className="w-full pl-9 pr-10 h-10 rounded-lg text-[16PX] md:text-sm bg-black/20 border-white/10"
             />
             <button
               type="button"
@@ -136,7 +136,7 @@ export default function LockScreen() {
                   setLocalError('');
                 }}
                 placeholder="请再次确认新密码"
-                className="w-full pl-9 pr-10 h-11 rounded-xl text-[16PX] md:text-sm bg-black/30"
+                className="w-full pl-9 pr-10 h-10 rounded-lg text-[16PX] md:text-sm bg-black/20 border-white/10"
               />
             </div>
           )}

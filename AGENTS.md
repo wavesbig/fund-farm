@@ -27,12 +27,10 @@ real-time-fund/
 ├── doc/                          # Documentation: localStorage schema, Supabase SQL, dev group QR
 ├── .github/workflows/            # CI/CD: nextjs.yml (GitHub Pages), docker-ci.yml (Docker build)
 ├── .husky/                       # Pre-commit: lint-staged → ESLint
-├── Dockerfile                    # Multi-stage: Node 22 build → Nginx Alpine serve
+├── Dockerfile                    # Multi-stage: Node 22 build → Node 22 fullstack serve (with SQLite)
 ├── docker-compose.yml            # Docker Compose config
-├── entrypoint.sh                 # Runtime env var placeholder replacement
-├── nginx.conf                    # Nginx config (port 3000, SPA fallback)
-├── next.config.js                # Static export, reactStrictMode, reactCompiler
-├── jsconfig.json                 # Path aliases: @/* → ./*
+├── next.config.ts                # Next.js configuration
+├── tsconfig.json                 # TypeScript configuration
 ├── eslint.config.mjs             # ESLint flat config: next/core-web-vitals
 ├── postcss.config.mjs            # Tailwind v4 PostCSS plugin
 ├── components.json               # shadcn/ui config (new-york, JSX, RSC)
@@ -107,7 +105,6 @@ real-time-fund/
 
 - **Glassmorphism design** — frosted glass effect via `backdrop-filter: blur()` + semi-transparent backgrounds.
 - **CSS variable system** — 50+ CSS custom properties for colors, spacing, transitions in globals.css.
-- **Runtime env injection** — Docker entrypoint replaces `__PLACEHOLDER__` strings in static JS/HTML at container start.
 - **JSONP everywhere** — financial APIs (天天基金, 腾讯财经) accessed via script tag injection, not fetch().
 - **OCR + LLM import** — Tesseract.js OCR → LLM text parsing → fund code extraction.
 - **Multiple IDE configs** — .cursor/, .qoder/, .trae/ directories suggest active AI-assisted development.

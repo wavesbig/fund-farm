@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { isArray } from 'lodash';
-import { AnimatePresence, motion } from 'framer-motion';
 import PcFundTable from './PcFundTable';
 import MobileFundTable from './MobileFundTable';
 import FundCard from './FundCard';
@@ -139,161 +138,144 @@ const FundListView = React.memo(function FundListView({
   groupTotalHoldingAmount
 }: FundListViewProps) {
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={viewMode}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2 }}
-        className={viewMode === 'card' ? 'grid' : 'table-container glass'}
-        style={{ marginTop: isGroupSummarySticky ? 50 : 0 }}
+    <div
+      className={viewMode === 'card' ? 'grid' : 'table-container glass'}
+      style={{ marginTop: isGroupSummarySticky ? 50 : 0 }}
+    >
+      <div
+        className={viewMode === 'card' ? 'grid col-12' : ''}
+        style={viewMode === 'card' ? { gridColumn: 'span 12', gap: 16 } : {}}
       >
-        <div
-          className={viewMode === 'card' ? 'grid col-12' : ''}
-          style={viewMode === 'card' ? { gridColumn: 'span 12', gap: 16 } : {}}
-        >
-          {/* PC 列表：使用 PcFundTable + 右侧冻结操作列 */}
-          {viewMode === 'list' && !isMobile && (
-            <PcFundTable
-              stickyTop={navbarHeight + filterBarHeight}
-              data={pcFundTableData}
-              relatedSectorSessionKey={userId ?? ''}
-              currentTab={currentTab}
-              groups={groups}
-              favorites={favorites}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              sortRules={sortRules}
-              onSortChange={(id: string) => {
-                startTransition(() => {
-                  if (sortBy === id) {
-                    setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-                  } else {
-                    setSortBy(id);
-                    setSortOrder('desc');
-                  }
-                });
-              }}
-              onReorder={handleReorder}
-              onRemoveFund={handleRemoveFundEntry}
-              onRemoveFunds={removeFundsFromCurrentTabHandler}
-              onMoveFunds={handleMoveFunds}
-              batchSelectionClearRef={pcBatchClearSelectionRef}
-              onToggleFavorite={handleToggleFavoriteRow}
-              onHoldingAmountClick={handleHoldingAmountClickRow}
-              onHoldingProfitClick={handleHoldingProfitClickRow}
-              onCustomSettingsChange={triggerCustomSettingsSync}
-              closeDialogRef={fundDetailDialogCloseRef}
-              masked={maskAmounts}
-              getFundCardProps={getFundCardPropsForRow}
-              onFundTagsClick={openFundTagsEdit}
-              fundExtraDataByCode={fundExtraDataByCode}
-            />
-          )}
+        {/* PC 列表：使用 PcFundTable + 右侧冻结操作列 */}
+        {viewMode === 'list' && !isMobile && (
+          <PcFundTable
+            stickyTop={navbarHeight + filterBarHeight}
+            data={pcFundTableData}
+            relatedSectorSessionKey={userId ?? ''}
+            currentTab={currentTab}
+            groups={groups}
+            favorites={favorites}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            sortRules={sortRules}
+            onSortChange={(id: string) => {
+              startTransition(() => {
+                if (sortBy === id) {
+                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                } else {
+                  setSortBy(id);
+                  setSortOrder('desc');
+                }
+              });
+            }}
+            onReorder={handleReorder}
+            onRemoveFund={handleRemoveFundEntry}
+            onRemoveFunds={removeFundsFromCurrentTabHandler}
+            onMoveFunds={handleMoveFunds}
+            batchSelectionClearRef={pcBatchClearSelectionRef}
+            onToggleFavorite={handleToggleFavoriteRow}
+            onHoldingAmountClick={handleHoldingAmountClickRow}
+            onHoldingProfitClick={handleHoldingProfitClickRow}
+            onCustomSettingsChange={triggerCustomSettingsSync}
+            closeDialogRef={fundDetailDialogCloseRef}
+            masked={maskAmounts}
+            getFundCardProps={getFundCardPropsForRow}
+            onFundTagsClick={openFundTagsEdit}
+            fundExtraDataByCode={fundExtraDataByCode}
+          />
+        )}
 
-          {/* 移动端列表：使用 MobileFundTable */}
-          {viewMode === 'list' && isMobile && (
-            <MobileFundTable
-              data={pcFundTableData}
-              relatedSectorSessionKey={userId ?? ''}
-              currentTab={currentTab}
-              groups={groups}
-              onMoveFunds={handleMoveFunds}
-              favorites={favorites}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              sortRules={sortRules}
-              onSortChange={(id: string) => {
-                startTransition(() => {
-                  if (sortBy === id) {
-                    setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-                  } else {
-                    setSortBy(id);
-                    setSortOrder('desc');
-                  }
-                });
-              }}
-              stickyTop={navbarHeight + filterBarHeight}
-              closeDrawerRef={fundDetailDrawerCloseRef}
-              onReorder={handleReorder}
-              onRemoveFund={handleRemoveFundEntry}
-              onRemoveFunds={removeFundsFromCurrentTabHandler}
-              onToggleFavorite={handleToggleFavoriteRow}
-              onHoldingAmountClick={handleHoldingAmountClickRow}
-              onHoldingProfitClick={handleHoldingProfitClickRow}
-              batchSelectionClearRef={mobileBatchClearSelectionRef}
-              onCustomSettingsChange={triggerCustomSettingsSync}
-              onFundCardDrawerOpenChange={handleFundCardDrawerOpenChange}
-              onMobileSettingModalOpenChange={handleMobileSettingModalOpenChange}
-              getFundCardProps={getFundCardPropsForRow}
-              masked={maskAmounts}
-              onFundTagsClick={openFundTagsEdit}
-              fundExtraDataByCode={fundExtraDataByCode}
-            />
-          )}
+        {/* 移动端列表：使用 MobileFundTable */}
+        {viewMode === 'list' && isMobile && (
+          <MobileFundTable
+            data={pcFundTableData}
+            relatedSectorSessionKey={userId ?? ''}
+            currentTab={currentTab}
+            groups={groups}
+            onMoveFunds={handleMoveFunds}
+            favorites={favorites}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            sortRules={sortRules}
+            onSortChange={(id: string) => {
+              startTransition(() => {
+                if (sortBy === id) {
+                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                } else {
+                  setSortBy(id);
+                  setSortOrder('desc');
+                }
+              });
+            }}
+            stickyTop={navbarHeight + filterBarHeight}
+            closeDrawerRef={fundDetailDrawerCloseRef}
+            onReorder={handleReorder}
+            onRemoveFund={handleRemoveFundEntry}
+            onRemoveFunds={removeFundsFromCurrentTabHandler}
+            onToggleFavorite={handleToggleFavoriteRow}
+            onHoldingAmountClick={handleHoldingAmountClickRow}
+            onHoldingProfitClick={handleHoldingProfitClickRow}
+            batchSelectionClearRef={mobileBatchClearSelectionRef}
+            onCustomSettingsChange={triggerCustomSettingsSync}
+            onFundCardDrawerOpenChange={handleFundCardDrawerOpenChange}
+            onMobileSettingModalOpenChange={handleMobileSettingModalOpenChange}
+            getFundCardProps={getFundCardPropsForRow}
+            masked={maskAmounts}
+            onFundTagsClick={openFundTagsEdit}
+            fundExtraDataByCode={fundExtraDataByCode}
+          />
+        )}
 
-          {/* 卡片视图：使用 FundCard */}
-          <AnimatePresence mode="popLayout">
-            {viewMode === 'card' &&
-              displayFunds.map((f) => (
-                <motion.div
-                  key={f.code}
-                  className="col-6"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  style={{ position: 'relative', overflow: 'hidden' }}
-                >
-                  <FundCard
-                    fundCode={f.code}
-                    isHoldingLinked={
-                      (currentTab === 'all' || currentTab === 'fav') && linkedHoldingsForAllFav.linked?.has?.(f?.code)
-                    }
-                    todayStr={todayStr}
-                    currentTab={currentTab}
-                    favorites={favorites}
-                    dcaPlans={dcaPlansForTab}
-                    holdings={holdingsForTabWithLinked}
-                    percentModes={percentModes}
-                    todayPercentModes={todayPercentModes}
-                    fundDailyEarnings={currentFundDailyEarnings}
-                    valuationSeries={valuationSeries}
-                    collapsedCodes={collapsedCodes}
-                    collapsedTrends={collapsedTrends}
-                    collapsedValuationTrends={collapsedValuationTrends}
-                    collapsedEarnings={collapsedEarnings}
-                    transactions={transactionsForTab}
-                    theme={theme}
-                    isTradingDay={isTradingDay}
-                    getHoldingProfit={getHoldingProfitForTab}
-                    onToggleFavorite={toggleFavorite}
-                    onRemoveFund={handleRemoveFundEntry}
-                    onHoldingClick={openHoldingModal}
-                    onActionClick={openActionModal}
-                    onDataSourceClick={openDataSourceModal}
-                    onPercentModeToggle={togglePercentMode}
-                    onTodayPercentModeToggle={toggleTodayPercentMode}
-                    onToggleCollapse={toggleCollapse}
-                    onToggleTrendCollapse={toggleTrendCollapse}
-                    onToggleValuationTrendCollapse={toggleValuationTrendCollapse}
-                    onToggleEarningsCollapse={toggleEarningsCollapse}
-                    masked={maskAmounts}
-                    fundTags={isArray(fundTagListsByCode[f.code]) ? fundTagListsByCode[f.code] : []}
-                    onFundTagsClick={openFundTagsEdit}
-                    fundExtraData={fundExtraDataByCode?.[f.code]}
-                    groupTotalHoldingAmount={groupTotalHoldingAmount}
-                    hasDca={f.hasDca}
-                    hasPending={f.hasPending}
-                    userId={userId}
-                  />
-                </motion.div>
-              ))}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </AnimatePresence>
+        {/* 卡片视图：使用 FundCard */}
+        {viewMode === 'card' &&
+          displayFunds.map((f) => (
+            <div key={f.code} className="col-6" style={{ position: 'relative', overflow: 'hidden' }}>
+              <FundCard
+                fundCode={f.code}
+                isHoldingLinked={
+                  (currentTab === 'all' || currentTab === 'fav') && linkedHoldingsForAllFav.linked?.has?.(f?.code)
+                }
+                todayStr={todayStr}
+                currentTab={currentTab}
+                favorites={favorites}
+                dcaPlans={dcaPlansForTab}
+                holdings={holdingsForTabWithLinked}
+                percentModes={percentModes}
+                todayPercentModes={todayPercentModes}
+                fundDailyEarnings={currentFundDailyEarnings}
+                valuationSeries={valuationSeries}
+                collapsedCodes={collapsedCodes}
+                collapsedTrends={collapsedTrends}
+                collapsedValuationTrends={collapsedValuationTrends}
+                collapsedEarnings={collapsedEarnings}
+                transactions={transactionsForTab}
+                theme={theme}
+                isTradingDay={isTradingDay}
+                getHoldingProfit={getHoldingProfitForTab}
+                onToggleFavorite={toggleFavorite}
+                onRemoveFund={handleRemoveFundEntry}
+                onHoldingClick={openHoldingModal}
+                onActionClick={openActionModal}
+                onDataSourceClick={openDataSourceModal}
+                onPercentModeToggle={togglePercentMode}
+                onTodayPercentModeToggle={toggleTodayPercentMode}
+                onToggleCollapse={toggleCollapse}
+                onToggleTrendCollapse={toggleTrendCollapse}
+                onToggleValuationTrendCollapse={toggleValuationTrendCollapse}
+                onToggleEarningsCollapse={toggleEarningsCollapse}
+                masked={maskAmounts}
+                fundTags={isArray(fundTagListsByCode[f.code]) ? fundTagListsByCode[f.code] : []}
+                onFundTagsClick={openFundTagsEdit}
+                fundExtraData={fundExtraDataByCode?.[f.code]}
+                groupTotalHoldingAmount={groupTotalHoldingAmount}
+                hasDca={f.hasDca}
+                hasPending={f.hasPending}
+                userId={userId}
+              />
+            </div>
+          ))}
+      </div>
+    </div>
   );
 });
 

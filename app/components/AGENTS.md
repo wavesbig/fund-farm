@@ -19,7 +19,6 @@ app/components/
 │   ├── Fund ops: AddFundToGroupModal, GroupManageModal, GroupModal
 │   ├── Trading: TradeModal, HoldingEditModal, HoldingActionModal, TransactionHistoryModal, PendingTradesModal, DcaModal, AddHistoryModal
 │   ├── Settings: SettingsModal, MarketSettingModal, MobileSettingModal, PcTableSettingModal, SortSettingModal
-│   ├── Auth: LoginModal, CloudConfigModal
 │   ├── Scan: ScanPickModal, ScanProgressModal, ScanImportConfirmModal, ScanImportProgressModal
 │   └── Misc: ConfirmModal, SuccessModal, DonateModal, FeedbackModal, WeChatModal, UpdatePromptModal, FundHistoryNetValueModal
 ├── Charts (3)

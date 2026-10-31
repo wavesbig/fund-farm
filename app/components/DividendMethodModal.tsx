@@ -128,7 +128,7 @@ export default function DividendMethodModal({ fund, groupId, onClose, showToast 
                 className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all cursor-pointer ${
                   isSelected
                     ? 'border border-primary bg-primary/10'
-                    : 'border border-border bg-white/5 hover:bg-white/10'
+                    : 'border border-border bg-muted/30 hover:bg-muted/60'
                 }`}
               >
                 <div
@@ -161,7 +161,7 @@ export default function DividendMethodModal({ fund, groupId, onClose, showToast 
             type="button"
             variant="outline"
             onClick={onClose}
-            className="flex-1 bg-white/5 border-border hover:bg-white/10 text-foreground"
+            className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
           >
             取消
           </Button>

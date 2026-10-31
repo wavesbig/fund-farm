@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, LayoutGroup, useReducedMotion, AnimatePresence, type Transition, type Variants } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion, type Variants } from 'framer-motion';
 import { Home, User, TrendingUp, LucideIcon } from 'lucide-react';
 
 interface TabItem {
@@ -31,22 +31,16 @@ export default function MobileBottomNav({ value, onChange, hidden }: MobileBotto
 
   if (!mounted || typeof document === 'undefined') return null;
 
-  const spring: Transition = reduceMotion
-    ? { duration: 0.2 }
-    : { type: 'spring', stiffness: 420, damping: 34, mass: 0.8 };
-
-  const tapSpring: Transition = reduceMotion ? { duration: 0.15 } : { type: 'spring', stiffness: 600, damping: 32 };
-
   const slideVariants: Variants = {
     visible: {
       y: 0,
       opacity: 1,
-      transition: reduceMotion ? { duration: 0.2 } : { type: 'spring', stiffness: 300, damping: 30 }
+      transition: reduceMotion ? { duration: 0.15 } : { duration: 0.2, ease: 'easeOut' }
     },
     hidden: {
       y: '120%',
       opacity: 0,
-      transition: reduceMotion ? { duration: 0.2 } : { type: 'spring', stiffness: 300, damping: 30 }
+      transition: reduceMotion ? { duration: 0.15 } : { duration: 0.2, ease: 'easeIn' }
     }
   };
 
@@ -60,48 +54,29 @@ export default function MobileBottomNav({ value, onChange, hidden }: MobileBotto
           exit="hidden"
           variants={slideVariants}
         >
-          <LayoutGroup id="mobile-tab-bar">
-            <nav className="mobile-bottom-nav-bar" role="navigation" aria-label="主导航">
-              <div className="mobile-bottom-nav-track">
-                {TABS.map(({ id, label, Icon }) => {
-                  const active = value === id;
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      className={`mobile-bottom-nav-tab ${active ? 'is-active' : ''}`}
-                      onClick={() => onChange(id)}
-                      aria-current={active ? 'page' : undefined}
-                    >
-                      {active && (
-                        <motion.div
-                          layoutId="mobile-tab-ios-pill"
-                          className="mobile-bottom-nav-pill"
-                          transition={spring}
-                          initial={false}
-                        />
-                      )}
-                      <span className="mobile-bottom-nav-tab-inner">
-                        <span className="mobile-bottom-nav-icon-wrap">
-                          <Icon className="mobile-bottom-nav-icon" aria-hidden strokeWidth={2} />
-                        </span>
-                        <motion.span
-                          className="mobile-bottom-nav-label"
-                          animate={{
-                            opacity: active ? 1 : 0.5,
-                            fontWeight: active ? 600 : 500
-                          }}
-                          transition={tapSpring}
-                        >
-                          {label}
-                        </motion.span>
+          <nav className="mobile-bottom-nav-bar" role="navigation" aria-label="主导航">
+            <div className="mobile-bottom-nav-track">
+              {TABS.map(({ id, label, Icon }) => {
+                const active = value === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    className={`mobile-bottom-nav-tab ${active ? 'is-active' : ''}`}
+                    onClick={() => onChange(id)}
+                    aria-current={active ? 'page' : undefined}
+                  >
+                    <span className="mobile-bottom-nav-tab-inner">
+                      <span className="mobile-bottom-nav-icon-wrap">
+                        <Icon className="mobile-bottom-nav-icon" aria-hidden strokeWidth={2} />
                       </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </nav>
-          </LayoutGroup>
+                      <span className="mobile-bottom-nav-label">{label}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
         </motion.div>
       )}
     </AnimatePresence>

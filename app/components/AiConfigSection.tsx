@@ -73,12 +73,12 @@ const PRESETS: ProviderPreset[] = [
     latencyHint: '极速',
     icon: Sparkles,
     theme: {
-      activeBorder: 'border-cyan-500',
-      activeBg: 'bg-cyan-500/12',
-      activeText: 'text-cyan-500 dark:text-cyan-400',
-      activeRing: 'ring-1 ring-cyan-500/30',
-      badgeStyle: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30',
-      hoverBorder: 'hover:border-cyan-500/40'
+      activeBorder: 'border-primary',
+      activeBg: 'bg-primary/12',
+      activeText: 'text-primary',
+      activeRing: 'ring-1 ring-primary/30',
+      badgeStyle: 'bg-primary/15 text-primary border-primary/30',
+      hoverBorder: 'hover:border-primary/40'
     }
   },
   {

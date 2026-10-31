@@ -129,13 +129,8 @@ export const FilterBar = memo(function FilterBar({
           <AnimatePresence>
             {!showGroupDropdown && !isMobile && hasTabOverflow && (
               <>
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.8, y: '-50%', x: 0 }}
-                  animate={{ opacity: 1, scale: 1, y: '-50%', x: 0 }}
-                  exit={{ opacity: 0, scale: 0.8, y: '-50%', x: 0 }}
-                  whileHover={canLeft ? { scale: 1.1, y: '-50%', x: 0 } : {}}
-                  whileTap={canLeft ? { scale: 0.95, y: '-50%', x: 0 } : {}}
-                  transition={{ duration: 0.15 }}
+                <button
+                  type="button"
                   className={`tabs-scroll-btn left ${!canLeft ? 'opacity-30 cursor-not-allowed' : ''}`}
                   disabled={!canLeft}
                   title="单击向左滚动，双击滚动到最左端"
@@ -143,14 +138,9 @@ export const FilterBar = memo(function FilterBar({
                   onDoubleClick={scrollTabsToLeftEnd}
                 >
                   <ChevronLeft size={16} />
-                </motion.button>
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.8, y: '-50%', x: 0 }}
-                  animate={{ opacity: 1, scale: 1, y: '-50%', x: 0 }}
-                  exit={{ opacity: 0, scale: 0.8, y: '-50%', x: 0 }}
-                  whileHover={canRight ? { scale: 1.1, y: '-50%', x: 0 } : {}}
-                  whileTap={canRight ? { scale: 0.95, y: '-50%', x: 0 } : {}}
-                  transition={{ duration: 0.15 }}
+                </button>
+                <button
+                  type="button"
                   className={`tabs-scroll-btn right ${!canRight ? 'opacity-30 cursor-not-allowed' : ''}`}
                   disabled={!canRight}
                   title="单击向右滚动，双击滚动到最右端"
@@ -158,7 +148,7 @@ export const FilterBar = memo(function FilterBar({
                   onDoubleClick={scrollTabsToRightEnd}
                 >
                   <ChevronRight size={16} />
-                </motion.button>
+                </button>
               </>
             )}
           </AnimatePresence>
@@ -175,101 +165,87 @@ export const FilterBar = memo(function FilterBar({
             onScroll={updateTabOverflow}
           >
             <div className="tabs" ref={tabsRef}>
-              <AnimatePresence mode="popLayout">
-                {showPortfolioSummaryTab && (
-                  <motion.button
-                    layout
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    key="portfolio-summary"
-                    className={`tab ${currentTab === SUMMARY_TAB_ID ? 'active' : ''}`}
-                    onClick={() => handleTabClick(SUMMARY_TAB_ID)}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }}
-                  >
-                    汇总
-                  </motion.button>
-                )}
-                <motion.button
-                  layout
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  key="all"
-                  className={`tab ${currentTab === 'all' ? 'active' : ''}`}
-                  onClick={() => handleTabClick('all')}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }}
+              {showPortfolioSummaryTab && (
+                <button
+                  type="button"
+                  key="portfolio-summary"
+                  className={`tab ${currentTab === SUMMARY_TAB_ID ? 'active' : ''}`}
+                  onClick={() => handleTabClick(SUMMARY_TAB_ID)}
                 >
-                  全部 ({fundsCount})
-                </motion.button>
-                {!showGroupDropdown &&
-                  groups.map((g) => {
-                    const isFav = g.id === 'fav' || g.isPreset;
-                    const count = isFav ? favoritesCount : g.codes?.length || 0;
-                    const label = isFav ? '自选' : g.name;
-                    return (
-                      <motion.button
-                        layout
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        key={g.id}
-                        className={`tab ${currentTab === g.id ? 'active' : ''}`}
-                        onClick={() => handleTabClick(g.id)}
-                        transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }}
-                      >
-                        {label} ({count})
-                      </motion.button>
-                    );
-                  })}
-                {showGroupDropdown && (
-                  <div key="group-dropdown" style={{ minWidth: isMobile ? 170 : 210, maxWidth: isMobile ? 230 : 300 }}>
-                    <Select
-                      value={isGroupDropdownTabActive ? currentTab : ''}
-                      onValueChange={(value) => handleTabClick(value)}
+                  汇总
+                </button>
+              )}
+              <button
+                type="button"
+                key="all"
+                className={`tab ${currentTab === 'all' ? 'active' : ''}`}
+                onClick={() => handleTabClick('all')}
+              >
+                全部 ({fundsCount})
+              </button>
+              {!showGroupDropdown &&
+                groups.map((g) => {
+                  const isFav = g.id === 'fav' || g.isPreset;
+                  const count = isFav ? favoritesCount : g.codes?.length || 0;
+                  const label = isFav ? '自选' : g.name;
+                  return (
+                    <button
+                      type="button"
+                      key={g.id}
+                      className={`tab ${currentTab === g.id ? 'active' : ''}`}
+                      onClick={() => handleTabClick(g.id)}
                     >
-                      <SelectTrigger
-                        className={cn(
-                          'h-4 py-0 text-xs shadow-none',
-                          isGroupDropdownTabActive && 'border-primary/70 text-primary ring-1 ring-primary/25'
-                        )}
-                        style={{
-                          background: isGroupDropdownTabActive
-                            ? 'color-mix(in srgb, var(--primary) 12%, var(--card-bg))'
-                            : 'var(--card-bg)',
-                          boxShadow: isGroupDropdownTabActive
-                            ? '0 0 0 1px rgba(255, 255, 255, 0.05), 0 6px 18px rgba(34, 211, 238, 0.12)'
-                            : undefined,
-                          height: 32
-                        }}
-                        aria-label="选择分组"
-                      >
-                        <SelectValue placeholder="选择分组" />
-                      </SelectTrigger>
-                      <SelectContent
-                        position="popper"
-                        align="start"
-                        style={{
-                          width: isMobile ? 230 : 300
-                        }}
-                      >
-                        <SelectGroup>
-                          {groups.map((g) => {
-                            const isFav = g.id === 'fav' || g.isPreset;
-                            const count = isFav ? favoritesCount : g.codes?.length || 0;
-                            const label = isFav ? '自选' : g.name;
-                            return (
-                              <SelectItem key={g.id} value={g.id}>
-                                {label} ({count})
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </AnimatePresence>
+                      {label} ({count})
+                    </button>
+                  );
+                })}
+              {showGroupDropdown && (
+                <div key="group-dropdown" style={{ minWidth: isMobile ? 170 : 210, maxWidth: isMobile ? 230 : 300 }}>
+                  <Select
+                    value={isGroupDropdownTabActive ? currentTab : ''}
+                    onValueChange={(value) => handleTabClick(value)}
+                  >
+                    <SelectTrigger
+                      className={cn(
+                        'h-4 py-0 text-sm shadow-none',
+                        isGroupDropdownTabActive && 'border-primary/70 text-primary ring-1 ring-primary/25'
+                      )}
+                      style={{
+                        background: isGroupDropdownTabActive
+                          ? 'color-mix(in srgb, var(--primary) 12%, var(--card-bg))'
+                          : 'var(--card-bg)',
+                        boxShadow: isGroupDropdownTabActive
+                          ? '0 0 0 1px rgba(255, 255, 255, 0.05), 0 4px 14px color-mix(in srgb, var(--primary) 20%, transparent)'
+                          : undefined,
+                        height: 32
+                      }}
+                      aria-label="选择分组"
+                    >
+                      <SelectValue placeholder="选择分组" />
+                    </SelectTrigger>
+                    <SelectContent
+                      position="popper"
+                      align="start"
+                      style={{
+                        width: isMobile ? 230 : 300
+                      }}
+                    >
+                      <SelectGroup>
+                        {groups.map((g) => {
+                          const isFav = g.id === 'fav' || g.isPreset;
+                          const count = isFav ? favoritesCount : g.codes?.length || 0;
+                          const label = isFav ? '自选' : g.name;
+                          return (
+                            <SelectItem key={g.id} value={g.id}>
+                              {label} ({count})
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -327,14 +303,14 @@ export const FilterBar = memo(function FilterBar({
               applyViewMode(val);
             }
           }}
-          className="bg-muted/30 border border-border/50 p-0.5 rounded-lg shrink-0"
+          className="bg-muted/50 border border-border p-0.5 rounded-lg shrink-0"
         >
           <Tooltip>
             <TooltipTrigger asChild>
               <ToggleGroupItem
                 value="card"
                 aria-label="卡片视图"
-                className="size-7 p-0 text-muted-foreground hover:text-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md transition-colors"
+                className="size-7 p-0 text-muted-foreground hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-sm rounded-md transition-colors"
               >
                 <GridIcon width="15" height="15" />
               </ToggleGroupItem>
@@ -348,7 +324,7 @@ export const FilterBar = memo(function FilterBar({
               <ToggleGroupItem
                 value="list"
                 aria-label="表格视图"
-                className="size-7 p-0 text-muted-foreground hover:text-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md transition-colors"
+                className="size-7 p-0 text-muted-foreground hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-sm rounded-md transition-colors"
               >
                 <ListIcon width="15" height="15" />
               </ToggleGroupItem>
@@ -371,7 +347,7 @@ export const FilterBar = memo(function FilterBar({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2 gap-1 text-xs text-muted-foreground hover:text-foreground"
+                className="h-8 px-2.5 gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                 onClick={() => setSortSettingOpen(true)}
                 type="button"
               >
@@ -397,7 +373,7 @@ export const FilterBar = memo(function FilterBar({
               >
                 <SelectTrigger
                   size="sm"
-                  className="h-8 min-w-[110px] text-xs shadow-none"
+                  className="h-8 min-w-[110px] text-sm shadow-none"
                   style={{ background: 'var(--card-bg)' }}
                 >
                   <SelectValue placeholder="选择排序规则" />
@@ -422,7 +398,7 @@ export const FilterBar = memo(function FilterBar({
               >
                 <SelectTrigger
                   size="sm"
-                  className="h-8 min-w-[84px] text-xs shadow-none"
+                  className="h-8 min-w-[84px] text-sm shadow-none"
                   style={{ background: 'var(--card-bg)' }}
                 >
                   <SelectValue placeholder="排序方向" />
