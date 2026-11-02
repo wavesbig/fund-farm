@@ -169,7 +169,7 @@ export default function AddTagDialog({ open, onOpenChange, onAdd }: AddTagDialog
                     <Badge
                       variant={opt.badgeVariant}
                       className={cn(
-                        'cursor-pointer font-normal text-xs transition-all duration-200',
+                        'cursor-pointer font-normal text-xs transition-[opacity,transform,box-shadow] duration-150 ease-out',
                         opt.badgeClassName,
                         active
                           ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-105'

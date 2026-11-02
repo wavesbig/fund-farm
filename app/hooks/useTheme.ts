@@ -9,6 +9,27 @@ export interface UseThemeReturn {
 }
 
 /**
+ * 在主题切换时临时关闭所有 CSS 过渡并强制执行样式刷新，
+ * 避免全屏各元素由于过渡时长不一导致的色彩拖尾与闪烁
+ */
+function suppressThemeTransitions(action: () => void) {
+  if (typeof document === 'undefined') {
+    action();
+    return;
+  }
+  const style = document.createElement('style');
+  style.append(document.createTextNode('*,*::before,*::after{transition:none !important}'));
+  document.head.append(style);
+  action();
+  void document.body.offsetHeight; // 强制同步样式重绘
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      style.remove();
+    });
+  });
+}
+
+/**
  * 管理应用主题（dark/light）
  * - useLayoutEffect 在首帧前恢复，避免 SSR hydration 闪烁
  * - useEffect 同步到 document.documentElement 并持久化到 localStorage
@@ -19,8 +40,16 @@ export function useTheme(): UseThemeReturn {
   const [showThemeTransition, setShowThemeTransition] = useState<boolean>(false);
 
   const handleThemeToggle = useCallback(() => {
-    setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
-    setShowThemeTransition(true);
+    suppressThemeTransitions(() => {
+      setTheme((t) => {
+        const next = t === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        try {
+          storageStore.setItem('theme', next);
+        } catch {}
+        return next;
+      });
+    });
   }, []);
 
   // 首帧前同步主题（与 layout 中脚本设置的 data-theme 一致），减少图标闪烁

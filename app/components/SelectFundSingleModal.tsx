@@ -97,7 +97,7 @@ export default function SelectFundSingleModal({
                 return (
                   <div
                     key={fund.code}
-                    className={`flex items-center p-3 rounded-xl border transition-all cursor-pointer ${
+                    className={`flex items-center p-3 rounded-xl border transition-[background-color,border-color] duration-150 ease-out cursor-pointer ${
                       active ? 'border-primary bg-primary/10' : 'border-border bg-muted/30 hover:bg-muted/60'
                     }`}
                     onClick={() => setSelectedCode(fund.code)}

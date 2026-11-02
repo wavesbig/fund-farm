@@ -45,7 +45,7 @@ export default function MobileBottomNav({ value, onChange, hidden }: MobileBotto
   };
 
   const node = (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {!hidden && (
         <motion.div
           className="mobile-bottom-nav-shell"

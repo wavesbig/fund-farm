@@ -40,6 +40,7 @@ export default function MineTab({
                 width={56}
                 height={56}
                 unoptimized
+                className="outline outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10 rounded-full"
                 style={{ borderRadius: '50%', objectFit: 'cover' }}
               />
             ) : (

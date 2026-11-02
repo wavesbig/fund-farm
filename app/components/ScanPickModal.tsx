@@ -68,9 +68,9 @@ export default function ScanPickModal({ onClose, onPick, onFilesDrop, isScanning
       exit={{ opacity: 0 }}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        initial={{ opacity: 0, scale: 0.96, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' } }}
+        exit={{ opacity: 0, y: -12, filter: 'blur(4px)', transition: { duration: 0.15, ease: 'easeOut' } }}
         className="glass card modal scan-pick-modal p-6 w-[440px] max-w-[92vw]"
         onClick={(e) => e.stopPropagation()}
       >
@@ -114,7 +114,7 @@ export default function ScanPickModal({ onClose, onPick, onFilesDrop, isScanning
 
         <div
           className={cn(
-            'scan-pick-dropzone p-5 rounded-xl border border-dashed border-border/80 transition-all text-center cursor-pointer mb-3',
+            'scan-pick-dropzone p-5 rounded-xl border border-dashed border-border/80 transition-[background-color,border-color,color] duration-150 ease-out text-center cursor-pointer mb-3',
             isDragging && 'dragging border-primary bg-primary/5',
             isScanning && 'cursor-not-allowed opacity-50 pointer-events-none'
           )}

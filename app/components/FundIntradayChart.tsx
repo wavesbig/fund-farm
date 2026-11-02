@@ -428,6 +428,7 @@ export default function FundIntradayChart({
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
                           {...attrs}
+                          className="outline outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10 rounded-lg"
                           src={`https://j4.dfcfw.com/charts/pic6/${fundCode}.png${gztime ? '?v=' + encodeURIComponent(gztime) : ''}`}
                           alt="净值估算图"
                           style={{
@@ -445,6 +446,7 @@ export default function FundIntradayChart({
               <CenterOrigin>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
+                  className="outline outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10 rounded-lg"
                   src={`https://j4.dfcfw.com/charts/pic6/${fundCode}.png${gztime ? '?v=' + encodeURIComponent(gztime) : ''}`}
                   alt="净值估算图"
                   style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'pointer' }}

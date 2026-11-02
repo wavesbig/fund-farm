@@ -39,7 +39,7 @@ function PaginationLink({ className, isActive, size = 'icon', ...props }: Pagina
       data-active={isActive}
       className={cn(
         buttonVariants({ variant: 'ghost', size }),
-        'cursor-pointer rounded-full border border-transparent transition-all duration-300',
+        'cursor-pointer rounded-full border border-transparent transition-[color,background-color,border-color] duration-150 ease-out',
         isActive
           ? 'bg-primary/15 text-primary font-medium hover:bg-primary/25 hover:text-primary'
           : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground',

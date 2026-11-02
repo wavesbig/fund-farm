@@ -29,7 +29,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        'flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium whitespace-nowrap shadow-sm transition-all duration-200 outline-none',
+        'flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium whitespace-nowrap shadow-sm transition-[color,background-color,border-color,box-shadow] duration-150 ease-out outline-none',
         'border-input bg-background text-foreground',
         'hover:border-primary/60 hover:ring-1 hover:ring-primary/30',
         'focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/50',

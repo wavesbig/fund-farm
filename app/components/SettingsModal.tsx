@@ -90,7 +90,7 @@ function SettingSwitchCard({
   ariaLabel
 }: SettingSwitchCardProps) {
   return (
-    <Card className="w-full flex flex-row items-center justify-between p-3.5 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+    <Card className="w-full flex flex-row items-center justify-between p-3.5 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-[background-color,border-color,box-shadow] duration-150 ease-out shadow-xs rounded-2xl backdrop-blur-sm min-w-0">
       <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
         <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
           <Icon className="size-4" />
@@ -283,7 +283,7 @@ export default function SettingsModal({
       {activeTab === 'general' && (
         <div className="space-y-4 w-full min-w-0">
           {/* 刷新频率卡片 */}
-          <Card className="p-4 gap-3.5 bg-card/60 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+          <Card className="p-4 gap-3.5 bg-card/60 border border-border/70 hover:border-primary/40 transition-[background-color,border-color,box-shadow] duration-150 ease-out shadow-xs rounded-2xl backdrop-blur-sm min-w-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
@@ -308,7 +308,7 @@ export default function SettingsModal({
                     variant={isActive ? 'default' : 'outline'}
                     size="sm"
                     className={cn(
-                      'flex-1 h-8.5 text-xs font-medium tabular-nums rounded-lg border-border/70 truncate transition-all',
+                      'flex-1 h-8.5 text-xs font-medium tabular-nums rounded-lg border-border/70 truncate transition-[background-color,border-color,color] duration-150 ease-out',
                       isActive && 'shadow-xs font-semibold'
                     )}
                     onClick={() => setLocalSeconds(s)}
@@ -336,7 +336,7 @@ export default function SettingsModal({
 
           {/* 页面宽度控制卡片 (PC端专属) */}
           {!isMobile && setContainerWidth && (
-            <Card className="p-4 gap-3.5 bg-card/60 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+            <Card className="p-4 gap-3.5 bg-card/60 border border-border/70 hover:border-primary/40 transition-[background-color,border-color,box-shadow] duration-150 ease-out shadow-xs rounded-2xl backdrop-blur-sm min-w-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
@@ -472,7 +472,7 @@ export default function SettingsModal({
       {activeTab === 'data' && (
         <div className="space-y-4 w-full min-w-0">
           <div className="flex flex-col gap-2.5 w-full min-w-0">
-            <Card className="flex flex-row items-center justify-between p-3.5 sm:p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+            <Card className="flex flex-row items-center justify-between p-3.5 sm:p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-[background-color,border-color,box-shadow] duration-150 ease-out shadow-xs rounded-2xl backdrop-blur-sm min-w-0">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
                   <Download className="size-4" />
@@ -492,7 +492,7 @@ export default function SettingsModal({
               </Button>
             </Card>
 
-            <Card className="flex flex-row items-center justify-between p-3.5 sm:p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-all shadow-xs rounded-xl backdrop-blur-sm min-w-0">
+            <Card className="flex flex-row items-center justify-between p-3.5 sm:p-4 gap-3 bg-card/60 hover:bg-card/90 border border-border/70 hover:border-primary/40 transition-[background-color,border-color,box-shadow] duration-150 ease-out shadow-xs rounded-2xl backdrop-blur-sm min-w-0">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
                   <Upload className="size-4" />
@@ -570,7 +570,7 @@ export default function SettingsModal({
                       type="button"
                       onClick={() => setActiveTab(item.id)}
                       className={cn(
-                        'flex items-center justify-center gap-1.5 py-2 px-2 rounded-md text-xs font-medium transition-all cursor-pointer',
+                        'flex items-center justify-center gap-1.5 py-2 px-2 rounded-md text-xs font-medium transition-[background-color,color,border-color] duration-150 ease-out cursor-pointer',
                         isActive
                           ? 'bg-card text-foreground shadow-xs font-semibold border border-border/50'
                           : 'text-muted-foreground hover:text-foreground'

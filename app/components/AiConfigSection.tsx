@@ -424,7 +424,7 @@ export default function AiConfigSection({
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
               className={cn(
-                'size-8 rounded-lg flex items-center justify-center shrink-0 transition-all border',
+                'size-8 rounded-lg flex items-center justify-center shrink-0 transition-[background-color,border-color,color] duration-150 ease-out border',
                 enabled
                   ? 'bg-primary/15 text-primary border-primary/30 shadow-xs'
                   : 'bg-muted/30 text-muted-foreground border-border/50'
@@ -491,7 +491,7 @@ export default function AiConfigSection({
                   }
                 }}
                 className={cn(
-                  'w-full sm:w-[calc(50%-5px)] lg:w-[calc(33.333%-7px)] relative flex flex-col justify-between p-3 rounded-xl border text-left transition-all cursor-pointer group select-none min-w-0 overflow-hidden backdrop-blur-sm',
+                  'w-full sm:w-[calc(50%-5px)] lg:w-[calc(33.333%-7px)] relative flex flex-col justify-between p-3 rounded-2xl border text-left transition-[background-color,border-color,box-shadow] duration-150 ease-out cursor-pointer group select-none min-w-0 overflow-hidden backdrop-blur-sm',
                   isSelected
                     ? cn(theme.activeBorder, theme.activeBg, theme.activeRing, 'shadow-xs')
                     : cn('bg-card/60 border-border/70 hover:bg-card/90', theme.hoverBorder)
@@ -744,7 +744,7 @@ export default function AiConfigSection({
               size="sm"
               onClick={handleSaveImmediate}
               className={cn(
-                'h-8.5 px-3.5 text-xs font-medium gap-1.5 rounded-lg transition-all',
+                'h-8.5 px-3.5 text-xs font-medium gap-1.5 rounded-lg transition-[background-color,border-color,color,box-shadow] duration-150 ease-out',
                 saveSuccess && 'bg-emerald-600 hover:bg-emerald-600/90 text-white shadow-xs'
               )}
             >

@@ -11,6 +11,7 @@ import { CloseIcon } from './Icons';
 import { Moon, Search, Sun } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const UpdateChecker = dynamic<{ onModalOpenChange?: (open: boolean) => void }>(() => import('./UpdateChecker'), {
   ssr: false
@@ -260,7 +261,28 @@ export const Navbar = memo(function Navbar({
                 aria-label={theme === 'dark' ? '切换到亮色主题' : '切换到暗色主题'}
                 onClick={handleThemeToggle}
               >
-                {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+                <span className="grid place-items-center size-4 overflow-hidden">
+                  <span
+                    className={cn(
+                      '[grid-area:1/1] transition-[opacity,filter,scale] duration-300 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:scale-100 motion-reduce:blur-[0px]',
+                      theme === 'dark'
+                        ? 'scale-100 opacity-100 blur-[0px]'
+                        : 'scale-[0.25] opacity-0 blur-[4px] pointer-events-none'
+                    )}
+                  >
+                    <Sun className="size-4" />
+                  </span>
+                  <span
+                    className={cn(
+                      '[grid-area:1/1] transition-[opacity,filter,scale] duration-300 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:scale-100 motion-reduce:blur-[0px]',
+                      theme === 'dark'
+                        ? 'scale-[0.25] opacity-0 blur-[4px] pointer-events-none'
+                        : 'scale-100 opacity-100 blur-[0px]'
+                    )}
+                  >
+                    <Moon className="size-4" />
+                  </span>
+                </span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>

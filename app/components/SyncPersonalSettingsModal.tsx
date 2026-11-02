@@ -108,7 +108,7 @@ export default function SyncPersonalSettingsModal({
                   <div
                     key={item.id}
                     className={cn(
-                      'flex items-center gap-3 p-3 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 cursor-pointer select-none transition-all shadow-xs',
+                      'flex items-center gap-3 p-3 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 cursor-pointer select-none transition-[background-color,border-color,box-shadow] duration-150 ease-out shadow-xs',
                       isChecked && 'border-primary/40 bg-primary/10'
                     )}
                     onClick={() => toggleSelect(item.id)}

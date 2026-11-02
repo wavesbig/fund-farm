@@ -27,9 +27,9 @@ export default function SuccessModal({ message, onClose, overlayStyle, cardStyle
       style={{ pointerEvents: 'auto', ...overlayStyle }}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 16 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 16 }}
+        initial={{ opacity: 0, scale: 0.96, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' } }}
+        exit={{ opacity: 0, y: -12, filter: 'blur(4px)', transition: { duration: 0.15, ease: 'easeOut' } }}
         className="max-w-[420px] w-[92vw] p-6 rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl text-left"
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}

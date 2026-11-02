@@ -61,7 +61,7 @@ export default function UserMenu({
                 aria-label="个人中心"
               >
                 {userAvatar ? (
-                  <div className="size-5 rounded-full overflow-hidden ring-1 ring-primary/30">
+                  <div className="size-5 rounded-full overflow-hidden outline outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10">
                     <Image
                       src={userAvatar}
                       alt="用户头像"

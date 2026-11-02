@@ -238,7 +238,7 @@ export default function GroupManageModal({ groups, onClose, onSave }: GroupManag
             <Button
               variant="outline"
               onClick={handleAddRow}
-              className="w-full mt-3 h-10 rounded-xl border-dashed border-[var(--border)] bg-background/20 text-[var(--muted)] hover:text-foreground hover:bg-background/40 flex items-center justify-center gap-2 text-sm transition-all"
+              className="w-full mt-3 h-10 rounded-xl border-dashed border-[var(--border)] bg-background/20 text-[var(--muted)] hover:text-foreground hover:bg-background/40 flex items-center justify-center gap-2 text-sm transition-[background-color,border-color,color] duration-150 ease-out"
             >
               <Plus className="w-4 h-4" />
               <span>新增分组</span>

@@ -62,7 +62,7 @@ function SortableIndexItem({ item, canRemove, onRemove }: SortableIndexItemProps
       ref={setNodeRef}
       style={style}
       className={cn(
-        'relative flex flex-col gap-1 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 p-2.5 transition-all select-none shadow-xs backdrop-blur-sm'
+        'relative flex flex-col gap-1 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 p-2.5 transition-[background-color,border-color,box-shadow] duration-150 ease-out select-none shadow-xs backdrop-blur-sm'
       )}
       {...attributes}
       {...listeners}

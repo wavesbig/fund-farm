@@ -53,7 +53,7 @@ export default function SearchBar({
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10 opacity-70" />
           <Input
             ref={inputRef}
-            className="h-[38px] w-full rounded-lg pl-10 pr-12 text-[16PX] md:text-sm bg-card border-border shadow-[0_1px_2px_rgba(50,50,93,0.06),0_1px_1px_rgba(0,0,0,0.04)] text-foreground placeholder:text-muted-foreground/80 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all"
+            className="h-[38px] w-full rounded-lg pl-10 pr-12 text-[16PX] md:text-sm bg-card border-border shadow-[0_1px_2px_rgba(50,50,93,0.06),0_1px_1px_rgba(0,0,0,0.04)] text-foreground placeholder:text-muted-foreground/80 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-[border-color,box-shadow,background-color] duration-150 ease-out"
             placeholder="搜索基金名称或代码..."
             value={searchTerm}
             onChange={handleSearchInput}

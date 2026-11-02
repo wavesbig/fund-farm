@@ -45,7 +45,7 @@ function MobileSettingReorderItem({
     <Reorder.Item
       key={item.id || `col-${index}`}
       value={item}
-      className="flex items-center gap-2 p-2.5 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 transition-all shadow-xs backdrop-blur-sm"
+      className="flex items-center gap-2 p-2.5 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 transition-[background-color,border-color,box-shadow] duration-150 ease-out shadow-xs backdrop-blur-sm"
       layout
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}

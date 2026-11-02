@@ -47,13 +47,12 @@ export default function UsageTipsCarousel({ interval = 10000, style = {} }: Usag
       className="mb-5 p-3 rounded-xl bg-white/[0.04] border border-[var(--border)] min-h-[68px] flex items-center justify-center overflow-hidden relative"
       style={style}
     >
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={shuffledTips[tipIndex] || tipIndex}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.35, ease: 'easeInOut' }}
+          initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.3, ease: 'easeOut' } }}
+          exit={{ opacity: 0, y: -12, filter: 'blur(4px)', transition: { duration: 0.15, ease: 'easeOut' } }}
           className="text-xs leading-relaxed text-left w-full text-[var(--muted)] break-words"
         >
           {shuffledTips[tipIndex]}

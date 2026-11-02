@@ -100,6 +100,7 @@ cli/
 /.mcp.json
 /.codex/
 /jgb-cli/
+skills-lock.json
 
 # TypeScript
 *.tsbuildinfo

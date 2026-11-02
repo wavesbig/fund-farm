@@ -704,7 +704,9 @@ export default function MyEarningsCalendarPage({
                                 'overflow-hidden !p-0 !gap-1 !leading-none',
                                 bgToneClass,
                                 isToday && '!ring-1 !ring-primary !ring-inset',
-                                showEarningsRow && hasVal && 'hover:brightness-95 transition-all'
+                                showEarningsRow &&
+                                  hasVal &&
+                                  'hover:brightness-95 transition-[filter] duration-150 ease-out'
                               )}
                             >
                               <span className="my-earnings-cell-num" style={{ fontSize: pcCellDayFontSize }}>
@@ -859,16 +861,16 @@ export default function MyEarningsCalendarPage({
                 <div className="mt-5 relative z-10">
                   <div className="relative w-full h-[12px] rounded-full overflow-hidden bg-[color-mix(in_srgb,var(--foreground)_10%,transparent)] flex isolate">
                     <div
-                      className="absolute top-0 bottom-0 left-0 bg-[var(--primary)] transition-all duration-500"
+                      className="absolute top-0 bottom-0 left-0 bg-[var(--primary)] transition-[width] duration-300 ease-out"
                       style={{ width: `${percentile}%` }}
                     />
                     <div
-                      className="absolute top-0 bottom-0 right-0 bg-transparent transition-all duration-500"
+                      className="absolute top-0 bottom-0 right-0 bg-transparent transition-[width] duration-300 ease-out"
                       style={{ width: `${100 - percentile}%` }}
                     />
                     {percentile > 0 && percentile < 100 && (
                       <div
-                        className="absolute top-[-4px] bottom-[-4px] w-[6px] bg-background z-10 transition-all duration-500"
+                        className="absolute top-[-4px] bottom-[-4px] w-[6px] bg-background z-10 transition-[left] duration-300 ease-out"
                         style={{
                           left: `calc(${percentile}% - 3px)`,
                           transform: 'skewX(-25deg)'

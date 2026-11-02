@@ -4291,7 +4291,7 @@ export default function HomePage() {
                       <Button
                         variant="outline"
                         onClick={() => setAddFundToGroupOpen(true)}
-                        className="w-full h-12 border-2 border-dashed border-border hover:border-primary hover:text-primary hover:bg-primary/5 text-muted-foreground font-medium rounded-xl mt-4 gap-2 text-sm transition-all shadow-none"
+                        className="w-full h-12 border-2 border-dashed border-border hover:border-primary hover:text-primary hover:bg-primary/5 text-muted-foreground font-medium rounded-xl mt-4 gap-2 text-sm transition-[background-color,border-color,color] duration-150 ease-out shadow-none"
                       >
                         <PlusIcon width="18" height="18" />
                         <span>添加基金到此分组</span>

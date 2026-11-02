@@ -272,13 +272,13 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
               >
                 <ToggleGroupItem
                   value="industry"
-                  className="h-7 px-2.5 text-xs rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
+                  className="h-7 px-2.5 text-xs rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer"
                 >
                   行业
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="concept"
-                  className="h-7 px-2.5 text-xs rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
+                  className="h-7 px-2.5 text-xs rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer"
                 >
                   概念
                 </ToggleGroupItem>
@@ -299,7 +299,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
               >
                 <ToggleGroupItem
                   value="change_pct"
-                  className="h-7 px-2.5 text-xs flex items-center gap-0.5 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
+                  className="h-7 px-2.5 text-xs flex items-center gap-0.5 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer"
                 >
                   按涨幅
                   <span
@@ -323,7 +323,7 @@ export default function MarketTab({ onAddFund, getFundCardProps, isActive }: Mar
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="net_inflow"
-                  className="h-7 px-2.5 text-xs flex items-center gap-0.5 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-all cursor-pointer"
+                  className="h-7 px-2.5 text-xs flex items-center gap-0.5 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer"
                 >
                   按资金流入
                   <span

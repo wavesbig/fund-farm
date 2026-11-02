@@ -356,9 +356,6 @@ export default function MarketIndexAccordion({
       style={stickyStyle}
     >
       <style jsx>{`
-        .market-index-accordion :global([data-slot='accordion-trigger'] > svg:last-of-type) {
-          display: none;
-        }
         .market-index-ticker {
           overflow: hidden;
         }
@@ -381,29 +378,32 @@ export default function MarketIndexAccordion({
       `}</style>
       <Accordion type="single" collapsible value={openValue} onValueChange={setOpenValue}>
         <AccordionItem value="indices" className="border-b-0">
-          <AccordionTrigger
-            className="py-2 px-4 hover:no-underline hover:bg-[var(--card)] [&[data-state=open]>svg]:rotate-90"
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
-          >
-            <div className="flex flex-1 items-center gap-3 min-w-0">
-              {current ? (
-                <div className="market-index-ticker">
-                  <div key={current.code || current.name} className="market-index-ticker-item">
-                    <span className="text-sm font-medium text-[var(--foreground)] shrink-0">{current.name}</span>
-                    <span className={cn('tabular-nums font-medium', colorClass)}>{current.price.toFixed(2)}</span>
-                    <span className={cn('tabular-nums text-sm', colorClass)}>
-                      {(current.change >= 0 ? '+' : '') + current.change.toFixed(2)}
-                    </span>
-                    <span className={cn('tabular-nums text-sm', colorClass)}>
-                      {(current.changePercent >= 0 ? '+' : '') + current.changePercent.toFixed(2)}%
-                    </span>
+          <div className="flex items-center justify-between py-2 px-4 hover:bg-white/[0.03] transition-colors rounded-xl">
+            <AccordionTrigger
+              hideChevron
+              className="py-0 px-0 hover:no-underline flex-1 min-w-0"
+              style={{ flexDirection: 'row', alignItems: 'center' }}
+            >
+              <div className="flex flex-1 items-center gap-3 min-w-0">
+                {current ? (
+                  <div className="market-index-ticker">
+                    <div key={current.code || current.name} className="market-index-ticker-item">
+                      <span className="text-sm font-medium text-[var(--foreground)] shrink-0">{current.name}</span>
+                      <span className={cn('tabular-nums font-medium', colorClass)}>{current.price.toFixed(2)}</span>
+                      <span className={cn('tabular-nums text-sm', colorClass)}>
+                        {(current.change >= 0 ? '+' : '') + current.change.toFixed(2)}
+                      </span>
+                      <span className={cn('tabular-nums text-sm', colorClass)}>
+                        {(current.changePercent >= 0 ? '+' : '') + current.changePercent.toFixed(2)}%
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <span className="text-sm text-[var(--muted-foreground)]">暂无指数数据</span>
-              )}
-            </div>
-            <div className="flex items-center gap-2 shrink-0 pl-3">
+                ) : (
+                  <span className="text-sm text-[var(--muted-foreground)]">暂无指数数据</span>
+                )}
+              </div>
+            </AccordionTrigger>
+            <div className="flex items-center gap-1.5 shrink-0 pl-3">
               <Button
                 type="button"
                 variant="ghost"
@@ -413,23 +413,27 @@ export default function MarketIndexAccordion({
                   'h-7 w-7 text-[var(--muted)] hover:text-[var(--text)] transition-opacity duration-200',
                   openValue === 'indices' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                 )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSettingOpen(true);
-                }}
+                onClick={() => setSettingOpen(true)}
                 aria-label="指数个性化设置"
               >
                 <Settings className="h-4 w-4" />
               </Button>
-              <ChevronRight
-                className={cn(
-                  'w-4 h-4 text-[var(--muted-foreground)] transition-transform',
-                  openValue === 'indices' ? 'rotate-90' : ''
-                )}
-                aria-hidden="true"
-              />
+              <button
+                type="button"
+                className="h-7 w-7 inline-flex items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--text)] cursor-pointer rounded-md transition-colors"
+                onClick={() => setOpenValue((v) => (v === 'indices' ? '' : 'indices'))}
+                aria-label={openValue === 'indices' ? '收起指数列表' : '展开指数列表'}
+              >
+                <ChevronRight
+                  className={cn(
+                    'w-4 h-4 transition-transform duration-200',
+                    openValue === 'indices' ? 'rotate-90' : ''
+                  )}
+                  aria-hidden="true"
+                />
+              </button>
             </div>
-          </AccordionTrigger>
+          </div>
           <AccordionContent className="px-3 pb-4 pt-0">
             <div className="flex flex-wrap w-full min-w-0" style={{ gap: 12 }}>
               {visibleIndices.map((item, i) => (

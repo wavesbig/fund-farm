@@ -132,7 +132,7 @@ export default function AddFundToGroupModal({
                   <div
                     key={fund.code}
                     className={cn(
-                      'group-manage-item glass flex items-center p-3 rounded-xl border border-border/60 transition-all cursor-pointer hover:bg-accent/40',
+                      'group-manage-item glass flex items-center p-3 rounded-xl border border-border/60 transition-[background-color,border-color] duration-150 ease-out cursor-pointer hover:bg-accent/40',
                       isSelected && 'border-primary/50 bg-primary/10 shadow-xs'
                     )}
                     onClick={() => toggleSelect(fund.code)}

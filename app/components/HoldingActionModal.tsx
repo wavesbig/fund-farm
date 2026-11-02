@@ -169,7 +169,7 @@ export default function HoldingActionModal({
             type="button"
             variant="destructive"
             onClick={() => onAction('clear')}
-            className="col-span-2 mt-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 font-medium h-9 shadow-sm hover:shadow transition-all"
+            className="col-span-2 mt-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 font-medium h-9 shadow-sm hover:shadow transition-[background-color,box-shadow] duration-150 ease-out"
           >
             清空持仓
           </Button>

@@ -248,7 +248,7 @@ export default function FundDataSourceSelector({ fund, onClose, onSelect }: Fund
                       if (!isManualDisabled) setSourceId(item.id);
                     }}
                     className={cn(
-                      'flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer select-none',
+                      'flex items-center justify-between p-4 rounded-xl border transition-[background-color,border-color] duration-150 ease-out cursor-pointer select-none',
                       isSelected
                         ? 'border-primary bg-primary/10'
                         : 'border-[var(--border)] bg-[var(--secondary)] hover:bg-white/5',

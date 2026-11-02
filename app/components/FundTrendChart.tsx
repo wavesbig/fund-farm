@@ -682,7 +682,7 @@ export default function FundTrendChart({
 
   const chartBlock = (
     <div className="trend-chart-panel" style={{ position: 'relative' }}>
-      <AnimatePresence>{renderTrendTooltip('trend-tooltip-mobile')}</AnimatePresence>
+      <AnimatePresence initial={false}>{renderTrendTooltip('trend-tooltip-mobile')}</AnimatePresence>
 
       <div className="row" style={{ marginBottom: 8, gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 11 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -848,7 +848,7 @@ export default function FundTrendChart({
 
         {data.length > 0 && <Line ref={chartRef} data={chartData as any} options={options} plugins={plugins} />}
 
-        <AnimatePresence>{renderTrendTooltip('trend-tooltip-desktop')}</AnimatePresence>
+        <AnimatePresence initial={false}>{renderTrendTooltip('trend-tooltip-desktop')}</AnimatePresence>
       </div>
 
       <div className="trend-range-bar">
@@ -920,7 +920,7 @@ export default function FundTrendChart({
       {hideHeader ? (
         chartBlock
       ) : (
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {isExpanded && (
             <motion.div
               initial={{ height: 0, opacity: 0, overflow: 'hidden' }}

@@ -125,14 +125,14 @@ export default function DividendMethodModal({ fund, groupId, onClose, showToast 
                 key={opt.value}
                 type="button"
                 onClick={() => setSelected(opt.value)}
-                className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all cursor-pointer ${
+                className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-[background-color,border-color] duration-150 ease-out cursor-pointer ${
                   isSelected
                     ? 'border border-primary bg-primary/10'
                     : 'border border-border bg-muted/30 hover:bg-muted/60'
                 }`}
               >
                 <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-[border-color] duration-150 ease-out ${
                     isSelected ? 'border-primary' : 'border-border'
                   }`}
                 >

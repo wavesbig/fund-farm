@@ -154,7 +154,7 @@ export default function AddHistoryModal({ fund, onClose, onConfirm }: AddHistory
                 variant={type === 'buy' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setType('buy')}
-                className={`h-9 text-xs font-medium transition-all ${
+                className={`h-9 text-xs font-medium transition-[background-color,color] duration-150 ease-out ${
                   type === 'buy'
                     ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
                     : 'bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:bg-muted/60'
@@ -167,7 +167,7 @@ export default function AddHistoryModal({ fund, onClose, onConfirm }: AddHistory
                 variant={type === 'sell' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setType('sell')}
-                className={`h-9 text-xs font-medium transition-all ${
+                className={`h-9 text-xs font-medium transition-[background-color,color] duration-150 ease-out ${
                   type === 'sell'
                     ? 'bg-destructive text-destructive-foreground font-semibold shadow-sm'
                     : 'bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:bg-muted/60'

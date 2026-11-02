@@ -28,7 +28,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            'pointer-events-auto relative flex w-full max-w-sm items-start gap-3 rounded-xl border border-slate-200 bg-white/90 text-slate-900 px-4 py-3 shadow-lg shadow-black/10 backdrop-blur-md transition-all duration-200 ' +
+            'pointer-events-auto relative flex w-full max-w-sm items-start gap-3 rounded-xl border border-slate-200 bg-white/90 text-slate-900 px-4 py-3 shadow-lg shadow-black/10 backdrop-blur-md transition-[opacity,transform,box-shadow] duration-200 ease-out ' +
             'data-[state=open]:animate-in data-[state=open]:fade-in data-[state=open]:slide-in-from-top sm:data-[state=open]:slide-in-from-bottom ' +
             'data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-right ' +
             'data-[swipe=move]:translate-x-[var(--sonner-swipe-move-x)] data-[swipe=move]:transition-none ' +
