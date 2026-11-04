@@ -646,19 +646,19 @@ export default function FundTrendChart({
           color: 'var(--text-primary)'
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
           <span style={{ color: 'var(--muted, #888)' }}>单位净值</span>
           <span style={{ fontFamily: 'Menlo, Monaco, monospace', fontWeight: '500' }}>
             {tooltipInfo.unitNetValue != null ? tooltipInfo.unitNetValue.toFixed(4) : '--'}
           </span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
           <span style={{ color: 'var(--muted, #888)' }}>累计净值</span>
           <span style={{ fontFamily: 'Menlo, Monaco, monospace', fontWeight: '500' }}>
             {tooltipInfo.accumulatedNetValue != null ? tooltipInfo.accumulatedNetValue.toFixed(4) : '--'}
           </span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
           <span style={{ color: 'var(--muted, #888)' }}>日涨幅</span>
           <span
             style={{
@@ -684,7 +684,10 @@ export default function FundTrendChart({
     <div className="trend-chart-panel" style={{ position: 'relative' }}>
       <AnimatePresence initial={false}>{renderTrendTooltip('trend-tooltip-mobile')}</AnimatePresence>
 
-      <div className="row" style={{ marginBottom: 8, gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 11 }}>
+      <div
+        className="row"
+        style={{ marginBottom: 8, gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: '12.5px' }}
+      >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span
@@ -701,7 +704,7 @@ export default function FundTrendChart({
             <span
               className="muted"
               style={{
-                fontSize: 10,
+                fontSize: '12px',
                 fontVariantNumeric: 'tabular-nums',
                 paddingLeft: 14
               }}
@@ -815,7 +818,7 @@ export default function FundTrendChart({
                   <span
                     className="muted"
                     style={{
-                      fontSize: 10,
+                      fontSize: '12px',
                       fontVariantNumeric: 'tabular-nums',
                       paddingLeft: 14,
                       minHeight: 14,
@@ -832,7 +835,7 @@ export default function FundTrendChart({
       <div style={{ position: 'relative', height: 180, width: '100%', touchAction: 'pan-y' }}>
         {loading && (
           <div className="chart-overlay" style={{ backdropFilter: 'blur(2px)' }}>
-            <span className="muted" style={{ fontSize: '12px' }}>
+            <span className="muted" style={{ fontSize: '13px' }}>
               加载中...
             </span>
           </div>
@@ -840,7 +843,7 @@ export default function FundTrendChart({
 
         {!loading && (isError || data.length === 0) && (
           <div className="chart-overlay">
-            <span className="muted" style={{ fontSize: '12px' }}>
+            <span className="muted" style={{ fontSize: '13px' }}>
               {isError ? '加载失败' : '暂无数据'}
             </span>
           </div>

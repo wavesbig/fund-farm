@@ -93,7 +93,7 @@ export default function SyncPersonalSettingsModal({
         </DialogHeader>
 
         <div className="p-5 sm:p-6 space-y-3.5 max-h-[60vh] overflow-y-auto scrollbar-y-styled">
-          <div className="p-3 rounded-xl bg-muted/30 border border-border/50 text-xs text-muted-foreground leading-relaxed">
+          <div className="p-3 rounded-xl bg-secondary/40 border border-border/50 text-xs text-muted-foreground leading-relaxed">
             将「<span className="font-medium text-foreground">{sourceName}</span>」分组的个性化设置应用到：
             <span className="font-medium text-primary ml-1">{targetText}</span>
           </div>

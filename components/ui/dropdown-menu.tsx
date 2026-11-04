@@ -5,8 +5,8 @@ import { Check, ChevronRight, Circle } from 'lucide-react';
 import { DropdownMenu as DropdownMenuPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
 
-function DropdownMenu({ ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
-  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
+function DropdownMenu({ modal = false, ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
+  return <DropdownMenuPrimitive.Root modal={modal} data-slot="dropdown-menu" {...props} />;
 }
 
 function DropdownMenuPortal({ ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Portal>) {
@@ -105,7 +105,7 @@ function DropdownMenuItem({
       data-variant={variant}
       className={cn(
         'group relative flex cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs font-medium outline-hidden transition-colors duration-150',
-        'text-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground',
+        'text-foreground hover:bg-secondary/80 hover:text-foreground focus:bg-secondary/80 focus:text-foreground data-[highlighted]:bg-secondary/80 data-[highlighted]:text-foreground',
         'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         'data-[inset]:pl-8',
         variant === 'destructive' &&
@@ -130,7 +130,7 @@ function DropdownMenuCheckboxItem({
     <DropdownMenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
       className={cn(
-        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden transition-colors hover:bg-secondary/80 hover:text-foreground focus:bg-secondary/80 focus:text-foreground data-[highlighted]:bg-secondary/80 data-[highlighted]:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className
       )}
       checked={checked}
@@ -155,7 +155,7 @@ function DropdownMenuRadioItem({
     <DropdownMenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
       className={cn(
-        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden transition-colors hover:bg-secondary/80 hover:text-foreground focus:bg-secondary/80 focus:text-foreground data-[highlighted]:bg-secondary/80 data-[highlighted]:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className
       )}
       {...props}

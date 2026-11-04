@@ -150,7 +150,7 @@ function MoreSection({
             border: 'none',
             cursor: 'pointer',
             color: 'var(--muted)',
-            fontSize: '12px',
+            fontSize: '13px',
             transition: 'color 0.2s ease'
           }}
         >
@@ -709,7 +709,7 @@ const FundCard = memo(function Index({
                   <span
                     className="value"
                     style={{
-                      fontSize: '16px',
+                      fontSize: '17.5px',
                       lineHeight: 1.2,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -742,7 +742,7 @@ const FundCard = memo(function Index({
                   <div
                     className="value muted"
                     style={{
-                      fontSize: '15px',
+                      fontSize: '16.5px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 4,
@@ -1139,7 +1139,7 @@ const FundCard = memo(function Index({
                       }}
                     />
                   </div>
-                  <span className="muted" style={{ fontSize: 12 }}>
+                  <span className="muted" style={{ fontSize: 13 }}>
                     {dailyEarningsSeries.length > 0 ? `共 ${dailyEarningsSeries.length} 天` : '未记录'}
                   </span>
                 </div>

@@ -316,7 +316,7 @@ export default function FundDailyEarnings({ series = [], theme = 'dark', masked 
       <div
         className="muted"
         style={{
-          fontSize: 12,
+          fontSize: 13,
           marginBottom: 6,
           display: 'flex',
           alignItems: 'center',
@@ -329,7 +329,7 @@ export default function FundDailyEarnings({ series = [], theme = 'dark', masked 
           <span
             style={{
               fontVariantNumeric: 'tabular-nums',
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 600,
               color: masked ? 'inherit' : totalEarnings >= 0 ? chartColors.danger : chartColors.success
             }}

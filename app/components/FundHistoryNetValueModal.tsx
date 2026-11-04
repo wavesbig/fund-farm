@@ -176,14 +176,14 @@ export default function FundHistoryNetValueModal({ open, onOpenChange, code }: F
     >
       {loading && (
         <div style={{ padding: '16px 0', textAlign: 'center' }}>
-          <span className="muted" style={{ fontSize: 12 }}>
+          <span className="muted" style={{ fontSize: 13 }}>
             加载历史净值...
           </span>
         </div>
       )}
       {!loading && (isError || data.length === 0) && (
         <div style={{ padding: '16px 0', textAlign: 'center' }}>
-          <span className="muted" style={{ fontSize: 12 }}>
+          <span className="muted" style={{ fontSize: 13 }}>
             {isError ? '加载失败' : '暂无历史净值'}
           </span>
         </div>
@@ -202,7 +202,7 @@ export default function FundHistoryNetValueModal({ open, onOpenChange, code }: F
             style={{
               width: '100%',
               borderCollapse: 'collapse',
-              fontSize: '13px',
+              fontSize: '14px',
               color: 'var(--text)'
             }}
           >
@@ -273,7 +273,7 @@ export default function FundHistoryNetValueModal({ open, onOpenChange, code }: F
       )}
       {!loading && hasMore && (
         <div style={{ padding: '12px 0', textAlign: 'center' }}>
-          <span className="muted" style={{ fontSize: 12 }}>
+          <span className="muted" style={{ fontSize: 13 }}>
             向下滚动以加载更多...
           </span>
         </div>

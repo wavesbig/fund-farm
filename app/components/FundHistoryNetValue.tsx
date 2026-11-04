@@ -122,7 +122,7 @@ export default function FundHistoryNetValue({ code, range = '1m', theme }: FundH
   if (loading) {
     return (
       <div className="fund-history-net-value" style={{ padding: '12px 0' }}>
-        <span className="muted" style={{ fontSize: '13px' }}>
+        <span className="muted" style={{ fontSize: '14px' }}>
           加载历史净值...
         </span>
       </div>
@@ -131,7 +131,7 @@ export default function FundHistoryNetValue({ code, range = '1m', theme }: FundH
   if (isError || data.length === 0) {
     return (
       <div className="fund-history-net-value" style={{ padding: '12px 0' }}>
-        <span className="muted" style={{ fontSize: '13px' }}>
+        <span className="muted" style={{ fontSize: '14px' }}>
           {isError ? '加载失败' : '暂无历史净值'}
         </span>
       </div>
@@ -155,7 +155,7 @@ export default function FundHistoryNetValue({ code, range = '1m', theme }: FundH
           style={{
             width: '100%',
             borderCollapse: 'collapse',
-            fontSize: '13px',
+            fontSize: '14px',
             color: 'var(--text)'
           }}
         >

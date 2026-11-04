@@ -280,15 +280,19 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
       </AnimatePresence>
 
       {/* ===== Modal: 每日收益 ===== */}
-      <MyEarningsCalendarPage
-        open={portfolioEarningsOpen}
-        onOpenChange={setPortfolioEarningsOpen}
-        series={cb.current.portfolioDailySeries}
-        masked={cb.current.maskAmounts}
-        onGoHome={() => {
-          setPortfolioEarningsOpen(false);
-        }}
-      />
+      <AnimatePresence>
+        {portfolioEarningsOpen && (
+          <MyEarningsCalendarPage
+            open={portfolioEarningsOpen}
+            onOpenChange={setPortfolioEarningsOpen}
+            series={cb.current.portfolioDailySeries}
+            masked={cb.current.maskAmounts}
+            onGoHome={() => {
+              setPortfolioEarningsOpen(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ===== Modal: 微信 ===== */}
       <AnimatePresence>{weChatOpen && <WeChatModal onClose={() => setWeChatOpen(false)} />}</AnimatePresence>

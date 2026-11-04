@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { isArray, isBoolean, isNumber } from 'lodash';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
@@ -206,6 +206,13 @@ export default function MyEarningsCalendarPage({
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
+  const mountTimeRef = useRef(0);
+
+  useEffect(() => {
+    if (open) {
+      mountTimeRef.current = Date.now();
+    }
+  }, [open]);
 
   const mergedEarningsMapForDrawer = useMemo(() => {
     return mergeAllScopedDailyEarnings(fundDailyEarnings);
@@ -1146,8 +1153,13 @@ export default function MyEarningsCalendarPage({
           className={cn(
             'my-earnings-drawer-content flex max-h-[92vh] w-[min(650px,calc(100vw-24px))] flex-col gap-0 overflow-hidden p-0'
           )}
+          onPointerDownOutside={(e) => {
+            if (drawerOpen || (mountTimeRef.current > 0 && Date.now() - mountTimeRef.current < 400)) {
+              e.preventDefault();
+            }
+          }}
           onInteractOutside={(e) => {
-            if (drawerOpen) {
+            if (drawerOpen || (mountTimeRef.current > 0 && Date.now() - mountTimeRef.current < 400)) {
               e.preventDefault();
             }
           }}

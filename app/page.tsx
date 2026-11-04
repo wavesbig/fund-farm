@@ -236,8 +236,6 @@ export default function HomePage() {
     return out;
   }, [fundTagRecords, funds]);
 
-  const [error, setError] = useState('');
-
   // 刷新频率与布局配置状态
   const {
     tempSeconds,
@@ -308,7 +306,6 @@ export default function HomePage() {
   // 搜索相关状态
   const [searchTerm, setSearchTerm] = useState('');
   const deferredSearchTerm = useDeferredValue(searchTerm);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [selectedFunds, setSelectedFunds] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -327,16 +324,6 @@ export default function HomePage() {
   // 注意：isMobile 在此处尚未声明，shouldShowMarketIndex 由 page.jsx 内独立 useEffect 处理
   const containerRef = useRef(null);
   const { navbarRef, filterBarRef, navbarHeight, filterBarHeight } = useNavHeights({ groups, currentTab });
-
-  const handleMobileSearchClick = (e?: any) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    setIsSearchFocused(true);
-    // 等待动画完成后聚焦，避免 iOS 键盘弹出问题
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 350);
-  };
 
   const [percentModes, setPercentModes] = useState({}); // { [code]: boolean }
   const [todayPercentModes, setTodayPercentModes] = useState({}); // { [code]: boolean }
@@ -2822,7 +2809,6 @@ export default function HomePage() {
 
   const addFund = async (e) => {
     e?.preventDefault?.();
-    setError('');
     const manualTokens = String(searchTerm || '')
       .split(/[^0-9A-Za-z]+/)
       .map((t) => t.trim())
@@ -2831,7 +2817,10 @@ export default function HomePage() {
       new Set([...selectedFunds.map((f) => f.CODE), ...manualTokens.filter((t) => /^\d{6}$/.test(t))])
     );
     if (selectedCodes.length === 0) {
-      setError('请输入或选择基金代码');
+      sonnerToast.warning('请输入或选择基金代码', {
+        id: 'empty-fund-input',
+        description: '支持输入 6 位基金代码或在搜索列表中勾选基金'
+      });
       return;
     }
     const nameMap = {};
@@ -2851,7 +2840,6 @@ export default function HomePage() {
     setSelectedFunds([]);
     setShowDropdown(false);
     inputRef.current?.blur();
-    setIsSearchFocused(false);
   };
 
   const removeFund = (removeCode) => {
@@ -3974,6 +3962,7 @@ export default function HomePage() {
     refreshing,
     user,
     portfolioDailySeries,
+    maskAmounts,
     currentTab,
     // Settings
     tempSeconds,
@@ -4062,7 +4051,6 @@ export default function HomePage() {
             containerWidth={containerWidth}
             refreshing={refreshing}
             isSyncing={isSyncing}
-            isSearchFocused={isSearchFocused}
             selectedFunds={selectedFunds}
             toggleSelectFund={toggleSelectFund}
             dropdownRef={dropdownRef}
@@ -4071,33 +4059,17 @@ export default function HomePage() {
             handleSearchInput={handleSearchInput}
             showDropdown={showDropdown}
             setShowDropdown={setShowDropdown}
-            setIsSearchFocused={setIsSearchFocused}
             searchResults={searchResults}
             isSearching={isSearching}
             isScanning={isScanning}
             handleScanClick={handleScanClick}
             addFund={addFund}
-            error={error}
-            setIsUpdateModalOpen={setIsUpdateModalOpen}
-            isMobile={isMobile}
-            handleMobileSearchClick={handleMobileSearchClick}
             refreshMs={refreshMs}
             manualRefresh={manualRefresh}
             fundsLength={funds.length}
             refreshCycleStartRef={refreshCycleStartRef}
             theme={theme}
             handleThemeToggle={handleThemeToggle}
-            user={user}
-            userAvatar={userAvatar}
-            navbarHeight={navbarHeight}
-            lastSyncTime={lastSyncTime}
-            syncUserConfig={syncUserConfig}
-            setSettingsOpen={setSettingsOpen}
-            setPortfolioEarningsOpen={setPortfolioEarningsOpen}
-            handleLogout={handleLogout}
-            setIsLogoutConfirmOpen={setIsLogoutConfirmOpen}
-            setTutorialDrawerOpen={setTutorialDrawerOpen}
-            setUpdateLogOpen={setUpdateLogOpen}
           />
           {shouldShowMarketIndex && (
             <MarketIndexAccordion

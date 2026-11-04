@@ -243,8 +243,8 @@ export const useStorageStore = create<StorageStoreState>((set, get) => ({
   // 排序相关状态
   sortBy: 'default',
   sortOrder: 'desc',
-  pcSortDisplayMode: 'buttons',
-  mobileSortDisplayMode: 'buttons',
+  pcSortDisplayMode: 'dropdown',
+  mobileSortDisplayMode: 'dropdown',
   sortRules: DEFAULT_SORT_RULES,
 
   initFunds: () => {

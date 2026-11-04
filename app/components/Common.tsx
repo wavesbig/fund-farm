@@ -53,7 +53,7 @@ export function ConsecutiveTrendBadge({ trend }: ConsecutiveTrendBadgeProps) {
             alignItems: 'center',
             gap: '1px',
             color: color,
-            fontSize: '12px',
+            fontSize: '13px',
             fontWeight: 'bold',
             marginRight: '4px',
             verticalAlign: 'middle',
@@ -198,7 +198,7 @@ export function Stat({ label, value, delta }: StatProps) {
       <span
         className="label"
         style={{
-          fontSize: '12px',
+          fontSize: '13px',
           fontWeight: 500,
           color: 'var(--muted)',
           whiteSpace: 'nowrap',
@@ -210,7 +210,13 @@ export function Stat({ label, value, delta }: StatProps) {
       </span>
       <span
         className={`value ${dir} tabular-nums`}
-        style={{ fontSize: '17px', fontWeight: 600, lineHeight: 1.25, whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}
+        style={{
+          fontSize: '18.5px',
+          fontWeight: 600,
+          lineHeight: 1.25,
+          whiteSpace: 'nowrap',
+          letterSpacing: '-0.01em'
+        }}
       >
         {value}
       </span>

@@ -194,9 +194,9 @@ export default function GroupAccountSummaryCard({
           <span className="flex shrink-0 leading-none" aria-hidden>
             <GroupCardTitleIcon size={isMobile ? 20 : 22} />
           </span>
-          <span className="font-semibold text-[15px] truncate text-foreground">{groupName}</span>
+          <span className="font-semibold text-base truncate text-foreground">{groupName}</span>
         </div>
-        <div className="flex items-center gap-2.5 shrink-0 text-[13px] tabular-nums font-medium">
+        <div className="flex items-center gap-2.5 shrink-0 text-sm tabular-nums font-medium">
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="up">
@@ -224,8 +224,8 @@ export default function GroupAccountSummaryCard({
 
       <div className="flex justify-between items-end mb-2">
         <div>
-          <div className="text-xs text-muted-foreground mb-0.5">账户资产</div>
-          <div className="text-[22px] font-bold font-mono tabular-nums text-foreground">
+          <div className="text-sm font-medium text-muted-foreground mb-0.5">账户资产</div>
+          <div className="text-2xl font-bold font-mono tabular-nums text-foreground">
             {masked ? <span className="mask-text">******</span> : formatAmountPlain(totalAsset ?? 0, 2)}
           </div>
         </div>
@@ -234,17 +234,17 @@ export default function GroupAccountSummaryCard({
 
       <div className="flex justify-between gap-2.5 md:gap-4">
         <div className="flex-1 min-w-0">
-          <div className="text-xs text-muted-foreground mb-0.5">持有收益</div>
+          <div className="text-sm font-medium text-muted-foreground mb-0.5">持有收益</div>
           <div className="flex items-center gap-1.5 flex-wrap">
             <span
-              className={`${holdingTone.className} text-base font-bold font-mono tabular-nums`}
+              className={`${holdingTone.className} text-lg font-bold font-mono tabular-nums`}
               style={{ color: holdingTone.color }}
             >
               {masked ? <span className="mask-text">******</span> : formatSignedAmount(holdingReturn ?? 0, 2)}
             </span>
             {!masked && (
               <span
-                className={`${holdingPctTone.className} text-[11px] px-1.5 py-0.5 rounded-md bg-white/5 tabular-nums font-mono`}
+                className={`${holdingPctTone.className} text-xs font-semibold px-1.5 py-0.5 rounded-md bg-white/5 tabular-nums font-mono`}
                 style={{ color: holdingPctTone.color }}
               >
                 {formatSignedPercent(holdingReturnPercent, 2)}
@@ -253,10 +253,10 @@ export default function GroupAccountSummaryCard({
           </div>
         </div>
         <div className="flex-1 min-w-0 text-right">
-          <div className="text-xs text-muted-foreground mb-0.5">当日收益</div>
+          <div className="text-sm font-medium text-muted-foreground mb-0.5">当日收益</div>
           <div className="flex items-center gap-1.5 flex-wrap justify-end">
             <span
-              className={`${accountTone.className} text-base font-bold font-mono tabular-nums`}
+              className={`${accountTone.className} text-lg font-bold font-mono tabular-nums`}
               style={{ color: accountTone.color }}
             >
               {masked ? (
@@ -269,7 +269,7 @@ export default function GroupAccountSummaryCard({
             </span>
             {!masked && hasAnyTodayData && (
               <span
-                className={`${accountPctTone.className} text-[11px] px-1.5 py-0.5 rounded-md bg-white/5 tabular-nums font-mono`}
+                className={`${accountPctTone.className} text-xs font-semibold px-1.5 py-0.5 rounded-md bg-white/5 tabular-nums font-mono`}
                 style={{ color: accountPctTone.color }}
               >
                 {formatSignedPercent(accountReturnPercent, 2)}

@@ -36,7 +36,7 @@ export default function UpdatePromptModal({ updateContent, open, onClose, onRefr
             更新内容如下：
           </p>
           {updateContent && (
-            <div className="scrollbar-y-styled bg-muted/40 p-3 rounded-lg text-xs leading-relaxed max-h-[200px] overflow-y-auto whitespace-pre-wrap border border-border/60">
+            <div className="scrollbar-y-styled bg-secondary/40 p-3 rounded-lg text-xs leading-relaxed max-h-[200px] overflow-y-auto whitespace-pre-wrap border border-border/60">
               {updateContent}
             </div>
           )}

@@ -32,10 +32,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* 初始为暗色；ThemeColorSync 会按 data-theme 同步为亮/暗 */}
         <meta name="theme-color" content="#0b0f19" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        {/* 尽早设置 data-theme，减少首屏主题闪烁；与 suppressHydrationWarning 配合避免服务端/客户端 html 属性不一致报错 */}
+        {/* 尽早设置 data-theme 与 data-font-size，减少首屏主题与字号闪烁；与 suppressHydrationWarning 配合避免服务端/客户端 html 属性不一致报错 */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`
+            __html: `(function(){try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);var cs=JSON.parse(localStorage.getItem("customSettings")||"{}");var fs=cs.fontSizeLevel||"comfortable";document.documentElement.setAttribute("data-font-size",fs);}catch(e){}})();`
           }}
         />
       </head>

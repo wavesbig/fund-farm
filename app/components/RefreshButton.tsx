@@ -41,6 +41,13 @@ export default function RefreshButton({
     return () => clearInterval(t);
   }, [fundsLength, refreshMs, paused, refreshCycleStartRef]);
 
+  const tooltipText =
+    fundsLength === 0
+      ? '暂无基金自选，添加后即可刷新'
+      : refreshing
+        ? '正在刷新最新估值...'
+        : `立即刷新（每 ${Math.round(refreshMs / 1000)} 秒自动更新）`;
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -48,26 +55,20 @@ export default function RefreshButton({
           className={cn('refresh-btn-wrap', refreshing && 'is-refreshing')}
           style={{ ['--progress' as any]: refreshing ? 0 : refreshProgress }}
         >
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                className="icon-button"
-                aria-label="立即刷新"
-                onClick={manualRefresh}
-                disabled={refreshing || fundsLength === 0}
-                aria-busy={refreshing}
-              >
-                <RotateCw className={cn('w-4 h-4', refreshing && 'animate-spin')} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>立即刷新</p>
-            </TooltipContent>
-          </Tooltip>
+          <button
+            type="button"
+            className="icon-button active:scale-95 transition-transform flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/[0.06] [data-theme=light]:hover:bg-black/[0.04] rounded-lg cursor-pointer"
+            aria-label="立即刷新"
+            onClick={manualRefresh}
+            disabled={refreshing || fundsLength === 0}
+            aria-busy={refreshing}
+          >
+            <RotateCw className={cn('size-4 transition-transform duration-500', refreshing && 'animate-spin')} />
+          </button>
         </div>
       </TooltipTrigger>
       <TooltipContent>
-        <p>{`刷新周期 ${Math.round(refreshMs / 1000)} 秒`}</p>
+        <p>{tooltipText}</p>
       </TooltipContent>
     </Tooltip>
   );

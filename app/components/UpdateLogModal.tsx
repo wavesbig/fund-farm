@@ -118,7 +118,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
     </div>
   );
 
-  const mountTimeRef = React.useRef(Date.now());
+  const mountTimeRef = React.useRef(0);
   React.useEffect(() => {
     if (open) {
       mountTimeRef.current = Date.now();

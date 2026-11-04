@@ -165,9 +165,9 @@ function IndexCard({ item }: { item: MarketIndexItem }) {
   const colorClass = isUp ? 'text-[var(--danger)]' : 'text-[var(--success)]';
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-2 flex flex-col gap-0.5 w-full">
-      <div className="text-sm font-medium text-[var(--foreground)] truncate">{item.name}</div>
-      <div className={cn('text-base font-semibold tabular-nums', colorClass)}>{item.price.toFixed(2)}</div>
-      <div className={cn('text-xs font-medium tabular-nums', colorClass)}>
+      <div className="text-[15px] font-medium text-[var(--foreground)] truncate">{item.name}</div>
+      <div className={cn('text-lg font-bold tabular-nums', colorClass)}>{item.price.toFixed(2)}</div>
+      <div className={cn('text-[13px] font-semibold tabular-nums', colorClass)}>
         {(item.change >= 0 ? '+' : '') + item.change.toFixed(2)}{' '}
         {(item.changePercent >= 0 ? '+' : '') + item.changePercent.toFixed(2)}%
       </div>
@@ -328,10 +328,9 @@ export default function MarketIndexAccordion({
   const colorClass = isUp ? 'text-[var(--danger)]' : 'text-[var(--success)]';
 
   const topMargin = Number(navbarHeight) || 0;
-  const stickyStyle = {
+  const containerStyle = {
     marginTop: topMargin,
-    position: 'sticky' as const,
-    top: topMargin,
+    position: 'relative' as const,
     zIndex: 10,
     width: isMobile ? 'calc(100% + 24px)' : '100%',
     marginLeft: isMobile ? -12 : 0
@@ -342,7 +341,7 @@ export default function MarketIndexAccordion({
       <div
         ref={rootRef}
         className="market-index-accordion-root mt-2 mb-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 flex items-center justify-between shadow-sm"
-        style={stickyStyle}
+        style={containerStyle}
       >
         <span className="text-sm text-[var(--muted-foreground)]">加载大盘指数…</span>
       </div>
@@ -353,7 +352,7 @@ export default function MarketIndexAccordion({
     <div
       ref={rootRef}
       className="market-index-accordion-root mt-2 mb-2 rounded-xl border border-[var(--border)] bg-[var(--card)] market-index-accordion shadow-sm"
-      style={stickyStyle}
+      style={containerStyle}
     >
       <style jsx>{`
         .market-index-ticker {
@@ -388,12 +387,14 @@ export default function MarketIndexAccordion({
                 {current ? (
                   <div className="market-index-ticker">
                     <div key={current.code || current.name} className="market-index-ticker-item">
-                      <span className="text-sm font-medium text-[var(--foreground)] shrink-0">{current.name}</span>
-                      <span className={cn('tabular-nums font-medium', colorClass)}>{current.price.toFixed(2)}</span>
-                      <span className={cn('tabular-nums text-sm', colorClass)}>
+                      <span className="text-[15px] font-medium text-[var(--foreground)] shrink-0">{current.name}</span>
+                      <span className={cn('tabular-nums text-[15px] font-semibold', colorClass)}>
+                        {current.price.toFixed(2)}
+                      </span>
+                      <span className={cn('tabular-nums text-[15px]', colorClass)}>
                         {(current.change >= 0 ? '+' : '') + current.change.toFixed(2)}
                       </span>
-                      <span className={cn('tabular-nums text-sm', colorClass)}>
+                      <span className={cn('tabular-nums text-[15px]', colorClass)}>
                         {(current.changePercent >= 0 ? '+' : '') + current.changePercent.toFixed(2)}%
                       </span>
                     </div>

@@ -154,7 +154,7 @@ export default function FundDailyEarningsDetailModal({
     >
       {data.length === 0 && (
         <div style={{ padding: '16px 0', textAlign: 'center' }}>
-          <span className="muted" style={{ fontSize: 12 }}>
+          <span className="muted" style={{ fontSize: 13 }}>
             暂无数据
           </span>
         </div>
@@ -173,7 +173,7 @@ export default function FundDailyEarningsDetailModal({
             style={{
               width: '100%',
               borderCollapse: 'collapse',
-              fontSize: '13px',
+              fontSize: '14px',
               color: 'var(--text)'
             }}
           >
@@ -244,7 +244,7 @@ export default function FundDailyEarningsDetailModal({
       )}
       {data.length > 0 && hasMore && (
         <div style={{ padding: '12px 0', textAlign: 'center' }}>
-          <span className="muted" style={{ fontSize: 12 }}>
+          <span className="muted" style={{ fontSize: 13 }}>
             向下滚动以加载更多...
           </span>
         </div>

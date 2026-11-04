@@ -3,9 +3,12 @@ import { create } from 'zustand';
 
 type ValueOrUpdater<T> = T | ((prev: T) => T);
 
+export type FontSizeLevel = 'standard' | 'comfortable' | 'large' | 'extra-large';
+
 export interface SettingsStoreState {
   tempSeconds: number;
   containerWidth: number;
+  fontSizeLevel: FontSizeLevel;
   showMarketIndexPc: boolean;
   showMarketIndexMobile: boolean;
   showGroupFundSearchPc: boolean;
@@ -18,6 +21,7 @@ export interface SettingsStoreState {
 
   setTempSeconds: (val: ValueOrUpdater<number>) => void;
   setContainerWidth: (val: ValueOrUpdater<number>) => void;
+  setFontSizeLevel: (val: ValueOrUpdater<FontSizeLevel>) => void;
   setShowMarketIndexPc: (val: ValueOrUpdater<boolean>) => void;
   setShowMarketIndexMobile: (val: ValueOrUpdater<boolean>) => void;
   setShowGroupFundSearchPc: (val: ValueOrUpdater<boolean>) => void;
@@ -40,6 +44,7 @@ export interface SettingsStoreState {
 export const useSettingsStore = create<SettingsStoreState>((set) => ({
   tempSeconds: 60,
   containerWidth: 1200,
+  fontSizeLevel: 'comfortable',
   showMarketIndexPc: true,
   showMarketIndexMobile: true,
   showGroupFundSearchPc: true,
@@ -53,6 +58,13 @@ export const useSettingsStore = create<SettingsStoreState>((set) => ({
   setTempSeconds: (val) => set({ tempSeconds: isFunction(val) ? val(useSettingsStore.getState().tempSeconds) : val }),
   setContainerWidth: (val) =>
     set({ containerWidth: isFunction(val) ? val(useSettingsStore.getState().containerWidth) : val }),
+  setFontSizeLevel: (val) => {
+    const next = isFunction(val) ? val(useSettingsStore.getState().fontSizeLevel) : val;
+    set({ fontSizeLevel: next });
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-font-size', next);
+    }
+  },
   setShowMarketIndexPc: (val) =>
     set({ showMarketIndexPc: isFunction(val) ? val(useSettingsStore.getState().showMarketIndexPc) : val }),
   setShowMarketIndexMobile: (val) =>
@@ -108,6 +120,15 @@ export const useSettingsStore = create<SettingsStoreState>((set) => ({
       if (isBoolean(cs.dynamicStyleMobile)) patch.dynamicStyleMobile = cs.dynamicStyleMobile;
       if (isBoolean(cs.showGroupDropdownPc)) patch.showGroupDropdownPc = cs.showGroupDropdownPc;
       if (isBoolean(cs.showGroupDropdownMobile)) patch.showGroupDropdownMobile = cs.showGroupDropdownMobile;
+      if (
+        cs.fontSizeLevel &&
+        ['standard', 'comfortable', 'large', 'extra-large'].includes(cs.fontSizeLevel as string)
+      ) {
+        patch.fontSizeLevel = cs.fontSizeLevel as FontSizeLevel;
+        if (typeof document !== 'undefined') {
+          document.documentElement.setAttribute('data-font-size', cs.fontSizeLevel as string);
+        }
+      }
 
       if (Object.keys(patch).length > 0) {
         set(patch);

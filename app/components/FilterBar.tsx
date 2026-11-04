@@ -2,16 +2,33 @@
 
 import React, { memo, RefObject, TransitionStartFunction } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  SlidersHorizontal,
+  Settings
+} from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem
+} from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { SUMMARY_TAB_ID } from '@/app/constants';
-import { GridIcon, ListIcon, PlusIcon, SettingsIcon, SortIcon } from './Icons';
+import { GridIcon, ListIcon, PlusIcon } from './Icons';
 import type { FundGroup, SortRule } from '@/types';
 
 export interface FilterBarProps {
@@ -98,13 +115,16 @@ export const FilterBar = memo(function FilterBar({
   startTransition
 }: FilterBarProps) {
   const isDropdownSort = (isMobile ? mobileSortDisplayMode : pcSortDisplayMode) === 'dropdown';
+  const activeSortRule = sortRules.find((s) => s.id === sortBy) || sortRules.find((s) => s.id === 'default');
+  const activeSortLabel = activeSortRule?.alias || activeSortRule?.label || activeSortRule?.name || '默认排序';
+  const isSorted = sortBy !== 'default';
 
   return (
     <div
       ref={filterBarRef}
       className="filter-bar"
       style={{
-        top: `calc(${navbarHeight}px + var(--market-index-height, 0px))`,
+        top: `${navbarHeight}px`,
         marginTop: !shouldShowMarketIndex ? navbarHeight : 0,
         marginBottom: 8,
         display: 'flex',
@@ -248,15 +268,14 @@ export const FilterBar = memo(function FilterBar({
               )}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-muted-foreground hover:text-foreground"
+                  <button
+                    type="button"
+                    className="toolbar-icon-btn"
                     onClick={() => setGroupModalOpen(true)}
                     aria-label="新增分组"
                   >
-                    <PlusIcon width="16" height="16" />
-                  </Button>
+                    <PlusIcon width="15" height="15" />
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>新增分组</p>
@@ -268,15 +287,14 @@ export const FilterBar = memo(function FilterBar({
         {groups.length > 0 && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 text-muted-foreground hover:text-foreground"
+              <button
+                type="button"
+                className="toolbar-icon-btn"
                 onClick={() => setGroupManageOpen(true)}
                 aria-label="管理分组"
               >
-                <SortIcon width="16" height="16" />
-              </Button>
+                <SlidersHorizontal className="size-3.5" />
+              </button>
             </TooltipTrigger>
             <TooltipContent>
               <p>管理分组</p>
@@ -294,150 +312,187 @@ export const FilterBar = memo(function FilterBar({
           gap: 12
         }}
       >
-        {/* 使用标准 shadcn/ui ToggleGroup 替代手写按扭 */}
-        <ToggleGroup
-          type="single"
-          value={viewMode}
-          onValueChange={(val) => {
-            if (val === 'card' || val === 'list') {
-              applyViewMode(val);
-            }
-          }}
-          className="bg-muted/50 border border-border p-0.5 rounded-lg shrink-0"
-        >
+        {/* 视图切换按钮组：完全对齐 .tabs / .tab 胶囊及移入高亮规范 */}
+        <div role="radiogroup" aria-label="视图模式切换" className="tab-capsule shrink-0">
           <Tooltip>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value="card"
+              <button
+                type="button"
+                role="radio"
+                aria-checked={viewMode === 'card'}
+                onClick={() => applyViewMode('card')}
+                className={cn('tab-capsule-item', viewMode === 'card' && 'active')}
                 aria-label="卡片视图"
-                className="size-7 p-0 text-muted-foreground hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-sm rounded-md transition-colors"
               >
                 <GridIcon width="15" height="15" />
-              </ToggleGroupItem>
+              </button>
             </TooltipTrigger>
             <TooltipContent>
               <p>卡片视图</p>
             </TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value="list"
+              <button
+                type="button"
+                role="radio"
+                aria-checked={viewMode === 'list'}
+                onClick={() => applyViewMode('list')}
+                className={cn('tab-capsule-item', viewMode === 'list' && 'active')}
                 aria-label="表格视图"
-                className="size-7 p-0 text-muted-foreground hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-sm rounded-md transition-colors"
               >
                 <ListIcon width="15" height="15" />
-              </ToggleGroupItem>
+              </button>
             </TooltipTrigger>
             <TooltipContent>
               <p>表格视图</p>
             </TooltipContent>
           </Tooltip>
-        </ToggleGroup>
+        </div>
 
         {/* 使用标准 shadcn/ui Separator 替代手写 divider */}
         <Separator orientation="vertical" className="h-5" />
 
-        <div
-          className="sort-items shrink-0"
-          style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}
-        >
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2.5 gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-                onClick={() => setSortSettingOpen(true)}
-                type="button"
-              >
-                <span>排序</span>
-                <SettingsIcon width="14" height="14" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>排序个性化设置</p>
-            </TooltipContent>
-          </Tooltip>
-
+        <div className="sort-items shrink-0 flex items-center gap-2">
           {isDropdownSort ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Select
-                value={sortBy}
-                onValueChange={(nextSortBy) => {
-                  startTransition(() => {
-                    setSortBy(nextSortBy);
-                    if (nextSortBy !== sortBy) setSortOrder('desc');
-                  });
-                }}
-              >
-                <SelectTrigger
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
                   size="sm"
-                  className="h-8 min-w-[110px] text-sm shadow-none"
-                  style={{ background: 'var(--card-bg)' }}
+                  className={cn(
+                    'h-8 px-2.5 gap-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer select-none',
+                    'bg-[rgba(255,255,255,0.07)] hover:bg-[rgba(255,255,255,0.12)] border-[rgba(255,255,255,0.08)] [data-theme=light]:bg-[rgba(0,0,0,0.05)] [data-theme=light]:border-[rgba(0,0,0,0.04)] text-foreground shadow-xs',
+                    isSorted && 'border-primary/40 text-primary bg-primary/10 hover:bg-primary/15'
+                  )}
                 >
-                  <SelectValue placeholder="选择排序规则" />
-                </SelectTrigger>
-                <SelectContent>
+                  <ArrowUpDown className={cn('size-3.5', isSorted ? 'text-primary' : 'text-muted-foreground')} />
+                  <span className="truncate max-w-[120px]">{activeSortLabel}</span>
+                  {isSorted && (
+                    <span className="font-mono text-xs font-semibold">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                  )}
+                  <ChevronDown className="size-3 text-muted-foreground opacity-70 ml-0.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold px-2 py-1.5">
+                  排序规则
+                </DropdownMenuLabel>
+                <DropdownMenuRadioGroup
+                  value={sortBy}
+                  onValueChange={(nextSortBy) => {
+                    startTransition(() => {
+                      if (nextSortBy === sortBy) {
+                        setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                      } else {
+                        setSortBy(nextSortBy);
+                        if (nextSortBy !== sortBy) setSortOrder('desc');
+                      }
+                    });
+                  }}
+                >
                   {sortRules
                     .filter((s) => s.enabled)
                     .map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.alias || s.label || s.name || s.id}
-                      </SelectItem>
+                      <DropdownMenuRadioItem
+                        key={s.id}
+                        value={s.id}
+                        className="text-xs cursor-pointer flex items-center justify-between py-1.5"
+                      >
+                        <span className="truncate">{s.alias || s.label || s.name || s.id}</span>
+                        {sortBy === s.id && (
+                          <span className="text-[11px] font-mono text-primary font-medium ml-2">
+                            {sortOrder === 'asc' ? '升序 ↑' : '降序 ↓'}
+                          </span>
+                        )}
+                      </DropdownMenuRadioItem>
                     ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={sortOrder}
-                onValueChange={(value) => {
-                  startTransition(() => {
-                    setSortOrder(value);
-                  });
-                }}
-              >
-                <SelectTrigger
-                  size="sm"
-                  className="h-8 min-w-[84px] text-sm shadow-none"
-                  style={{ background: 'var(--card-bg)' }}
+                </DropdownMenuRadioGroup>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold px-2 py-1.5">
+                  排序方向
+                </DropdownMenuLabel>
+                <DropdownMenuRadioGroup
+                  value={sortOrder}
+                  onValueChange={(nextOrder) => {
+                    startTransition(() => {
+                      setSortOrder(nextOrder);
+                    });
+                  }}
                 >
-                  <SelectValue placeholder="排序方向" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="desc">降序</SelectItem>
-                  <SelectItem value="asc">升序</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  <DropdownMenuRadioItem value="desc" className="text-xs cursor-pointer py-1.5">
+                    <ArrowDown className="size-3.5 mr-2 text-muted-foreground" />
+                    <span>降序（从高到低）</span>
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="asc" className="text-xs cursor-pointer py-1.5">
+                    <ArrowUp className="size-3.5 mr-2 text-muted-foreground" />
+                    <span>升序（从低到高）</span>
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  onClick={() => setSortSettingOpen(true)}
+                  className="text-xs cursor-pointer py-1.5 gap-2 text-muted-foreground hover:text-foreground"
+                >
+                  <Settings className="size-3.5" />
+                  <span>自定义排序偏好...</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
-            <div className="chips" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
-              {sortRules
-                .filter((s) => s.enabled)
-                .map((s) => (
-                  <Badge
-                    key={s.id}
-                    variant={sortBy === s.id ? 'default' : 'outline'}
-                    className={cn(
-                      'cursor-pointer text-xs transition-colors py-1 px-2.5 font-normal select-none',
-                      sortBy === s.id
-                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                        : 'hover:bg-accent text-muted-foreground'
-                    )}
-                    onClick={() => {
-                      startTransition(() => {
-                        if (sortBy === s.id) {
-                          setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-                        } else {
-                          setSortBy(s.id);
-                          setSortOrder('desc');
-                        }
-                      });
-                    }}
+            <div className="flex items-center gap-1.5 max-w-full">
+              <div className="tab-capsule overflow-x-auto no-scrollbar max-w-full">
+                {sortRules
+                  .filter((s) => s.enabled)
+                  .map((s) => {
+                    const isActive = sortBy === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => {
+                          startTransition(() => {
+                            if (isActive) {
+                              setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                            } else {
+                              setSortBy(s.id);
+                              setSortOrder('desc');
+                            }
+                          });
+                        }}
+                        className={cn(
+                          'h-7 px-2.5 text-xs font-medium rounded-md transition-all cursor-pointer select-none flex items-center gap-1 border border-transparent',
+                          isActive
+                            ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.06] [data-theme=light]:hover:bg-black/[0.04]'
+                        )}
+                      >
+                        <span>{s.alias || s.label || s.name || s.id}</span>
+                        {isActive && <span className="font-mono text-xs">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+                      </button>
+                    );
+                  })}
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="toolbar-icon-btn"
+                    onClick={() => setSortSettingOpen(true)}
+                    aria-label="排序偏好设置"
                   >
-                    <span>{s.alias || s.label || s.name || s.id}</span>
-                    {sortBy === s.id && <span className="ml-0.5">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
-                  </Badge>
-                ))}
+                    <Settings className="size-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>排序偏好设置</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           )}
         </div>

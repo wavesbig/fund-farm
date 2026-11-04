@@ -221,7 +221,7 @@ export default function GroupSummary({
   const style = useMemo(() => {
     const s: React.CSSProperties = {};
     if (isSticky) {
-      s.top = `calc(${stickyTop || 0}px + var(--market-index-height, 0px) + 14px)`;
+      s.top = `calc(${stickyTop || 0}px + 14px)`;
     }
     return s;
   }, [isSticky, stickyTop]);

@@ -316,18 +316,18 @@ export default function SortSettingModal({ open, onClose }: SortSettingModalProp
             className="flex flex-row items-center gap-4"
           >
             <label
-              htmlFor="sort-display-mode-buttons"
-              className="inline-flex items-center gap-1.5 text-xs text-foreground cursor-pointer select-none"
-            >
-              <RadioGroupItem id="sort-display-mode-buttons" value="buttons" />
-              <span>按钮</span>
-            </label>
-            <label
               htmlFor="sort-display-mode-dropdown"
               className="inline-flex items-center gap-1.5 text-xs text-foreground cursor-pointer select-none"
             >
               <RadioGroupItem id="sort-display-mode-dropdown" value="dropdown" />
-              <span>下拉单选</span>
+              <span>下拉菜单 (推荐)</span>
+            </label>
+            <label
+              htmlFor="sort-display-mode-buttons"
+              className="inline-flex items-center gap-1.5 text-xs text-foreground cursor-pointer select-none"
+            >
+              <RadioGroupItem id="sort-display-mode-buttons" value="buttons" />
+              <span>按钮平铺</span>
             </label>
           </RadioGroup>
         </div>

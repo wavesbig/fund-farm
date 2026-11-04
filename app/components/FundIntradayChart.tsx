@@ -336,7 +336,7 @@ export default function FundIntradayChart({
       <div
         className="muted"
         style={{
-          fontSize: 11,
+          fontSize: 12.5,
           marginBottom: 6,
           display: 'flex',
           alignItems: 'center',
@@ -360,7 +360,7 @@ export default function FundIntradayChart({
                 border: 'none',
                 color: chartColors.primary,
                 padding: '2px 6px',
-                fontSize: 10,
+                fontSize: 12,
                 cursor: 'pointer',
                 marginLeft: 4,
                 display: 'flex',
@@ -372,7 +372,7 @@ export default function FundIntradayChart({
             </button>
           )}
         </span>
-        {displayDate && <span style={{ fontSize: 11 }}>估值日期 {displayDate}</span>}
+        {displayDate && <span style={{ fontSize: 12 }}>估值日期 {displayDate}</span>}
       </div>
       <div
         style={{

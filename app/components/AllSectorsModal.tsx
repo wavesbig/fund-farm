@@ -103,13 +103,13 @@ export default function AllSectorsModal({ onClose }: AllSectorsModalProps) {
           >
             <ToggleGroupItem
               value="industry"
-              className="h-6 px-2.5 text-xs rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer whitespace-nowrap"
+              className="h-6 px-2.5 text-xs rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-xs transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer whitespace-nowrap"
             >
               行业
             </ToggleGroupItem>
             <ToggleGroupItem
               value="concept"
-              className="h-6 px-2.5 text-xs rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer whitespace-nowrap"
+              className="h-6 px-2.5 text-xs rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-xs transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer whitespace-nowrap"
             >
               概念
             </ToggleGroupItem>
@@ -126,7 +126,7 @@ export default function AllSectorsModal({ onClose }: AllSectorsModalProps) {
           >
             <ToggleGroupItem
               value="change_pct"
-              className="h-6 px-2.5 text-xs flex items-center gap-1 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer whitespace-nowrap"
+              className="h-6 px-2.5 text-xs flex items-center gap-1 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-xs transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer whitespace-nowrap"
             >
               <span>按涨幅</span>
               <span className="inline-flex flex-col leading-none text-[8px] scale-80 origin-center opacity-60">
@@ -144,7 +144,7 @@ export default function AllSectorsModal({ onClose }: AllSectorsModalProps) {
             </ToggleGroupItem>
             <ToggleGroupItem
               value="net_inflow"
-              className="h-6 px-2.5 text-xs flex items-center gap-1 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer whitespace-nowrap"
+              className="h-6 px-2.5 text-xs flex items-center gap-1 rounded-sm border-0 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-xs transition-[background-color,color,box-shadow] duration-150 ease-out cursor-pointer whitespace-nowrap"
             >
               <span>按资金流入</span>
               <span className="inline-flex flex-col leading-none text-[8px] scale-80 origin-center opacity-60">
@@ -171,7 +171,7 @@ export default function AllSectorsModal({ onClose }: AllSectorsModalProps) {
           <div className="fund-history-table-wrapper border border-[var(--border)] rounded-xl bg-[var(--card)] mt-4 overflow-hidden">
             <table className="fund-history-table w-full border-collapse text-xs text-foreground">
               <thead>
-                <tr className="border-b border-[var(--border)] bg-muted/40">
+                <tr className="border-b border-[var(--border)] bg-secondary/40">
                   <th className="py-2.5 px-3 font-semibold text-left text-[var(--muted)] sticky top-0 bg-background/80 backdrop-blur-xs z-1">
                     板块名称
                   </th>
