@@ -1,4 +1,39 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="12" cy="12" r="10" stroke="#60A5FA" stroke-width="2" />
-  <path d="M5 14c2-4 7-6 14-5" stroke="#22D3EE" stroke-width="2" stroke-linecap="round" />
+  <defs>
+    <!-- 鸡冠梯度色：步步高升的暖阳金橙 -->
+    <linearGradient id="iconComb" x1="8" y1="1.5" x2="16.5" y2="8" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#EF4444" />
+    </linearGradient>
+    <!-- 主体梯度色：高科技电光蓝到财富翡翠绿 -->
+    <linearGradient id="iconBody" x1="2" y1="22" x2="22" y2="4" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="50%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+  </defs>
+
+  <!-- 鸡冠：三根步步高升的阶梯柱状图 (📊 K线行情寓意) -->
+  <rect x="8" y="5" width="2.2" height="4.5" rx="1.1" fill="url(#iconComb)" />
+  <rect x="11.2" y="3" width="2.2" height="6.5" rx="1.1" fill="url(#iconComb)" />
+  <rect x="14.4" y="1.5" width="2.2" height="8" rx="1.1" fill="url(#iconComb)" />
+
+  <!-- 身体：饱满昂扬底座与前倾姿态 -->
+  <path
+    d="M3.5 17C3.5 13.5 6.5 9.5 12 9C15 8.8 17.5 10 18.5 11.5L21.5 12.5L18.5 13.5C18.2 16.5 15.5 20.5 9 20.5C5.5 20.5 3.5 19 3.5 17Z"
+    fill="url(#iconBody)"
+  />
+
+  <!-- 翅膀：上升行情主浪折线 (📈 复利趋势折线) -->
+  <path
+    d="M5 17.5C8 16 11.5 14 15.5 11.5C18 10 20 7.5 21.5 5"
+    stroke="#FFFFFF"
+    stroke-width="1.8"
+    stroke-linecap="round"
+    stroke-opacity="0.92"
+  />
+
+  <!-- 眼睛：点睛发光点 -->
+  <circle cx="15.5" cy="11" r="1.2" fill="#FFFFFF" />
+  <circle cx="15.8" cy="11" r="0.6" fill="#0F172A" />
 </svg>
