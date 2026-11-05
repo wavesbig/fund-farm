@@ -16,6 +16,9 @@ pnpm-lock.yaml
 Dockerfile*
 docker-compose*.yml
 
+data
+data/*
+
 *.env
 .env.*
 

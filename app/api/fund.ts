@@ -53,20 +53,120 @@ const getNetValueStaleTime = () => {
 };
 
 // ============================================================================
-// 关联板块与 Secid 查询接口（纯前端空实现，已移除 Supabase 依赖）
+// 关联板块与 Secid 查询接口（本地静态数据）
 // ============================================================================
 
+interface FundSectorsData {
+  targets: Record<string, string>;
+  secids: Record<string, string>;
+}
+
+let fundSectorsDataPromise: Promise<FundSectorsData> | null = null;
+
+export const getFundSectorsData = async (): Promise<FundSectorsData> => {
+  if (fundSectorsDataPromise) return fundSectorsDataPromise;
+
+  fundSectorsDataPromise = (async () => {
+    try {
+      if (typeof window !== 'undefined') {
+        const res = await fetch('/fundSectors.json');
+        if (res.ok) {
+          const json = await res.json();
+          if (isObject(json)) {
+            return json as FundSectorsData;
+          }
+        }
+      }
+    } catch {
+      // 降级使用动态 import
+    }
+
+    try {
+      const mod = await import('@/public/fundSectors.json');
+      const data = (mod as any)?.default || mod;
+      if (isObject(data)) {
+        return data as FundSectorsData;
+      }
+    } catch {
+      // ignore
+    }
+
+    return { targets: {}, secids: {} };
+  })();
+
+  return fundSectorsDataPromise;
+};
+
 export const fetchRelatedSectorsBatch = async (
-  _codes: string[],
-  _options: { cacheTime?: number; authSegment?: string } = {}
-): Promise<Record<string, string>> => ({});
+  codes: string[],
+  options: { cacheTime?: number; authSegment?: string } = {}
+): Promise<Record<string, string>> => {
+  if (!isArray(codes) || codes.length === 0) return {};
+  const { authSegment = '' } = options;
+  const qc = getQueryClient();
+  const results: Record<string, string> = {};
+  const missingCodes: string[] = [];
+
+  for (const c of codes) {
+    const code = isString(c) || isNumber(c) ? String(c).trim() : '';
+    if (!code) continue;
+    const cached = qc.getQueryData<string>(qk.relatedSectors(code, authSegment));
+    if (!isNil(cached)) {
+      results[code] = cached;
+    } else {
+      missingCodes.push(code);
+    }
+  }
+
+  if (missingCodes.length === 0) return results;
+
+  const data = await getFundSectorsData();
+  const targets = isObject(data?.targets) ? data.targets : {};
+
+  for (const code of missingCodes) {
+    const sector = isString(targets[code]) ? targets[code].trim() : '';
+    results[code] = sector;
+    qc.setQueryData(qk.relatedSectors(code, authSegment), sector);
+  }
+
+  return results;
+};
 
 const SECTOR_QUOTE_CACHE_MS = 60 * 1000;
 
 export const fetchFundSecidsBatch = async (
-  _labels: string[],
+  labels: string[],
   _options: { cacheTime?: number } = {}
-): Promise<Record<string, string>> => ({});
+): Promise<Record<string, string>> => {
+  if (!isArray(labels) || labels.length === 0) return {};
+  const qc = getQueryClient();
+  const results: Record<string, string> = {};
+  const missingLabels: string[] = [];
+
+  for (const l of labels) {
+    const label = isString(l) ? l.trim() : '';
+    if (!label) continue;
+    const cached = qc.getQueryData<string>(qk.fundSecid(label));
+    if (!isNil(cached)) {
+      results[label] = cached;
+    } else {
+      missingLabels.push(label);
+    }
+  }
+
+  if (missingLabels.length === 0) return results;
+
+  const data = await getFundSectorsData();
+  const secids = isObject(data?.secids) ? data.secids : {};
+
+  for (const label of missingLabels) {
+    const secid = isString(secids[label]) ? secids[label].trim() : '';
+    results[label] = secid;
+    qc.setQueryData(qk.fundSecid(label), secid);
+  }
+
+  return results;
+};
 
 /**
  * 批量获取东方财富板块/指数行情（单次请求）
@@ -848,8 +948,6 @@ export interface UnifiedFundValuation {
   [key: string]: any;
 }
 
-export const fetchQdiiValuationFromSupabase = async (_code: string): Promise<any> => null;
-
 export const isQdiiFund = async (_code: string): Promise<boolean> => false;
 
 export async function fetchBestValuationSource(
@@ -877,7 +975,7 @@ export async function fetchFundsBestSources(_fundCodes: string[]): Promise<Recor
 /**
  * 按基金编码与数据源类型获取估值（天天基金 fundgz 或新浪估算曲线末点）。
  * @param {string} code - 基金编码
- * @param {number | string} [dataSource=1] - 1 天天基金；2、3 新浪估算不同口径；4 Supabase QDII
+ * @param {number | string} [dataSource=1] - 1 天天基金；2、3 新浪估算不同口径
  * @returns {Promise<UnifiedFundValuation>}
  */
 export async function fetchFundValuationBySource(
