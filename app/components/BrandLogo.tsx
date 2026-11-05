@@ -59,7 +59,7 @@ export const BrandLogo = React.memo(function BrandLogo({ isSyncing = false }: Br
         </TooltipContent>
       </Tooltip>
 
-      <span className="text-[17px] font-semibold tracking-tight text-foreground">基估宝</span>
+      <span className="text-[17px] font-semibold tracking-tight text-foreground">养基场</span>
     </div>
   );
 });

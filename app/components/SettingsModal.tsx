@@ -751,7 +751,7 @@ export default function SettingsModal({
             </div>
 
             <div className="pt-3 border-t border-border/50 text-xs text-muted-foreground px-2 flex items-center justify-between">
-              <span>基估宝</span>
+              <span>养基场</span>
               <span className="font-mono text-xs text-muted-foreground">v2.4.1</span>
             </div>
           </aside>

@@ -1,5 +1,5 @@
 // 最小 Service Worker，满足 Android Chrome「添加到主屏幕」的安装条件
-const CACHE_NAME = 'jigubao-v1';
+const CACHE_NAME = 'fund-farm-v1';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

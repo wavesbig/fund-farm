@@ -1,4 +1,4 @@
-# 基估宝设计系统规范 (Stripe Fintech Design System)
+# 养基场设计系统规范 (Stripe Fintech Design System)
 
 本项目基于 [Stripe Design System (OpenDesign Tokens)](https://open-design.ai/plugins/design-system-stripe/) 进行系统化重构与沉淀，旨在为基金实时估值与持仓管理提供清晰、克制、专业且极富金融质感的设计语言。
 

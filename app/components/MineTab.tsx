@@ -48,7 +48,7 @@ export default function MineTab({
             )}
           </div>
           <div className="mine-profile-text">
-            <div className="mine-profile-title">基估宝</div>
+            <div className="mine-profile-title">养基场</div>
             <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
               实时基金估值与持仓管理
             </div>

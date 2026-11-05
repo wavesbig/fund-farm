@@ -1,7 +1,7 @@
 {
-  "name": "基估宝",
-  "short_name": "基估宝",
-  "description": "基金管理管家",
+  "name": "养基场 - 实时基金估值与持仓管理",
+  "short_name": "养基场",
+  "description": "实时基金估值与持仓管理管家",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

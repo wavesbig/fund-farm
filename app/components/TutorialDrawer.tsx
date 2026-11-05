@@ -165,9 +165,9 @@ export default function TutorialDrawer({ open, onOpenChange }: TutorialDrawerPro
         <DialogHeader className="shrink-0 px-6 pt-5 pb-3.5 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
-            <DialogTitle className="text-base font-semibold text-foreground">基估宝 · 使用帮助指南</DialogTitle>
+            <DialogTitle className="text-base font-semibold text-foreground">养基场 · 使用帮助指南</DialogTitle>
           </div>
-          <DialogDescription className="sr-only">基估宝使用帮助指南与功能介绍</DialogDescription>
+          <DialogDescription className="sr-only">养基场使用帮助指南与功能介绍</DialogDescription>
         </DialogHeader>
         {content}
       </DialogContent>

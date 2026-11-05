@@ -16,7 +16,7 @@ Node >= 22.0.0 required (for built-in `node:sqlite`).
 
 ## Architecture
 
-**real-time-fund** (基估宝) — a full-stack Next.js 16 (App Router) TypeScript application that tracks real-time mutual fund valuations and persists portfolios to Node 22 native SQLite (`./data/fund.db`).
+**FundFarm** (养基场) — a full-stack Next.js 16 (App Router) TypeScript application that tracks real-time mutual fund valuations and persists portfolios to Node 22 native SQLite (`./data/fund.db`).
 
 - `app/page.tsx` — monolithic SPA orchestrator: coordinates hooks, sub-views, and modals
 - `app/api/fund.ts` — all external data fetching via JSONP/script tag injection (not fetch) to 天天基金, 东方财富, 腾讯财经

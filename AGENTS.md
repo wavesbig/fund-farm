@@ -5,7 +5,7 @@
 
 ## OVERVIEW
 
-Real-time mutual fund valuation tracker (基估宝). Next.js 16 App Router, full TypeScript (TSX), Node 22 native SQLite (`./data/fund.db`) backend with dual-layer localStorage synchronization. Glassmorphism UI with heavy custom CSS variables. Financial data via JSONP/script injection to external Chinese financial APIs (天天基金, 东方财富, 腾讯财经). Privacy lock screen and local-first architecture.
+Real-time mutual fund valuation tracker (养基场 / FundFarm). Next.js 16 App Router, full TypeScript (TSX), Node 22 native SQLite (`./data/fund.db`) backend with dual-layer localStorage synchronization. Glassmorphism UI with heavy custom CSS variables. Financial data via JSONP/script injection to external Chinese financial APIs (天天基金, 东方财富, 腾讯财经). Privacy lock screen and local-first architecture.
 
 ## STRUCTURE
 
