@@ -51,8 +51,8 @@
 1. 克隆仓库：
 
    ```bash
-   git clone https://github.com/<your-username>/real-time-fund.git
-   cd real-time-fund
+   git clone https://github.com/wavesbig/fund-farm.git
+   cd fund-farm
    ```
 
 2. 安装依赖：
@@ -102,21 +102,21 @@ docker compose up -d --build
 
 ```bash
 # 1. 构建镜像
-docker build -t real-time-fund:latest .
+docker build -t fund-farm:latest .
 
 # 2. 运行容器（挂载本地 data 目录持久化存储）
 docker run -d \
   -p 3000:3000 \
-  --name real-time-fund \
+  --name fund-farm \
   --restart always \
   -v $(pwd)/data:/app/data \
-  real-time-fund:latest
+  fund-farm:latest
 ```
 
 如需传入环境变量，可通过 `--env-file .env` 启动：
 
 ```bash
-docker run -d -p 3000:3000 --name real-time-fund --restart always --env-file .env -v $(pwd)/data:/app/data real-time-fund:latest
+docker run -d -p 3000:3000 --name fund-farm --restart always --env-file .env -v $(pwd)/data:/app/data fund-farm:latest
 ```
 
 ## 📖 使用说明

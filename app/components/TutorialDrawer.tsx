@@ -115,7 +115,7 @@ export default function TutorialDrawer({ open, onOpenChange }: TutorialDrawerPro
 
       {/* 底部提示 */}
       <div className="text-center py-2 text-xs text-[var(--muted)] opacity-75">
-        如在使用中有任何改进建议，可随时在主界面底部点击“提交反馈”。
+        如在使用中有任何改进建议，可随时在主界面底部点击“前往 GitHub Issues 反馈”。
       </div>
     </div>
   );

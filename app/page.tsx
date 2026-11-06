@@ -4286,8 +4286,10 @@ export default function HomePage() {
             <Footer
               isMobile={isMobile}
               onOpenFeedback={() => {
-                setFeedbackNonce((n) => n + 1);
-                setFeedbackOpen(true);
+                const url = process.env.NEXT_PUBLIC_GITHUB_REPO_URL
+                  ? `${process.env.NEXT_PUBLIC_GITHUB_REPO_URL}/issues`
+                  : 'https://github.com/wavesbig/fund-farm/issues';
+                window.open(url, '_blank', 'noopener,noreferrer');
               }}
             />
           </div>
@@ -4314,8 +4316,10 @@ export default function HomePage() {
           }}
           onUpdateLog={() => setUpdateLogOpen(true)}
           onFeedback={() => {
-            setFeedbackNonce((n) => n + 1);
-            setFeedbackOpen(true);
+            const url = process.env.NEXT_PUBLIC_GITHUB_REPO_URL
+              ? `${process.env.NEXT_PUBLIC_GITHUB_REPO_URL}/issues`
+              : 'https://github.com/wavesbig/fund-farm/issues';
+            window.open(url, '_blank', 'noopener,noreferrer');
           }}
         />
       )}
