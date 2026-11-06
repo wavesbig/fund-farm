@@ -44,11 +44,7 @@ export default function MineTab({
                 style={{ borderRadius: '50%', objectFit: 'cover' }}
               />
             ) : (
-              <img
-                src="/logo.jpg"
-                alt="养基场 Logo"
-                className="w-full h-full object-cover"
-              />
+              <img src="/logo.jpg" alt="养基场 Logo" className="w-full h-full object-cover" />
             )}
           </div>
           <div className="mine-profile-text">
