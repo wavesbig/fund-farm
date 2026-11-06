@@ -11,6 +11,12 @@
   "id": "/",
   "icons": [
     {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/Icon-60@3x.png",
       "sizes": "180x180",
       "type": "image/png",
