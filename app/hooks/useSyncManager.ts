@@ -920,10 +920,15 @@ export function useSyncManager({
         const cloudFunds = isArray(cloudData.funds)
           ? dedupeByCode(cloudData.funds.map(stripLegacyTagsFromFundObject))
           : [];
-        const nextFunds = cloudFunds.map((cf: any) =>
-          mergeValuationFieldsByGztime(localFundByCode.get(String(cf?.code)), cf)
-        );
-        useStorageStore.getState().setFunds(nextFunds);
+        let nextFunds: any[];
+        if (cloudFunds.length === 0 && localFundsForMerge.length > 0 && !options.forceTakeover) {
+          nextFunds = localFundsForMerge;
+        } else {
+          nextFunds = cloudFunds.map((cf: any) =>
+            mergeValuationFieldsByGztime(localFundByCode.get(String(cf?.code)), cf)
+          );
+          useStorageStore.getState().setFunds(nextFunds);
+        }
         const nextFundCodes = new Set(nextFunds.map((f: any) => f.code));
 
         if (hasOwn(cloudData, 'tags')) {
@@ -1000,12 +1005,24 @@ export function useSyncManager({
         setTempSeconds(Math.round(nextRefreshMs / 1000));
 
         const nextHoldings = isPlainObject(cloudData.holdings) ? cloudData.holdings : {};
-        useStorageStore.getState().setHoldings(nextHoldings);
+        if (
+          Object.keys(nextHoldings).length > 0 ||
+          options.forceTakeover ||
+          Object.keys(useStorageStore.getState().holdings || {}).length === 0
+        ) {
+          useStorageStore.getState().setHoldings(nextHoldings);
+        }
 
         const cloudGroupIds = new Set(nextGroups.map((g: any) => g?.id).filter(Boolean));
 
         const nextGroupHoldings = isPlainObject(cloudData.groupHoldings) ? cloudData.groupHoldings : {};
-        useStorageStore.getState().setGroupHoldings(nextGroupHoldings);
+        if (
+          Object.keys(nextGroupHoldings).length > 0 ||
+          options.forceTakeover ||
+          Object.keys(useStorageStore.getState().groupHoldings || {}).length === 0
+        ) {
+          useStorageStore.getState().setGroupHoldings(nextGroupHoldings);
+        }
 
         if (hasOwn(cloudData, 'pendingTrades')) {
           const nextPendingTrades = isArray(cloudData.pendingTrades)
@@ -1228,8 +1245,12 @@ export function useSyncManager({
     [setTempSeconds, setFundTagRecords, syncUserConfig, refreshAllRef]
   );
 
-  // 页面启动时，自动从服务端 SQLite 加载全部数据
+  // 页面启动时，自动从服务端 SQLite 加载全部数据（严格仅在挂载时运行一次，避免依赖重构触发重复覆盖）
+  const hasInitSqliteRef = useRef(false);
   useEffect(() => {
+    if (hasInitSqliteRef.current) return;
+    hasInitSqliteRef.current = true;
+
     let isMounted = true;
     const initFromSqlite = async () => {
       try {

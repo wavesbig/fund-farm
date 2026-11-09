@@ -1714,7 +1714,7 @@ export default function HomePage() {
   }, [groups, funds.length, favorites.size]);
 
   // 轻提示 (Toast)
-  const showToast = (message, type = 'info') => {
+  const showToast = useCallback((message: string, type: 'info' | 'success' | 'error' = 'info') => {
     if (type === 'success') {
       sonnerToast.success(message);
     } else if (type === 'error') {
@@ -1722,7 +1722,7 @@ export default function HomePage() {
     } else {
       sonnerToast.info(message);
     }
-  };
+  }, []);
 
   // 定投计划自动生成买入队列的逻辑会在 storageHelper 定义之后实现
 
