@@ -1,10 +1,23 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { isObject } from 'lodash';
+import { isObject, isString } from 'lodash';
 import { getAllData, getDataByKey, setBatchData, setData, deleteKey, clearAll } from '@/app/lib/sqliteDb';
 import { verifyRequestAuth } from '@/app/lib/auth';
 
 export const dynamic = 'force-dynamic';
+
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+const sanitizeData = (obj: unknown): Record<string, any> => {
+  if (!isObject(obj) || Array.isArray(obj)) return {};
+  const clean: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (!DANGEROUS_KEYS.has(k) && isString(k) && k.length <= 128) {
+      clean[k] = v;
+    }
+  }
+  return clean;
+};
 
 /**
  * GET: 获取 SQLite 中的配置与持仓数据
@@ -51,18 +64,19 @@ export async function POST(request: NextRequest) {
 
     // 格式 1: { data: { key1: val1, key2: val2, ... } }
     if (body.data && isObject(body.data)) {
-      const result = setBatchData(body.data);
+      const result = setBatchData(sanitizeData(body.data));
       return NextResponse.json({ success: true, ...result });
     }
 
     // 格式 2: { key: 'funds', value: [...] }
-    if (body.key) {
+    if (body.key && isString(body.key) && !DANGEROUS_KEYS.has(body.key)) {
       const result = setData(body.key, body.value);
       return NextResponse.json({ success: true, ...result });
     }
 
     // 格式 3: 顶层直接是键值对对象
-    const result = setBatchData(body);
+    const safeBody = sanitizeData(body);
+    const result = setBatchData(safeBody);
     return NextResponse.json({ success: true, ...result });
   } catch (error: any) {
     console.error('[API /api/sync POST Error]', error);

@@ -30,14 +30,7 @@ dayjs.extend(isSameOrAfter);
 import { DEFAULT_TZ } from '@/app/constants';
 import { isNavUpdated } from '@/app/lib/fundHelpers';
 
-const getBrowserTimeZone = (): string => {
-  if (typeof Intl !== 'undefined' && Intl.DateTimeFormat) {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return tz || DEFAULT_TZ;
-  }
-  return DEFAULT_TZ;
-};
-const TZ = getBrowserTimeZone();
+const TZ = DEFAULT_TZ;
 const toTz = (input?: any) => (input ? dayjs.tz(input, TZ) : dayjs().tz(TZ));
 
 const formatDisplayDate = (value?: any): string => {

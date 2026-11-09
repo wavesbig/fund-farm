@@ -27,9 +27,16 @@ export async function loadHolidaysForYear(year: number): Promise<Set<string>> {
     return holidays;
   } catch (e) {
     console.warn(`[tradingCalendar] 加载 ${year} 年节假日失败:`, e);
-    yearCache.set(year, new Set());
-    return yearCache.get(year)!;
+    // 不永久缓存空集合，以便后续重试
+    return new Set();
   }
+}
+
+/**
+ * 检查某年份的节假日数据是否已成功加载
+ */
+export function isHolidaysLoaded(year: number, cache: Map<number, Set<string>> = yearCache): boolean {
+  return cache.has(year);
 }
 
 /**
@@ -91,8 +98,8 @@ export function countTradingDaysBetween(
   if (totalDays <= 0) return 0;
   let count = 0;
   let d = start.add(1, 'day');
-  // 安全上限：最多遍历 400 天（覆盖极端跨年长假场景）
-  const limit = Math.min(totalDays, 400);
+  // 安全上限：最多遍历 1500 天（约 4 年交易日计算）
+  const limit = Math.min(totalDays, 1500);
   for (let i = 0; i < limit; i++) {
     if (isTradingDay(d)) count++;
     d = d.add(1, 'day');

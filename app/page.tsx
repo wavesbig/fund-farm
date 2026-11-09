@@ -1320,8 +1320,10 @@ export default function HomePage() {
             const feeRate = trade.feeRate || 0;
             const netAmount = trade.amount / (1 + feeRate / 100);
             const share = netAmount / result.value;
-            newShare = current.share + share;
-            newCost = (current.cost * current.share + trade.amount) / newShare;
+            const validCurrentShare = Math.max(0, Number(current.share) || 0);
+            const validCurrentCost = Math.max(0, Number(current.cost) || 0);
+            newShare = validCurrentShare + share;
+            newCost = newShare > 0 ? (validCurrentCost * validCurrentShare + trade.amount) / newShare : 0;
 
             tradeShare = share;
             tradeAmount = trade.amount;
@@ -2130,7 +2132,9 @@ export default function HomePage() {
             current = stepOnce();
           }
 
-          while (true) {
+          const MAX_DCA_ITERATIONS = 365;
+          let iterations = 0;
+          while (iterations++ < MAX_DCA_ITERATIONS) {
             if (current.isAfter(today, 'day')) break;
 
             if (!current.isBefore(first, 'day')) {
@@ -2350,11 +2354,13 @@ export default function HomePage() {
           }
         }
         setTempSeconds(Math.round(useStorageStore.getState().refreshMs / 1000));
+        const currentStoreFunds = useStorageStore.getState().funds;
+        const currentStoreFavorites = useStorageStore.getState().favorites;
         // 加载估值分时记录（用于分时图）
-        setValuationSeries(getAllValuationSeries(funds));
+        setValuationSeries(getAllValuationSeries(currentStoreFunds));
         // 加载自选状态：只保留存在于 funds 中的 code，避免“自选数量 > 全部数量”
-        const savedFavorites = Array.from(favorites);
-        const storedFundCodeSet = new Set(funds.map((f) => f?.code).filter(Boolean));
+        const savedFavorites = Array.from(currentStoreFavorites);
+        const storedFundCodeSet = new Set(currentStoreFunds.map((f) => f?.code).filter(Boolean));
         const cleanedFavorites = cleanCodeArray(savedFavorites, storedFundCodeSet);
         if (cleanedFavorites.length !== savedFavorites.length) {
           setFavorites(new Set(cleanedFavorites));
@@ -3450,15 +3456,24 @@ export default function HomePage() {
         }
 
         if (isPlainObject(data.holdings)) {
-          const mergedHoldings = { ...storageStore.getItem('holdings', {}), ...data.holdings };
+          const currentHoldings = (storageStore.getItem('holdings', {}) || {}) as Record<string, any>;
+          const mergedHoldings = { ...currentHoldings };
+          Object.entries(data.holdings as Record<string, unknown>).forEach(([code, h]) => {
+            if (!isPlainObject(h)) return;
+            mergedHoldings[code] = { ...(mergedHoldings[code] || {}), ...(h as Record<string, any>) };
+          });
           setHoldings(mergedHoldings);
         }
 
         if (isPlainObject(data.groupHoldings)) {
           const mergedGH = { ...(isPlainObject(currentGroupHoldings) ? currentGroupHoldings : {}) };
-          Object.entries(data.groupHoldings).forEach(([gid, bucket]) => {
+          Object.entries(data.groupHoldings as Record<string, unknown>).forEach(([gid, bucket]) => {
             if (!isPlainObject(bucket)) return;
-            mergedGH[gid] = { ...(mergedGH[gid] || {}), ...(bucket as Record<string, any>) };
+            mergedGH[gid] = { ...(mergedGH[gid] || {}) };
+            Object.entries(bucket as Record<string, any>).forEach(([code, h]) => {
+              if (!isPlainObject(h)) return;
+              mergedGH[gid][code] = { ...(mergedGH[gid][code] || {}), ...(h as Record<string, any>) };
+            });
           });
           setGroupHoldings(mergedGH);
         }
@@ -3780,9 +3795,9 @@ export default function HomePage() {
 
       if (typeof window !== 'undefined') {
         try {
-          const saved = JSON.parse(localStorage.getItem('rtf_unadded_ds') || '{}');
+          const saved = (storageStore.getItem('rtf_unadded_ds', {}) || {}) as Record<string, any>;
           saved[fundCode] = sourceId;
-          localStorage.setItem('rtf_unadded_ds', JSON.stringify(saved));
+          storageStore.setItem('rtf_unadded_ds', JSON.stringify(saved));
         } catch {}
         window.dispatchEvent(new CustomEvent('rtf_unadded_datasource_change', { detail: { fundCode, sourceId } }));
       }

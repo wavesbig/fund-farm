@@ -57,7 +57,9 @@ export function verifyPassword(inputPassword: unknown): boolean {
   // 1. 优先使用环境变量 APP_PASSWORD
   const envPassword = process.env.APP_PASSWORD?.trim();
   if (envPassword) {
-    return inputPassword === envPassword;
+    const a = Buffer.from(inputPassword);
+    const b = Buffer.from(envPassword);
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
   }
 
   // 2. 从 SQLite 校验哈希
@@ -68,7 +70,9 @@ export function verifyPassword(inputPassword: unknown): boolean {
   if (!row || !row.password_hash || !row.salt) return false;
 
   const computedHash = hashPassword(inputPassword, row.salt);
-  return computedHash === row.password_hash;
+  const a = Buffer.from(computedHash);
+  const b = Buffer.from(row.password_hash);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 /**
@@ -130,7 +134,8 @@ export function verifySessionToken(token: unknown): boolean {
   const session = stmt.get(token) as { expires_at?: string } | undefined;
 
   if (!session || !session.expires_at) return false;
-  if (session.expires_at < now) {
+  const expiresAtMs = new Date(session.expires_at).getTime();
+  if (isNaN(expiresAtMs) || expiresAtMs < Date.now()) {
     db.prepare('DELETE FROM auth_sessions WHERE token = ?').run(token);
     return false;
   }

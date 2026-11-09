@@ -488,15 +488,18 @@ export function useScanImport({
           const scannedFund = scannedFunds.find((f) => f.code === code);
           const holdAmounts = parseAmount(scannedFund?.holdAmounts);
           const holdGains = parseAmount(scannedFund?.holdGains);
-          const dwjz = Number(data?.dwjz || data?.gsz || 0);
+          const numDwjz = Number(data?.dwjz);
+          const numGsz = Number(data?.gsz);
+          const effectiveNav =
+            Number.isFinite(numDwjz) && numDwjz > 0 ? numDwjz : Number.isFinite(numGsz) && numGsz > 0 ? numGsz : 0;
 
-          if (holdAmounts !== null && dwjz > 0) {
-            const share = holdAmounts / dwjz;
+          if (holdAmounts !== null && effectiveNav > 0) {
+            const share = holdAmounts / effectiveNav;
             const profit = holdGains !== null ? holdGains : 0;
             const principal = holdAmounts - profit;
             const cost = share > 0 ? principal / share : 0;
             newHoldings[code] = {
-              share: Number(share.toFixed(2)),
+              share: Number(share.toFixed(4)),
               cost: Number(cost.toFixed(4))
             };
           }

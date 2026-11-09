@@ -100,7 +100,8 @@ const SYNC_KEYS = new Set([
   'dcaPlans',
   'customSettings',
   'fundDailyEarnings',
-  'fundDividends'
+  'fundDividends',
+  'fundValuationTimeseries'
 ]);
 
 export { SORT_DISPLAY_MODES, DEFAULT_SORT_RULES };
@@ -138,6 +139,7 @@ export interface StorageStoreState {
   setOnSync: (callback: ((key: string, prevValue: string | null, nextValue: string | null) => void) | null) => void;
 
   funds: Fund[];
+  tags: any[];
   groups: FundGroup[];
   favorites: Set<string>;
   collapsedCodes: Set<string>;
@@ -162,6 +164,7 @@ export interface StorageStoreState {
   sortRules: SortRule[];
 
   initFunds: () => void;
+  initTags: () => void;
   initGroups: () => void;
   initFavorites: () => void;
   initRefreshMs: () => void;
@@ -177,6 +180,7 @@ export interface StorageStoreState {
   initSort: () => void;
 
   setFunds: (nextFunds: ValueOrUpdater<Fund[]>) => void;
+  setTags: (nextTags: ValueOrUpdater<any[]>) => void;
   setGroups: (nextGroups: ValueOrUpdater<FundGroup[]>) => void;
   setFavorites: (nextFavs: ValueOrUpdater<Set<string>>) => void;
   setCollapsedCodes: (nextVal: ValueOrUpdater<Set<string>>) => void;
@@ -221,6 +225,7 @@ export const useStorageStore = create<StorageStoreState>((set, get) => ({
   setOnSync: (callback) => set({ onSync: callback }),
 
   funds: [],
+  tags: [],
   groups: [],
   favorites: new Set(),
   collapsedCodes: new Set(),
@@ -251,6 +256,13 @@ export const useStorageStore = create<StorageStoreState>((set, get) => ({
     if (typeof window !== 'undefined') {
       const saved = get().getItem('funds', []);
       set({ funds: isArray(saved) ? saved : [] });
+    }
+  },
+
+  initTags: () => {
+    if (typeof window !== 'undefined') {
+      const saved = get().getItem('tags', []);
+      set({ tags: isArray(saved) ? saved : [] });
     }
   },
 
@@ -426,6 +438,12 @@ export const useStorageStore = create<StorageStoreState>((set, get) => ({
     const next = isFunction(nextFunds) ? nextFunds(get().funds) : nextFunds;
     set({ funds: next });
     get().setItem('funds', JSON.stringify(next), { skipZustandUpdate: true });
+  },
+
+  setTags: (nextTags) => {
+    const next = isFunction(nextTags) ? nextTags(get().tags) : nextTags;
+    set({ tags: next });
+    get().setItem('tags', JSON.stringify(next), { skipZustandUpdate: true });
   },
 
   setGroups: (nextGroups) => {
@@ -633,6 +651,7 @@ export const useStorageStore = create<StorageStoreState>((set, get) => ({
         else if (key === 'customSettings') set({ customSettings: parsed });
         else if (key === 'fundDailyEarnings') set({ fundDailyEarnings: parsed });
         else if (key === 'fundDividends') set({ fundDividends: parsed });
+        else if (key === 'tags') set({ tags: isArray(parsed) ? parsed : [] });
         else if (key === 'localSortBy') set({ sortBy: parsed });
         else if (key === 'localSortOrder') set({ sortOrder: parsed === 'asc' ? 'asc' : 'desc' });
       } catch {
@@ -699,7 +718,7 @@ export const useStorageStore = create<StorageStoreState>((set, get) => ({
     try {
       return JSON.parse(val);
     } catch {
-      return val as unknown as T;
+      return defaultValue !== undefined ? defaultValue : (val as unknown as T);
     }
   }
 }));

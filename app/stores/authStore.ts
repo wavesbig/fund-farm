@@ -20,7 +20,7 @@ export interface AuthStoreState {
 
 export const useAuthStore = create<AuthStoreState>((set) => ({
   isChecking: true,
-  isInitialized: true,
+  isInitialized: false,
   isAuthenticated: false,
   error: '',
 

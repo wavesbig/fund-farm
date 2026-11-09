@@ -194,7 +194,7 @@ export function useHoldingProfit({ activeGroupId }: UseHoldingProfitParams = {})
       if (!useValuation) {
         // 使用确权净值 (dwjz)
         currentNav = Number(fund.dwjz);
-        if (!currentNav) return null;
+        if (!Number.isFinite(currentNav) || currentNav <= 0) return null;
 
         if (canCalcTodayProfit) {
           const amount = shareForTodayProfit * currentNav;
@@ -223,9 +223,9 @@ export function useHoldingProfit({ activeGroupId }: UseHoldingProfitParams = {})
         }
       } else {
         // 否则使用估值
-        currentNav = isNumber(fund.gsz) ? fund.gsz : Number(fund.dwjz);
-
-        if (!currentNav) return null;
+        const candidateNav = isNumber(fund.gsz) ? fund.gsz : Number(fund.dwjz);
+        currentNav = Number(candidateNav);
+        if (!Number.isFinite(currentNav) || currentNav <= 0) return null;
 
         if (canCalcTodayProfit) {
           const amount = shareForTodayProfit * currentNav;

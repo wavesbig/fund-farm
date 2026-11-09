@@ -292,10 +292,10 @@ export function calculateYtdReturnRate(
         if (isNumber(item.baseCostAmount) && item.baseCostAmount > 0) {
           stat.cost += item.baseCostAmount;
           stat.hasCost = true;
-        } else if (isNumber(item.rate) && item.rate !== 0) {
-          // 如果没有快照成本但存了单日收益率，反推当天的成本
+        } else if (isNumber(item.rate) && Math.abs(item.rate) >= 0.001) {
+          // 仅在单日收益率绝对值 >= 0.001% 时反推成本，避免极小收益率将成本放大为天文数字
           const impliedCost = item.earnings / (item.rate / 100);
-          if (impliedCost > 0) {
+          if (impliedCost > 0 && Number.isFinite(impliedCost)) {
             stat.cost += impliedCost;
             stat.hasCost = true;
           }

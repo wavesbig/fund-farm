@@ -278,7 +278,7 @@ export function useRefreshManager({
             data.gszzl = oldData.gszzl;
             data.gztime = oldData.gztime;
             if (oldData.valuationSource) data.valuationSource = oldData.valuationSource;
-            data.noValuation = false;
+            data.noValuation = oldData.noValuation ?? true;
           }
 
           const currentNavDate = isValidDateStr(data.jzrq) ? data.jzrq : null;
@@ -306,7 +306,7 @@ export function useRefreshManager({
 
           // 估值时序记录
           const storedFund = getStoredFundSnapshot(data.code);
-          const fundDs = storedFund?.dataSource || 1;
+          const fundDs = data.dataSource || storedFund?.dataSource || 1;
           if (data.code != null && !data.noValuation && Number.isFinite(Number(data.gsz))) {
             if (data.fundValuationTimeseries && isPlainObject(data.fundValuationTimeseries)) {
               for (const [tsCode, tsList] of Object.entries(data.fundValuationTimeseries)) {

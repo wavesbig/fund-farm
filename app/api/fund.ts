@@ -221,7 +221,7 @@ export const fetchEastmoneySectorQuotesBatch = async (
             if (!key) continue;
 
             const f3 = item.f3;
-            const pct = f3 != null && Number.isFinite(Number(f3)) ? Number(f3) / 100 : null;
+            const pct = f3 != null && Number.isFinite(Number(f3)) ? Number(f3) : null;
             const quote = {
               name: item.f14 != null ? String(item.f14) : '',
               code,
@@ -638,69 +638,67 @@ export const fetchFundDataFallback = async (c: string): Promise<any> => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     throw new Error('无浏览器环境');
   }
-  return new Promise(async (resolve, reject) => {
-    try {
-      // 尝试并行获取 F10 数据和通过搜索接口获取基金名称
-      const f10Promise = (async () => {
-        // F10DataApi.aspx 已失效，直接使用 pingzhongdata 获取净值指标
-        const trendFallback = await fetchNavMetricsFromTrendFallback(c);
-        if (!isNil(trendFallback)) {
-          return {
-            latest: {
-              date: trendFallback.jzrq,
-              nav: trendFallback.dwjz,
-              growth: trendFallback.zzl
-            },
-            previousNav: !isNil(trendFallback.lastNav) ? { nav: trendFallback.lastNav } : null,
-            yM: {
-              yesterdayZzl: trendFallback.yesterdayZzl,
-              yesterdayNavDelta: trendFallback.yesterdayNavDelta
-            }
-          };
-        }
-        return { latest: null, previousNav: null, yM: { yesterdayZzl: null, yesterdayNavDelta: null } };
-      })();
-
-      const namePromise = (async () => {
-        try {
-          // 通过搜索接口查询该代码对应的基金详情
-          const results = await searchFunds(c);
-          const found = results.find((item: any) => item.CODE === c);
-          return found ? found.NAME || found.SHORTNAME : null;
-        } catch {
-          return null;
-        }
-      })();
-
-      const [navResult, fundName] = await Promise.all([f10Promise, namePromise]);
-
-      if (navResult && navResult.latest && navResult.latest.nav) {
-        const { latest, previousNav, yM } = navResult;
-        resolve({
-          code: c,
-          name: fundName || `基金(${c})`,
-          dwjz: String(latest.nav),
-          lastNav: previousNav ? String(previousNav.nav) : null,
-          gsz: null,
-          gztime: null,
-          jzrq: latest.date,
-          gszzl: null,
-          zzl: Number.isFinite(latest.growth) ? latest.growth : null,
-          yesterdayZzl: yM.yesterdayZzl,
-          yesterdayNavDelta: yM.yesterdayNavDelta,
-          noValuation: true,
-          valuationSource: 'fallback',
-          holdings: [],
-          holdingsReportDate: null,
-          holdingsIsLastQuarter: false
-        });
-      } else {
-        reject(new Error('未能获取到基金数据'));
+  try {
+    // 尝试并行获取 F10 数据和通过搜索接口获取基金名称
+    const f10Promise = (async () => {
+      // F10DataApi.aspx 已失效，直接使用 pingzhongdata 获取净值指标
+      const trendFallback = await fetchNavMetricsFromTrendFallback(c);
+      if (!isNil(trendFallback)) {
+        return {
+          latest: {
+            date: trendFallback.jzrq,
+            nav: trendFallback.dwjz,
+            growth: trendFallback.zzl
+          },
+          previousNav: !isNil(trendFallback.lastNav) ? { nav: trendFallback.lastNav } : null,
+          yM: {
+            yesterdayZzl: trendFallback.yesterdayZzl,
+            yesterdayNavDelta: trendFallback.yesterdayNavDelta
+          }
+        };
       }
-    } catch {
-      reject(new Error('基金数据加载失败'));
+      return { latest: null, previousNav: null, yM: { yesterdayZzl: null, yesterdayNavDelta: null } };
+    })();
+
+    const namePromise = (async () => {
+      try {
+        // 通过搜索接口查询该代码对应的基金详情
+        const results = await searchFunds(c);
+        const found = results.find((item: any) => item.CODE === c);
+        return found ? found.NAME || found.SHORTNAME : null;
+      } catch {
+        return null;
+      }
+    })();
+
+    const [navResult, fundName] = await Promise.all([f10Promise, namePromise]);
+
+    if (navResult && navResult.latest && navResult.latest.nav) {
+      const { latest, previousNav, yM } = navResult;
+      return {
+        code: c,
+        name: fundName || `基金(${c})`,
+        dwjz: String(latest.nav),
+        lastNav: previousNav ? String(previousNav.nav) : null,
+        gsz: null,
+        gztime: null,
+        jzrq: latest.date,
+        gszzl: null,
+        zzl: Number.isFinite(latest.growth) ? latest.growth : null,
+        yesterdayZzl: yM.yesterdayZzl,
+        yesterdayNavDelta: yM.yesterdayNavDelta,
+        noValuation: true,
+        valuationSource: 'fallback',
+        holdings: [],
+        holdingsReportDate: null,
+        holdingsIsLastQuarter: false
+      };
+    } else {
+      throw new Error('未能获取到基金数据');
     }
-  });
+  } catch (err: any) {
+    throw new Error(err?.message || '基金数据加载失败');
+  }
 };
 
 const RTF_FUND_DEBUG_LS_KEY = 'rtf_debug_fund';
@@ -1111,68 +1109,61 @@ export const fetchFundData = async (c: string, overrideDataSource?: number): Pro
   const gzPromise = fetchFundValuationBySource(code, dataSource);
 
   // 3. 编排并合并数据
-  return new Promise(async (resolve, reject) => {
-    let baseData: any = null;
-    try {
-      baseData = await gzPromise;
-    } catch {
+  let baseData: any = null;
+  try {
+    baseData = await gzPromise;
+  } catch {
+    baseData = await fetchFundDataFallback(code);
+  }
+
+  const [tData] = await Promise.all([lsjzPromise]);
+
+  if (tData) {
+    if (tData.jzrq && (!baseData.jzrq || tData.jzrq >= baseData.jzrq)) {
+      baseData.dwjz = tData.dwjz;
+      baseData.jzrq = tData.jzrq;
+      baseData.zzl = tData.zzl;
+      baseData.lastNav = tData.lastNav;
+    } else if (!baseData.dwjz && tData.dwjz) {
+      // Fallback for Sina which doesn't provide dwjz/jzrq
+      baseData.dwjz = tData.dwjz;
+      baseData.jzrq = tData.jzrq;
+      baseData.zzl = tData.zzl;
+      baseData.lastNav = tData.lastNav;
+    }
+    if (Object.prototype.hasOwnProperty.call(tData, 'yesterdayZzl')) {
+      baseData.yesterdayZzl = tData.yesterdayZzl;
+    }
+    if (Object.prototype.hasOwnProperty.call(tData, 'yesterdayNavDelta')) {
+      baseData.yesterdayNavDelta = tData.yesterdayNavDelta;
+    }
+  }
+
+  // 针对仅提供 gszzl 的数据源，使用最新的 dwjz 计算 gsz
+  if (baseData.gsz == null && baseData.gszzl != null) {
+    const nav = Number(baseData.dwjz);
+    const gszzl = Number(baseData.gszzl);
+    if (Number.isFinite(nav) && Number.isFinite(gszzl)) {
+      baseData.gsz = nav * (1 + gszzl / 100);
+    }
+  }
+
+  if (!baseData.name) {
+    // 优先使用 localStorage 中已存储的基金名称，避免不必要的 searchFunds 网络请求
+    if (storedName) {
+      baseData.name = storedName;
+    } else {
       try {
-        baseData = await fetchFundDataFallback(code);
-      } catch (fbErr) {
-        reject(fbErr);
-        return;
-      }
+        const results = await searchFunds(code);
+        const found = results.find((item: any) => item.CODE === code);
+        if (found) baseData.name = found.NAME || found.SHORTNAME;
+      } catch {}
     }
+  }
 
-    const [tData] = await Promise.all([lsjzPromise]);
-
-    if (tData) {
-      if (tData.jzrq && (!baseData.jzrq || tData.jzrq >= baseData.jzrq)) {
-        baseData.dwjz = tData.dwjz;
-        baseData.jzrq = tData.jzrq;
-        baseData.zzl = tData.zzl;
-        baseData.lastNav = tData.lastNav;
-      } else if (!baseData.dwjz && tData.dwjz) {
-        // Fallback for Sina which doesn't provide dwjz/jzrq
-        baseData.dwjz = tData.dwjz;
-        baseData.jzrq = tData.jzrq;
-        baseData.zzl = tData.zzl;
-        baseData.lastNav = tData.lastNav;
-      }
-      if (Object.prototype.hasOwnProperty.call(tData, 'yesterdayZzl')) {
-        baseData.yesterdayZzl = tData.yesterdayZzl;
-      }
-      if (Object.prototype.hasOwnProperty.call(tData, 'yesterdayNavDelta')) {
-        baseData.yesterdayNavDelta = tData.yesterdayNavDelta;
-      }
-    }
-
-    // 针对仅提供 gszzl 的数据源，使用最新的 dwjz 计算 gsz
-    if (baseData.gsz == null && baseData.gszzl != null) {
-      const nav = Number(baseData.dwjz);
-      const gszzl = Number(baseData.gszzl);
-      if (Number.isFinite(nav) && Number.isFinite(gszzl)) {
-        baseData.gsz = nav * (1 + gszzl / 100);
-      }
-    }
-
-    if (!baseData.name) {
-      // 优先使用 localStorage 中已存储的基金名称，避免不必要的 searchFunds 网络请求
-      if (storedName) {
-        baseData.name = storedName;
-      } else {
-        try {
-          const results = await searchFunds(code);
-          const found = results.find((item: any) => item.CODE === code);
-          if (found) baseData.name = found.NAME || found.SHORTNAME;
-        } catch {}
-      }
-    }
-
-    resolve({
-      ...baseData
-    });
-  });
+  return {
+    ...baseData
+  };
 };
 
 export const fetchFundHoldings = async (code: string): Promise<any> => {
@@ -1334,7 +1325,12 @@ export const fetchFundHoldings = async (code: string): Promise<any> => {
               }
             }
           });
-          if (sum < 100 && parsedSeries.length > 0) {
+          if (sum > 100) {
+            // 当各项比例之和超过 100%（杠杆或四舍五入导致），归一化至 100%
+            parsedSeries.forEach((item) => {
+              item.value = (item.value / sum) * 100;
+            });
+          } else if (sum < 100 && parsedSeries.length > 0) {
             const other = 100 - sum;
             if (other >= 0.01) {
               parsedSeries.push({ name: '其他', value: other });
@@ -2052,9 +2048,10 @@ export const parseFundTextLocally = (
       if (!seenCodes.has(code)) {
         seenCodes.add(code);
 
-        // 尝试从当前行及接下来的 2 行中寻找金额（如 1234.56 或 1,234.56）
+        // 尝试从当前行及接下来的 2 行中寻找金额（如 1234.56、1,234.56 或整数 15000）
         const contextLines = [line, lines[i + 1] || '', lines[i + 2] || ''].join(' ');
-        const amountMatches = contextLines.match(/\b\d{1,3}(?:,\d{3})*(?:\.\d{1,2})\b/g) || [];
+        const rawAmountMatches: string[] = contextLines.match(/\b\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?\b/g) || [];
+        const amountMatches = rawAmountMatches.filter((m: string) => m.replace(/,/g, '') !== code);
 
         let holdAmounts = '';
         let holdGains = '';

@@ -3,13 +3,13 @@ import fs from 'fs';
 import { DatabaseSync } from 'node:sqlite';
 import { isObject, isString } from 'lodash';
 
-let dbInstance: DatabaseSync | null = null;
+const g = globalThis as unknown as { __fundFarmDb?: DatabaseSync };
 
 /**
  * 获取或初始化 SQLite 数据库实例
  */
 export function getSqliteDb(): DatabaseSync {
-  if (dbInstance) return dbInstance;
+  if (g.__fundFarmDb) return g.__fundFarmDb;
 
   // 数据存储在项目根目录下的 data 目录
   const dataDir = path.join(process.cwd(), 'data');
@@ -24,6 +24,7 @@ export function getSqliteDb(): DatabaseSync {
   try {
     db.exec('PRAGMA journal_mode = WAL;');
     db.exec('PRAGMA synchronous = NORMAL;');
+    db.exec('PRAGMA busy_timeout = 5000;');
   } catch {
     // 忽略特定环境下的 PRAGMA 异常
   }
@@ -46,8 +47,8 @@ export function getSqliteDb(): DatabaseSync {
     VALUES (1, datetime('now'), 1);
   `);
 
-  dbInstance = db;
-  return dbInstance;
+  g.__fundFarmDb = db;
+  return g.__fundFarmDb;
 }
 
 /**
@@ -95,7 +96,7 @@ export function getDataByKey(key: string): any {
 }
 
 /**
- * 批量保存键值对（事务操作）
+ * 批量保存键值对（事务操作，带冲突重试）
  */
 export function setBatchData(dataMap: unknown): { count: number; updatedAt: string } {
   if (!dataMap || !isObject(dataMap)) {
@@ -106,26 +107,45 @@ export function setBatchData(dataMap: unknown): { count: number; updatedAt: stri
   const now = new Date().toISOString();
   const entries = Object.entries(dataMap as Record<string, unknown>);
 
-  db.exec('BEGIN TRANSACTION;');
-  try {
-    const stmt = db.prepare('INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES (?, ?, ?)');
+  const maxRetries = 3;
+  let attempt = 0;
 
-    for (const [key, value] of entries) {
-      if (key == null || key === '') continue;
-      const strValue = isString(value) ? value : JSON.stringify(value);
-      stmt.run(key, strValue, now);
+  while (attempt < maxRetries) {
+    try {
+      db.exec('BEGIN IMMEDIATE;');
+      const stmt = db.prepare('INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES (?, ?, ?)');
+
+      for (const [key, value] of entries) {
+        if (key == null || key === '') continue;
+        const strValue = isString(value) ? value : JSON.stringify(value);
+        stmt.run(key, strValue, now);
+      }
+
+      // 更新最后同步元信息
+      const metaStmt = db.prepare('UPDATE sync_meta SET last_sync_time = ? WHERE id = 1');
+      metaStmt.run(now);
+
+      db.exec('COMMIT;');
+      return { count: entries.length, updatedAt: now };
+    } catch (err: any) {
+      try {
+        db.exec('ROLLBACK;');
+      } catch {
+        // 忽略 rollback 失败
+      }
+      attempt++;
+      if (attempt >= maxRetries || !err?.message?.includes('busy')) {
+        throw err;
+      }
+      // 简单自旋等待
+      const start = Date.now();
+      while (Date.now() - start < 50) {
+        /* wait 50ms */
+      }
     }
-
-    // 更新最后同步元信息
-    const metaStmt = db.prepare('UPDATE sync_meta SET last_sync_time = ? WHERE id = 1');
-    metaStmt.run(now);
-
-    db.exec('COMMIT;');
-    return { count: entries.length, updatedAt: now };
-  } catch (err) {
-    db.exec('ROLLBACK;');
-    throw err;
   }
+
+  return { count: entries.length, updatedAt: now };
 }
 
 /**

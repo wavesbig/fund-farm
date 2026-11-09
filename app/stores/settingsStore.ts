@@ -1,5 +1,6 @@
 import { isBoolean, isFunction, isObject } from 'lodash';
 import { create } from 'zustand';
+import { clampPcContainerWidth } from '@/app/lib/containerWidth';
 
 type ValueOrUpdater<T> = T | ((prev: T) => T);
 
@@ -41,7 +42,7 @@ export interface SettingsStoreState {
 /**
  * 本地配置状态 Zustand Store
  */
-export const useSettingsStore = create<SettingsStoreState>((set) => ({
+export const useSettingsStore = create<SettingsStoreState>((set, get) => ({
   tempSeconds: 60,
   containerWidth: 1200,
   fontSizeLevel: 'comfortable',
@@ -55,45 +56,41 @@ export const useSettingsStore = create<SettingsStoreState>((set) => ({
   showGroupDropdownMobile: false,
   isGroupSummarySticky: false,
 
-  setTempSeconds: (val) => set({ tempSeconds: isFunction(val) ? val(useSettingsStore.getState().tempSeconds) : val }),
-  setContainerWidth: (val) =>
-    set({ containerWidth: isFunction(val) ? val(useSettingsStore.getState().containerWidth) : val }),
+  setTempSeconds: (val) => set({ tempSeconds: isFunction(val) ? val(get().tempSeconds) : val }),
+  setContainerWidth: (val) => set({ containerWidth: isFunction(val) ? val(get().containerWidth) : val }),
   setFontSizeLevel: (val) => {
-    const next = isFunction(val) ? val(useSettingsStore.getState().fontSizeLevel) : val;
+    const next = isFunction(val) ? val(get().fontSizeLevel) : val;
     set({ fontSizeLevel: next });
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-font-size', next);
     }
   },
-  setShowMarketIndexPc: (val) =>
-    set({ showMarketIndexPc: isFunction(val) ? val(useSettingsStore.getState().showMarketIndexPc) : val }),
+  setShowMarketIndexPc: (val) => set({ showMarketIndexPc: isFunction(val) ? val(get().showMarketIndexPc) : val }),
   setShowMarketIndexMobile: (val) =>
     set({
-      showMarketIndexMobile: isFunction(val) ? val(useSettingsStore.getState().showMarketIndexMobile) : val
+      showMarketIndexMobile: isFunction(val) ? val(get().showMarketIndexMobile) : val
     }),
   setShowGroupFundSearchPc: (val) =>
     set({
-      showGroupFundSearchPc: isFunction(val) ? val(useSettingsStore.getState().showGroupFundSearchPc) : val
+      showGroupFundSearchPc: isFunction(val) ? val(get().showGroupFundSearchPc) : val
     }),
   setShowGroupFundSearchMobile: (val) =>
     set({
-      showGroupFundSearchMobile: isFunction(val) ? val(useSettingsStore.getState().showGroupFundSearchMobile) : val
+      showGroupFundSearchMobile: isFunction(val) ? val(get().showGroupFundSearchMobile) : val
     }),
-  setDynamicStylePc: (val) =>
-    set({ dynamicStylePc: isFunction(val) ? val(useSettingsStore.getState().dynamicStylePc) : val }),
-  setDynamicStyleMobile: (val) =>
-    set({ dynamicStyleMobile: isFunction(val) ? val(useSettingsStore.getState().dynamicStyleMobile) : val }),
+  setDynamicStylePc: (val) => set({ dynamicStylePc: isFunction(val) ? val(get().dynamicStylePc) : val }),
+  setDynamicStyleMobile: (val) => set({ dynamicStyleMobile: isFunction(val) ? val(get().dynamicStyleMobile) : val }),
   setShowGroupDropdownPc: (val) =>
     set({
-      showGroupDropdownPc: isFunction(val) ? val(useSettingsStore.getState().showGroupDropdownPc) : val
+      showGroupDropdownPc: isFunction(val) ? val(get().showGroupDropdownPc) : val
     }),
   setShowGroupDropdownMobile: (val) =>
     set({
-      showGroupDropdownMobile: isFunction(val) ? val(useSettingsStore.getState().showGroupDropdownMobile) : val
+      showGroupDropdownMobile: isFunction(val) ? val(get().showGroupDropdownMobile) : val
     }),
   setIsGroupSummarySticky: (val) =>
     set({
-      isGroupSummarySticky: isFunction(val) ? val(useSettingsStore.getState().isGroupSummarySticky) : val
+      isGroupSummarySticky: isFunction(val) ? val(get().isGroupSummarySticky) : val
     }),
 
   syncFromCustomSettings: (customSettings: unknown) => {
@@ -104,13 +101,11 @@ export const useSettingsStore = create<SettingsStoreState>((set) => ({
       const w = cs.pcContainerWidth;
       const num = Number(w);
       if (Number.isFinite(num)) {
-        const maxWidth =
-          typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
-            ? 99999
-            : typeof window !== 'undefined'
-              ? Math.max(window.innerWidth, 2000)
-              : 1200;
-        patch.containerWidth = Math.min(maxWidth, Math.max(600, num));
+        if (typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches) {
+          patch.containerWidth = Math.max(600, num);
+        } else {
+          patch.containerWidth = clampPcContainerWidth(num);
+        }
       }
       if (isBoolean(cs.showMarketIndexPc)) patch.showMarketIndexPc = cs.showMarketIndexPc;
       if (isBoolean(cs.showMarketIndexMobile)) patch.showMarketIndexMobile = cs.showMarketIndexMobile;

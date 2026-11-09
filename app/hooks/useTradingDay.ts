@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { nowInTz, formatDate } from '../lib/fundHelpers';
 import { fetchShanghaiIndexDate } from '../api/fund';
+import { isTradingDay as isCalendarTradingDay } from '../lib/tradingCalendar';
 
 export interface UseTradingDayReturn {
   isTradingDay: boolean;
@@ -9,7 +10,7 @@ export interface UseTradingDayReturn {
 /**
  * 检测当前是否为 A 股交易日
  * - 周末直接判定为非交易日
- * - 工作日通过请求上证指数最新交易时间来判断节假日
+ * - 结合法定节假日日历与上证指数最新交易时间综合校验
  * - 每 30 分钟自动重新检查一次
  */
 export function useTradingDay(): UseTradingDayReturn {
@@ -26,9 +27,13 @@ export function useTradingDay(): UseTradingDayReturn {
       return;
     }
 
-    // 工作日通过上证指数判断是否为节假日
-    // 接口返回示例: v_sh000001="1~上证指数~...~20260205150000~..."
-    // 第30位是时间字段
+    // 优先采用法定节假日日历快速判定
+    if (!isCalendarTradingDay(now)) {
+      setIsTradingDay(false);
+      return;
+    }
+
+    // 工作日通过上证指数行情做二次校验
     try {
       const dateStr = await fetchShanghaiIndexDate();
       if (!dateStr) {
@@ -40,14 +45,15 @@ export function useTradingDay(): UseTradingDayReturn {
         setIsTradingDay(true);
       } else {
         const minutes = now.hour() * 60 + now.minute();
+        // 开盘 30 分钟后若上证指数交易日期仍未更新，则判定休市
         if (minutes >= 9 * 60 + 30) {
           setIsTradingDay(false);
         } else {
-          setIsTradingDay(true);
+          setIsTradingDay(isCalendarTradingDay(now));
         }
       }
     } catch {
-      setIsTradingDay(!isWeekend);
+      setIsTradingDay(isCalendarTradingDay(now));
     }
   };
 

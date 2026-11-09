@@ -124,7 +124,7 @@ export function useFundFilterSort({
         const name = String(f?.name ?? '').toLowerCase();
         const code = String(f?.code ?? '').toLowerCase();
         let hasTagMatch = false;
-        if (f?.code && Array.isArray(fundTagListsByCode?.[f.code])) {
+        if (f?.code && isArray(fundTagListsByCode?.[f.code])) {
           hasTagMatch = fundTagListsByCode[f.code].some(
             (t) => t?.name && String(t.name).toLowerCase().includes(qLower)
           );
@@ -291,7 +291,13 @@ export function useFundFilterSort({
               }
             }
           }
-          if (!matchedDaily && jzrq !== todayStr) matchedDaily = list[list.length - 1];
+          if (!matchedDaily && jzrq !== todayStr) {
+            const lastItem = list[list.length - 1];
+            // 仅当最近收益记录在 7 天以内（覆盖周末及法定小长假），才作为昨日收益兜底，避免陈旧历史记录干扰排序
+            if (lastItem?.date && Math.abs(dayjs(todayStr).diff(dayjs(lastItem.date), 'day')) <= 7) {
+              matchedDaily = lastItem;
+            }
+          }
           return matchedDaily && Number.isFinite(Number(matchedDaily.earnings)) ? Number(matchedDaily.earnings) : null;
         };
         const valA = getYesterdayProfit(a.code, a.jzrq);

@@ -615,30 +615,23 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
       {/* ===== Modal: 单选选基 ===== */}
       <AnimatePresence>
         {selectFundSingleModal.open && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <SelectFundSingleModal
-                allFunds={(cb.current.funds || []).filter((f: any) => f?.code && f.code !== convertModal.fund?.code)}
-                excludeCodes={selectFundSingleModal.excludeCodes}
-                initialSelectedCode={selectFundSingleModal.initialSelectedCode}
-                onClose={() => {
-                  if (isFunction(selectFundSingleModal._resolve)) {
-                    selectFundSingleModal._resolve(null);
-                  }
-                  setSelectFundSingleModal({ open: false, excludeCodes: [], initialSelectedCode: '' });
-                }}
-                onConfirm={(picked: any) => {
-                  if (isFunction(selectFundSingleModal._resolve)) {
-                    selectFundSingleModal._resolve(picked);
-                  }
-                  setSelectFundSingleModal({ open: false, excludeCodes: [], initialSelectedCode: '' });
-                }}
-              />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>选择转入基金</p>
-            </TooltipContent>
-          </Tooltip>
+          <SelectFundSingleModal
+            allFunds={(cb.current.funds || []).filter((f: any) => f?.code && f.code !== convertModal.fund?.code)}
+            excludeCodes={selectFundSingleModal.excludeCodes}
+            initialSelectedCode={selectFundSingleModal.initialSelectedCode}
+            onClose={() => {
+              if (isFunction(selectFundSingleModal._resolve)) {
+                selectFundSingleModal._resolve(null);
+              }
+              setSelectFundSingleModal({ open: false, excludeCodes: [], initialSelectedCode: '' });
+            }}
+            onConfirm={(picked: any) => {
+              if (isFunction(selectFundSingleModal._resolve)) {
+                selectFundSingleModal._resolve(picked);
+              }
+              setSelectFundSingleModal({ open: false, excludeCodes: [], initialSelectedCode: '' });
+            }}
+          />
         )}
       </AnimatePresence>
 
