@@ -2,13 +2,14 @@
 
 import * as React from 'react';
 import { useMemo, useState } from 'react';
-import { RefreshCw, X, AlertTriangle } from 'lucide-react';
+import { RefreshCw, X, AlertTriangle, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { formatMoney, cn } from '@/lib/utils';
+import { isArray, isNil } from 'lodash';
 
 export interface ScannedFundItem {
   code: string;
@@ -24,6 +25,7 @@ export interface ScanImportConfirmModalProps {
   selectedScannedCodes: Set<string>;
   onClose: () => void;
   onToggle: (code: string) => void;
+  onSelectAll?: (codes: Set<string>) => void;
   onConfirm: (groupId: string, expandAfterAdd: boolean, autoDataSource: boolean, autoImportTags: boolean) => void;
   onRetryOcr?: () => void;
   refreshing?: boolean;
@@ -32,6 +34,8 @@ export interface ScanImportConfirmModalProps {
   existingFavCodes?: string[];
   isOcrScan?: boolean;
   currentGroup?: string;
+  isScanImporting?: boolean;
+  scanImportProgress?: { current?: number; total?: number; success?: number; failed?: number };
 }
 
 export default function ScanImportConfirmModal({
@@ -39,42 +43,74 @@ export default function ScanImportConfirmModal({
   selectedScannedCodes,
   onClose,
   onToggle,
+  onSelectAll,
   onConfirm,
   onRetryOcr,
   groups = [],
   existingAllCodes = [],
   existingFavCodes = [],
   isOcrScan = false,
-  currentGroup = 'all'
+  currentGroup = 'all',
+  isScanImporting = false,
+  scanImportProgress
 }: ScanImportConfirmModalProps) {
   const [selectedGroupId, setSelectedGroupId] = useState(currentGroup);
   const [expandAfterAdd, setExpandAfterAdd] = useState(true);
   const [autoDataSource, setAutoDataSource] = useState(false);
   const [autoImportTags, setAutoImportTags] = useState(true);
+
   const allCodeSet = useMemo(() => new Set((existingAllCodes || []).filter(Boolean)), [existingAllCodes]);
   const favCodeSet = useMemo(() => new Set((existingFavCodes || []).filter(Boolean)), [existingFavCodes]);
 
   const handleConfirm = () => {
+    if (isScanImporting || selectedScannedCodes.size === 0) return;
     onConfirm(selectedGroupId, expandAfterAdd, autoDataSource, autoImportTags);
   };
 
   const formatAmount = (val: any) => {
-    if (!val) return null;
+    if (isNil(val) || val === '') return null;
     const num = parseFloat(String(val).replace(/,/g, ''));
     if (isNaN(num)) return null;
     return num;
   };
 
+  // 可选基金（排除未找到代码的）
+  const selectableCodes = useMemo(() => {
+    return scannedFunds.filter((item) => item.status !== 'invalid').map((item) => item.code);
+  }, [scannedFunds]);
+
+  const isAllSelected = selectableCodes.length > 0 && selectableCodes.every((c) => selectedScannedCodes.has(c));
+
+  const handleToggleSelectAll = () => {
+    if (isScanImporting) return;
+    if (onSelectAll) {
+      if (isAllSelected) {
+        onSelectAll(new Set());
+      } else {
+        onSelectAll(new Set(selectableCodes));
+      }
+    } else {
+      selectableCodes.forEach((c) => {
+        if (isAllSelected && selectedScannedCodes.has(c)) {
+          onToggle(c);
+        } else if (!isAllSelected && !selectedScannedCodes.has(c)) {
+          onToggle(c);
+        }
+      });
+    }
+  };
+
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <Dialog open onOpenChange={(open) => !open && !isScanImporting && onClose()}>
       <DialogContent
-        className="glass card modal max-w-[480px] w-[92vw] z-[99] p-5 max-h-[88vh] flex flex-col"
+        className="glass card modal max-w-[500px] w-[94vw] max-h-[85vh] p-5 flex flex-col overflow-hidden z-[99]"
         overlayClassName="modal-overlay"
         showCloseButton={false}
       >
+        {/* 顶部标题栏 */}
         <DialogTitle asChild>
-          <div className="title flex items-center justify-between mb-3 shrink-0">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between pb-3 border-b border-[var(--border)] shrink-0">
+            <div className="flex items-center gap-2.5">
               <span className="font-semibold text-base text-foreground">确认导入基金</span>
               {isOcrScan && onRetryOcr && (
                 <Button
@@ -82,7 +118,8 @@ export default function ScanImportConfirmModal({
                   variant="ghost"
                   size="sm"
                   onClick={onRetryOcr}
-                  className="h-7 px-2 text-xs text-primary hover:text-primary/80 gap-1 p-0"
+                  disabled={isScanImporting}
+                  className="h-7 px-2 text-xs text-primary hover:text-primary/80 gap-1"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>重新识别</span>
@@ -92,28 +129,31 @@ export default function ScanImportConfirmModal({
             <Button
               variant="ghost"
               size="icon"
-              className="w-8 h-8 rounded-full text-[var(--muted)] hover:text-foreground"
+              className="w-8 h-8 rounded-full text-muted-foreground hover:text-foreground"
               onClick={onClose}
+              disabled={isScanImporting}
             >
               <X className="w-4 h-4" />
             </Button>
           </div>
         </DialogTitle>
 
-        {isOcrScan && (
-          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-xs text-foreground mb-3 shrink-0">
-            <AlertTriangle className="w-4 h-4 text-primary shrink-0" />
-            <span>拍照识别方案目前还在优化，请确认识别结果是否正确。</span>
-          </div>
-        )}
+        {/* 主内容区域：单层滚动容器 */}
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 pt-3 scrollbar-y-styled">
+          {/* 提示信息 */}
+          {isOcrScan && (
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-xs text-foreground">
+              <AlertTriangle className="w-4 h-4 text-primary shrink-0" />
+              <span>拍照识别结果基于 OCR 与大模型匹配，请确认基金及金额是否正确。</span>
+            </div>
+          )}
 
-        {scannedFunds.length === 0 ? (
-          <div className="text-xs text-[var(--muted)] py-6 text-center leading-relaxed">
-            未识别到有效的基金代码，请尝试更清晰的截图或手动搜索。
-          </div>
-        ) : (
-          <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-3 pr-1 scrollbar-y-styled">
-            <div className="search-results flex flex-col gap-2 max-h-[340px] overflow-y-auto pr-1">
+          {scannedFunds.length === 0 ? (
+            <div className="text-xs text-muted-foreground py-10 text-center leading-relaxed">
+              未识别到有效的基金代码，请尝试更清晰的持仓截图。
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
               {scannedFunds.map((item) => {
                 const isSelected = selectedScannedCodes.has(item.code);
                 const isInvalid = item.status === 'invalid';
@@ -130,93 +170,119 @@ export default function ScanImportConfirmModal({
                     : false;
                 const holdAmounts = formatAmount(item.holdAmounts);
                 const holdGains = formatAmount(item.holdGains);
-                const hasHoldingData = holdAmounts !== null && holdGains !== null;
+                const hasHoldingData = !isNil(holdAmounts) && !isNil(holdGains);
                 const isAlreadyInTarget = targetGroup === 'all' ? inAll : targetGroup === 'fav' ? inFav : inGroup;
-                const isDisabled = (isAlreadyInTarget && !hasHoldingData) || isInvalid;
+                const isDisabled = (isAlreadyInTarget && !hasHoldingData) || isInvalid || isScanImporting;
                 const displayName = item.name || (isInvalid ? '未找到基金' : '未知基金');
 
                 return (
                   <div
                     key={item.code}
                     className={cn(
-                      'search-item p-3 rounded-xl border border-[var(--border)] bg-background/30 flex flex-col gap-1.5 transition-colors select-none',
-                      isSelected && 'border-primary/40 bg-primary/10',
+                      'w-full p-3 rounded-xl border border-[var(--border)] bg-background/40 transition-colors select-none text-left',
+                      isSelected && 'border-primary/50 bg-primary/10',
                       isAlreadyInTarget && !hasHoldingData && 'opacity-60',
-                      isDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-background/50'
+                      isDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-background/60'
                     )}
-                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       if (isDisabled) return;
                       onToggle(item.code);
                     }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="fund-info flex items-baseline gap-2">
-                        <span className="font-semibold text-sm text-foreground">{displayName}</span>
-                        <span className="text-xs text-[var(--muted)] tabular-nums">#{item.code}</span>
+                    <div className="flex items-center justify-between gap-3 w-full">
+                      {/* 左侧基金信息 */}
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm text-foreground truncate">{displayName}</span>
+                          <span className="text-xs text-muted-foreground font-mono shrink-0">#{item.code}</span>
+                        </div>
+
+                        {/* 持仓与收益数据 */}
+                        {hasHoldingData && !isDisabled && (
+                          <div className="flex items-center gap-3 pt-1.5 text-xs">
+                            {!isNil(holdAmounts) && (
+                              <span className="text-muted-foreground">
+                                持有金额：
+                                <span className="text-foreground font-medium tabular-nums font-mono">
+                                  {formatMoney(holdAmounts)}
+                                </span>
+                              </span>
+                            )}
+                            {!isNil(holdGains) && (
+                              <span className="text-muted-foreground">
+                                持有收益：
+                                <span
+                                  className={cn(
+                                    'font-medium tabular-nums font-mono',
+                                    holdGains >= 0 ? 'text-[var(--danger)]' : 'text-[var(--success)]'
+                                  )}
+                                >
+                                  {holdGains >= 0 ? '+' : '-'}
+                                  {formatMoney(Math.abs(holdGains))}
+                                </span>
+                              </span>
+                            )}
+                            {isAlreadyInTarget && (
+                              <span className="text-[11px] text-[var(--danger)] bg-[var(--danger)]/15 px-1.5 py-0.5 rounded ml-auto">
+                                已存在
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      {isAlreadyInTarget && !hasHoldingData ? (
-                        <span className="text-[11px] text-[var(--muted)] bg-white/5 px-2 py-0.5 rounded-md">
-                          已添加
-                        </span>
-                      ) : isInvalid ? (
-                        <span className="text-[11px] text-[var(--danger)] bg-[var(--danger)]/10 px-2 py-0.5 rounded-md">
-                          未找到
-                        </span>
-                      ) : (
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => onToggle(item.code)}
-                          className="shrink-0"
-                        />
-                      )}
+
+                      {/* 右侧操作复选框 / 状态 */}
+                      <div className="shrink-0 flex items-center pl-2">
+                        {isAlreadyInTarget && !hasHoldingData ? (
+                          <span className="text-[11px] text-muted-foreground bg-white/5 px-2 py-0.5 rounded-md">
+                            已添加
+                          </span>
+                        ) : isInvalid ? (
+                          <span className="text-[11px] text-[var(--danger)] bg-[var(--danger)]/10 px-2 py-0.5 rounded-md">
+                            未找到
+                          </span>
+                        ) : (
+                          <Checkbox
+                            checked={isSelected}
+                            disabled={isDisabled}
+                            onCheckedChange={() => onToggle(item.code)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
+                      </div>
                     </div>
-                    {hasHoldingData && !isDisabled && (
-                      <div className="flex items-center gap-3 pt-1 text-xs">
-                        {holdAmounts !== null && (
-                          <span className="text-[var(--muted)]">
-                            持有金额：
-                            <span className="text-foreground font-medium tabular-nums">{formatMoney(holdAmounts)}</span>
-                          </span>
-                        )}
-                        {holdGains !== null && (
-                          <span className="text-[var(--muted)]">
-                            持有收益：
-                            <span
-                              className={cn(
-                                'font-medium tabular-nums',
-                                holdGains >= 0 ? 'text-[var(--danger)]' : 'text-[var(--success)]'
-                              )}
-                            >
-                              {holdGains >= 0 ? '+' : '-'}
-                              {formatMoney(Math.abs(holdGains))}
-                            </span>
-                          </span>
-                        )}
-                        {isAlreadyInTarget && (
-                          <span className="text-[11px] text-[var(--danger)] bg-[var(--danger)]/15 px-2 py-0.5 rounded-md ml-auto">
-                            已存在
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </div>
                 );
               })}
             </div>
+          )}
 
-            <div className="flex flex-col gap-2.5 pt-2 border-t border-[var(--border)]">
+          {/* 导入选项 */}
+          {scannedFunds.length > 0 && (
+            <div className="flex flex-col gap-2.5 pt-3 border-t border-[var(--border)]">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-[var(--muted)]">添加后展开详情</span>
-                <Switch checked={expandAfterAdd} onCheckedChange={(checked) => setExpandAfterAdd(Boolean(checked))} />
+                <span className="text-xs text-muted-foreground">添加后展开详情</span>
+                <Switch
+                  checked={expandAfterAdd}
+                  onCheckedChange={(checked) => setExpandAfterAdd(Boolean(checked))}
+                  disabled={isScanImporting}
+                />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-[var(--muted)]">导入基金标签</span>
-                <Switch checked={autoImportTags} onCheckedChange={(checked) => setAutoImportTags(Boolean(checked))} />
+                <span className="text-xs text-muted-foreground">导入基金标签</span>
+                <Switch
+                  checked={autoImportTags}
+                  onCheckedChange={(checked) => setAutoImportTags(Boolean(checked))}
+                  disabled={isScanImporting}
+                />
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs text-[var(--muted)] whitespace-nowrap">添加到分组：</span>
-                <Select value={selectedGroupId} onValueChange={(value) => setSelectedGroupId(value)}>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">添加到分组：</span>
+                <Select
+                  value={selectedGroupId}
+                  onValueChange={(value) => setSelectedGroupId(value)}
+                  disabled={isScanImporting}
+                >
                   <SelectTrigger className="flex-1 h-8 text-xs">
                     <SelectValue placeholder="选择分组" />
                   </SelectTrigger>
@@ -236,21 +302,59 @@ export default function ScanImportConfirmModal({
                 </Select>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        <div className="flex gap-2 justify-end mt-4 pt-3 border-t border-[var(--border)] shrink-0">
-          <Button type="button" variant="outline" className="h-9 px-4 text-xs" onClick={onClose}>
-            取消
-          </Button>
-          <Button
-            type="button"
-            className="h-9 px-4 text-xs font-medium"
-            onClick={handleConfirm}
-            disabled={selectedScannedCodes.size === 0}
-          >
-            确认导入 ({selectedScannedCodes.size})
-          </Button>
+        {/* 底部操作栏：固定底部 */}
+        <div className="flex items-center justify-between pt-3 border-t border-[var(--border)] shrink-0 mt-3">
+          <div className="flex items-center gap-2">
+            {selectableCodes.length > 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                disabled={isScanImporting}
+                onClick={handleToggleSelectAll}
+              >
+                {isAllSelected ? '取消全选' : '全选'}
+              </Button>
+            )}
+            <span className="text-xs text-muted-foreground">
+              已选 <span className="font-semibold text-primary">{selectedScannedCodes.size}</span> /{' '}
+              {scannedFunds.length} 支
+            </span>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 px-4 text-xs"
+              onClick={onClose}
+              disabled={isScanImporting}
+            >
+              取消
+            </Button>
+            <Button
+              type="button"
+              className="h-9 px-4 text-xs font-medium gap-1.5"
+              onClick={handleConfirm}
+              disabled={selectedScannedCodes.size === 0 || isScanImporting}
+            >
+              {isScanImporting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>
+                    正在导入 ({scanImportProgress?.current || 0}/
+                    {scanImportProgress?.total || selectedScannedCodes.size})...
+                  </span>
+                </>
+              ) : (
+                `确认导入 (${selectedScannedCodes.size})`
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

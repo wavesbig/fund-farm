@@ -71,7 +71,7 @@ export function useScanImport({
   dedupeByCode = (arr: any[]) => arr,
   setFundTagRecords
 }: UseScanImportDeps): UseScanImportReturn {
-  const setSuccessModal = (state: any) => useModalStore.setState({ successModal: state });
+  // const setSuccessModal = (state: any) => useModalStore.setState({ successModal: state });
   const funds = useStorageStore((s) => s.funds);
   const favorites = useStorageStore((s) => s.favorites);
   const groups = useStorageStore((s) => s.groups);
@@ -282,6 +282,7 @@ export function useScanImport({
       )
     );
     setIsOcrScan(true);
+    setScanModalOpen(false);
     setScanConfirmModalOpen(true);
   };
 
@@ -291,6 +292,7 @@ export function useScanImport({
       return;
     }
     setScanConfirmModalOpen(false);
+    setScanModalOpen(true);
     setIsScanning(true);
     abortScanRef.current = false;
     setScanProgress({ stage: 'ocr', current: 0, total: lastOcrTexts.length });
@@ -305,6 +307,7 @@ export function useScanImport({
     } finally {
       setIsScanning(false);
       setScanProgress({ stage: 'ocr', current: 0, total: 0 });
+      setScanModalOpen(false);
     }
   };
 
@@ -312,6 +315,7 @@ export function useScanImport({
     abortScanRef.current = true;
     setIsScanning(false);
     setScanProgress({ stage: 'ocr', current: 0, total: 0 });
+    setScanModalOpen(false);
     if (ocrWorkerRef.current) {
       import('../lib/ocr').then(({ terminateOcrWorker }) => terminateOcrWorker());
       ocrWorkerRef.current = null;
@@ -323,7 +327,7 @@ export function useScanImport({
     if (!files?.length) return;
 
     setIsScanning(true);
-    setScanModalOpen(false);
+    setScanModalOpen(true);
     abortScanRef.current = false;
     setScanProgress({ stage: 'ocr', current: 0, total: files.length });
 
@@ -385,6 +389,7 @@ export function useScanImport({
         setScannedFunds([]);
         setSelectedScannedCodes(new Set());
         setIsOcrScan(true);
+        setScanModalOpen(false);
         setScanConfirmModalOpen(true);
       }
     } catch (err) {
@@ -395,6 +400,7 @@ export function useScanImport({
     } finally {
       setIsScanning(false);
       setScanProgress({ stage: 'ocr', current: 0, total: 0 });
+      setScanModalOpen(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -450,7 +456,7 @@ export function useScanImport({
       showToast('所选基金已在目标分组中', 'info');
       return;
     }
-    setScanConfirmModalOpen(false);
+    // 保持确认弹框展示，在确认按钮上内联呈现导入进度
     setIsScanImporting(true);
     setScanImportProgress({ current: 0, total: codes.length, success: 0, failed: 0 });
 
@@ -575,19 +581,20 @@ export function useScanImport({
       }
 
       if (successCount > 0) {
-        setSuccessModal({ open: true, message: `成功导入 ${successCount} 个基金` });
+        showToast(`成功导入 ${successCount} 支基金`, 'success');
       } else if (allSelectedSet.size > 0 && failedCount === 0) {
-        setSuccessModal({ open: true, message: '所选基金已在目标分组中' });
+        showToast('所选基金已在目标分组中', 'info');
       } else {
         showToast('未能导入任何基金', 'info');
       }
     } catch {
-      showToast('导入失败', 'error');
+      showToast('导入失败，请稍后重试', 'error');
     } finally {
       setIsScanImporting(false);
       setScanImportProgress({ current: 0, total: 0, success: 0, failed: 0 });
       setScannedFunds([]);
       setSelectedScannedCodes(new Set());
+      setScanConfirmModalOpen(false);
     }
   };
 

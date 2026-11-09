@@ -9,10 +9,7 @@ export interface BrandLogoProps {
 export const BrandLogo = React.memo(function BrandLogo({ isSyncing = false }: BrandLogoProps) {
   return (
     <div className="brand flex items-center gap-2 select-none shrink-0 min-w-max">
-      <div
-        className="size-7 relative inline-flex items-center justify-center shrink-0"
-        aria-label="养基场"
-      >
+      <div className="size-7 relative inline-flex items-center justify-center shrink-0" aria-label="养基场">
         {/* 同步中图标 */}
         <svg
           width="22"

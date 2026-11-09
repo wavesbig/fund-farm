@@ -3954,6 +3954,7 @@ export default function HomePage() {
     handleRetryOcr: () => handleRetryOcr?.(),
     handleFilesDrop: (e) => handleFilesDrop?.(e),
     toggleScannedCode: (code) => toggleScannedCode?.(code),
+    setSelectedScannedCodes: (codes) => setSelectedScannedCodes?.(codes),
     confirmScanImport: (...args) => confirmScanImport?.(...args),
     // 辅助函数
     getScopedHolding: (code, groupIdOverride) => getScopedHolding?.(code, groupIdOverride),

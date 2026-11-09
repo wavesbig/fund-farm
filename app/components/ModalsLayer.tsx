@@ -828,14 +828,21 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
         )}
       </AnimatePresence>
 
-      {/* ===== Modal: 扫描识别 - 选择 ===== */}
+      {/* ===== Modal: 扫描识别 - 选择与识别进度 ===== */}
       <AnimatePresence>
         {scanModalOpen && (
           <ScanPickModal
-            onClose={() => setScanModalOpen(false)}
+            onClose={() => {
+              if (isScanning) {
+                cb.current.cancelScan?.();
+              }
+              setScanModalOpen(false);
+            }}
             onPick={cb.current.handleScanPick}
             onFilesDrop={cb.current.handleFilesDrop}
             isScanning={isScanning}
+            scanProgress={scanProgress}
+            onCancelScan={cb.current.cancelScan}
           />
         )}
       </AnimatePresence>
@@ -845,7 +852,7 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
         {aiConfigModalOpen && <AiConfigModal onClose={() => setAiConfigModalOpen(false)} />}
       </AnimatePresence>
 
-      {/* ===== Modal: 扫描识别 - 确认 ===== */}
+      {/* ===== Modal: 扫描识别 - 确认导入 ===== */}
       <AnimatePresence>
         {scanConfirmModalOpen && (
           <ScanImportConfirmModal
@@ -853,6 +860,7 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
             selectedScannedCodes={selectedScannedCodes}
             onClose={() => setScanConfirmModalOpen(false)}
             onToggle={cb.current.toggleScannedCode}
+            onSelectAll={cb.current.setSelectedScannedCodes}
             onConfirm={cb.current.confirmScanImport}
             onRetryOcr={cb.current.handleRetryOcr}
             refreshing={cb.current.refreshing}
@@ -861,6 +869,8 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
             existingFavCodes={Array.from(cb.current.favorites || new Set())}
             isOcrScan={isOcrScan}
             currentGroup={cb.current.currentTab === 'summary' ? 'all' : cb.current.currentTab}
+            isScanImporting={isScanImporting}
+            scanImportProgress={scanImportProgress}
           />
         )}
       </AnimatePresence>
@@ -890,16 +900,6 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
             showGroupDropdownMobile={cb.current.showGroupDropdownMobile}
           />
         )}
-      </AnimatePresence>
-
-      {/* ===== Modal: 扫描进度 ===== */}
-      <AnimatePresence>
-        {isScanning && <ScanProgressModal scanProgress={scanProgress} onCancel={cb.current.cancelScan} />}
-      </AnimatePresence>
-
-      {/* ===== Modal: 扫描导入进度 ===== */}
-      <AnimatePresence>
-        {isScanImporting && <ScanImportProgressModal scanImportProgress={scanImportProgress} />}
       </AnimatePresence>
 
       {/* ===== Modal: 排序个性化设置 ===== */}
