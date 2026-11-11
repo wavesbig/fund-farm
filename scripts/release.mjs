@@ -12,7 +12,7 @@ if (!env.GITHUB_TOKEN) {
     const credProc = spawnSync('docker-credential-desktop.exe', ['get'], {
       input: 'ghcr.io\n',
       encoding: 'utf-8',
-      shell: true,
+      shell: true
     });
     if (credProc.stdout) {
       const parsed = JSON.parse(credProc.stdout);

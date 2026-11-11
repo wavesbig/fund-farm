@@ -28,7 +28,7 @@ const DEMO_FUNDS = [
     name: '摩根纳斯达克100指数(QDII)A',
     dwjz: '1.2005',
     gsz: 1.2185,
-    gszzl: 1.50,
+    gszzl: 1.5,
     jzrq: '2026-11-10',
     gztime: '2026-11-11 15:00',
     yesterdayZzl: 1.12,
@@ -41,7 +41,7 @@ const DEMO_FUNDS = [
     name: '广发恒生科技ETF联接A',
     dwjz: '2.3252',
     gsz: 2.3485,
-    gszzl: 1.00,
+    gszzl: 1.0,
     jzrq: '2026-11-10',
     gztime: '2026-11-11 15:00',
     yesterdayZzl: 0.95,
@@ -67,7 +67,7 @@ const DEMO_FUNDS = [
     name: '易方达消费行业股票',
     dwjz: '3.6520',
     gsz: 3.6739,
-    gszzl: 0.60,
+    gszzl: 0.6,
     jzrq: '2026-11-10',
     gztime: '2026-11-11 15:00',
     yesterdayZzl: -0.25,
@@ -78,11 +78,11 @@ const DEMO_FUNDS = [
 ];
 
 const DEMO_HOLDINGS = {
-  '000478': { share: 2000, cost: 2.9200 },
-  '012319': { share: 3000, cost: 1.1500 },
-  '020483': { share: 2500, cost: 2.2500 },
-  '002671': { share: 1500, cost: 1.7200 },
-  '110022': { share: 1000, cost: 3.5800 }
+  '000478': { share: 2000, cost: 2.92 },
+  '012319': { share: 3000, cost: 1.15 },
+  '020483': { share: 2500, cost: 2.25 },
+  '002671': { share: 1500, cost: 1.72 },
+  110022: { share: 1000, cost: 3.58 }
 };
 
 const DEMO_GROUPS = [
@@ -110,7 +110,7 @@ if (!serverAlreadyRunning) {
       const res = await fetch(BASE_URL);
       if (res.ok) break;
     } catch {}
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 1000));
   }
 }
 
@@ -152,16 +152,22 @@ async function setupContextAndPage(viewport, isMobile = false) {
   const page = await context.newPage();
 
   // 注入非敏感但丰富美观的示例资产数据
-  await page.addInitScript(({ funds, holdings, groups }) => {
-    window.localStorage.setItem('funds', JSON.stringify(funds));
-    window.localStorage.setItem('holdings', JSON.stringify(holdings));
-    window.localStorage.setItem('groups', JSON.stringify(groups));
-    window.localStorage.setItem('favorites', JSON.stringify(['000478', '012319', '110022']));
-    window.localStorage.setItem('customSettings', JSON.stringify({
-      showHoldingsInCard: true,
-      showCost: true
-    }));
-  }, { funds: DEMO_FUNDS, holdings: DEMO_HOLDINGS, groups: DEMO_GROUPS });
+  await page.addInitScript(
+    ({ funds, holdings, groups }) => {
+      window.localStorage.setItem('funds', JSON.stringify(funds));
+      window.localStorage.setItem('holdings', JSON.stringify(holdings));
+      window.localStorage.setItem('groups', JSON.stringify(groups));
+      window.localStorage.setItem('favorites', JSON.stringify(['000478', '012319', '110022']));
+      window.localStorage.setItem(
+        'customSettings',
+        JSON.stringify({
+          showHoldingsInCard: true,
+          showCost: true
+        })
+      );
+    },
+    { funds: DEMO_FUNDS, holdings: DEMO_HOLDINGS, groups: DEMO_GROUPS }
+  );
 
   return { context, page };
 }
@@ -225,7 +231,6 @@ try {
   await mobPage.screenshot({ path: mobDemo });
   console.log(`    ✓ 移动端适配截图已就绪: ${mobDemo}`);
   await mobCtx.close();
-
 } finally {
   await browser.close().catch(() => {});
   if (server) {
