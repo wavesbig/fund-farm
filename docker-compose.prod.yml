@@ -4,7 +4,7 @@
 # 数据目录 ./data 自动创建与持久化。
 services:
   app:
-    image: ghcr.io/wavesbig/fund-farm:latest   # 锁定版本可改为具体 tag（如 :1.0.1）
+    image: ghcr.io/wavesbig/fund-farm:latest   # 锁定版本可改为具体 tag（如 :1.0.2）
     container_name: fund-farm
     ports:
       - "3000:3000"
