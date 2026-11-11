@@ -6,5 +6,22 @@ const gitBash = 'C:\\Program Files\\Git\\bin\\bash.exe';
 const sh = existsSync(gitBash) ? gitBash : 'bash';
 const args = ['scripts/release.sh', ...process.argv.slice(2)];
 
-const result = spawnSync(sh, args, { stdio: 'inherit' });
+const env = { ...process.env };
+if (!env.GITHUB_TOKEN) {
+  try {
+    const credProc = spawnSync('docker-credential-desktop.exe', ['get'], {
+      input: 'ghcr.io\n',
+      encoding: 'utf-8',
+      shell: true,
+    });
+    if (credProc.stdout) {
+      const parsed = JSON.parse(credProc.stdout);
+      if (parsed.Secret) {
+        env.GITHUB_TOKEN = parsed.Secret;
+      }
+    }
+  } catch {}
+}
+
+const result = spawnSync(sh, args, { stdio: 'inherit', env });
 process.exit(result.status ?? 0);
