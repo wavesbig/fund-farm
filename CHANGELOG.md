@@ -1,0 +1,74 @@
+## v1.0.1 - 2026-11-11
+
+### 变更
+
+- chore(release): 增加 release.mjs 启动器适配 Windows Git Bash
+- chore(release): 优化 Windows 下 Docker 凭据自动提取逻辑
+- chore: 引入自动化发版脚本与生产 compose 配置
+- style(ui): 全局图标打磨、布局对齐优化与 shadcn UI 标准化收敛
+- feat(table): 基于 shadcn/ui 重构 PC 基金表格并彻底修复多列换行与透光穿透问题
+- fix(scan): 修复识图导入弹框排版错乱并极大精简弹窗交互链路
+- fix(sync): 彻底修复 SQLite 初始化在组件重渲染时重复触发覆盖本地数据的致命缺陷
+- style(ui): 移除 Logo 冗余保存状态浮层文案
+- fix: 修复全量审查中的安全漏洞、并发同步与计算逻辑缺陷
+- feat(branding): 项目名变更为 fund-farm，底栏及反馈入口全面接入 GitHub Issues
+- style(branding): 升级养基场超高清矢量吉祥物与纯矢量顶栏图标，解决小尺寸模糊问题
+- style(branding): 接入全新 3D 拟态「小金鸡」吉祥物 App Icon
+- style(branding): 落地「养基场」全新视觉 Logo（金鸡破晓 · 步步高升）
+- chore(branding): 全面更名为「养基场」(FundFarm)
+- feat: 内置基金关联板块与基准指数行情支持，清理历史遗留依赖与部署配置
+- refactor: 重构顶部 Header 与操作交互，规范 AI 弹窗布局并修复全站排版闪烁
+- feat: 全面优化 Better-UI 规范与修复嵌套按钮 Hydration 异常
+- refactor: 彻底拔除 Supabase 依赖并清理部署残留与冗余技能配置
+- fix(tutorial): 修复 PC 端使用帮助弹窗排版错乱与 12 列栅格冲突
+- chore: 移除原作者个人信息与收款群码，重构内置帮助并规范致谢章节
+- refactor(sync): 改造为实时自动保存至 SQLite 并清理遗留的手动同步入口
+- refactor(types): 全面完成应用层与配置文件的 TypeScript 迁移
+- refactor(auth): 彻底移除 Supabase 依赖并重构用户菜单与同步体验
+- fix(FilterBar): 修复排序规则文本展示为空及视图切换与排序栏自适应布局问题
+- style(modals): 根据 jakubkrehel/skills 标准打磨全局设置与弹窗设计系统
+- style(settings): 根据 jakubkrehel/skills 标准打磨图标、颜色、字体与同心圆角间距
+- refactor(settings): 移除'减少动态样式效果'设置项，精简视图偏好选项
+- style(settings): 移除底部弹框 footer 中多余的当前分类指示
+- fix(settings): 禁用点击遮罩层 (mask) 关闭弹框，防止误触丢失配置
+- fix(ai): 优化连通性测试提示文案与展示位置，增加全局 Toast 反馈与即时内联状态
+- style(settings): 全面去除设置弹框内标题下方冗余的描述性说明，保持极简现代风格
+- style(ai): 精简 AI 大模型配置文案，去除冗余说明与长句描述
+- refactor(settings): 移除多余的本地优先架构提示与侧边栏声明
+- fix(settings): 隔离移动端与PC端侧边栏渲染，根除 .grid 类名污染导致的布局被挤压变形问题
+- style(settings): 彻底消除横向滚动条，重构卡片质感配色与品牌视觉层次
+- feat(settings): 将设置弹窗重构为桌面侧边栏布局，全面升级大模型 AI 接口配置中心
+- fix(settings): 修复设置弹框遮罩层 z-index 高于内容层导致无法交互的问题
+- refactor(settings): 全面采用官方 shadcn/ui 组件规范重构设置弹框及子模块
+- fix(settings): 修复设置弹框开关列表被全局 grid 挤压成单字竖排的布局错乱
+- refactor(settings): 基于分类与设计规范重构设置弹框为三标签页架构
+- fix(search): 使用 shadcn/ui 的 Input 组件重构搜索框并解决图标与占位文本重叠问题
+- fix(navbar): 使用 CSS Grid 实现顶栏输入框真居中并修复布局错乱
+- fix(navbar): 将搜索框绝对居中固定并彻底去除点击时类名切换与伸缩动画
+- fix(navbar): 规范顶栏输入框默认布局并移除聚焦伸缩晃动动画
+- docs: 更新 AGENTS.md 与 GEMINI.md 架构与规范说明为 TypeScript
+- refactor: 完成单页入口 app/page.tsx 全量 TypeScript 重构与类型补全
+- refactor: 重构根布局、全局错误页与查询提供者为 TypeScript 规范
+- refactor: 完成所有核心组件 TypeScript 重构（含弹窗调度、卡片与双端表格视图）
+- refactor: 重构我的主页、行情页面与基金列表视图为 TypeScript 规范
+- refactor: 重构我的收益日历页面组件为 TypeScript 与 shadcn/ui 规范
+- refactor: 重构分时图、走势图、通用控件与图标集为 TypeScript 规范
+- refactor: 重构导航栏、大盘指数折叠面板与移动端详情抽屉为 TypeScript 与 shadcn/ui 规范
+- refactor: 重构收益明细与历史净值组件集为 TypeScript 与 shadcn/ui 规范
+- refactor: 重构锁屏界面、数据源选择器及全局工具组件为 TypeScript 规范
+- refactor: 重构用户菜单、刷新按钮、扫码按钮及常驻控制组件为 TypeScript 与规范化
+- refactor: 重构全部板块、更新日志、导入确认与登录弹窗为 TypeScript 与 shadcn/ui 规范
+- refactor: 重构基金标签编辑弹窗组件集为 TypeScript 与 shadcn/ui 规范
+- refactor: 全量重构设置与配置类弹窗为 TypeScript 与 shadcn/ui 规范
+- refactor: 全量升级交易记录类弹窗与资产汇总卡片为 TypeScript 与 shadcn/ui 规范
+- refactor: 重构 TradeModal 与 DcaModal 为 TypeScript 与 shadcn/ui 组件规范
+- refactor(ui): 落地 UI 排查治理与 P0/P1 缺陷修复 (等宽数字、Safari防缩放、Emoji图标矢量化、弹窗TS/shadcn升级)
+- refactor: 重构业务弹窗模块为 TypeScript 与 shadcn/ui 组件规范
+- refactor: 全量升级 components/ui 基础组件库为 TypeScript
+- refactor: 推进 TypeScript 架构改造与全面接入 shadcn/ui 组件库
+- perf: 深度优化 UI 渲染性能与存储状态流转，消除全树重绘与操作掉帧
+- fix: 将 AI 大模型配置直接整合至主设置弹窗，并增加 SQLite 立即同步与多端回显保障
+- feat: 支持通过 API Key 动态拉取服务商模型列表并提供下拉选择
+- feat: 集成通用 OpenAI / OpenAPI 兼容大模型 SDK，支持 DeepSeek 等多平台持仓智能提取与可视化配置
+- feat: 去除 Pro 限制，全面改造为本地 SQLite 存储与私有密码防窥登录系统
+
