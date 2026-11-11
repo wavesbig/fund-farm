@@ -1781,6 +1781,7 @@ html::-webkit-scrollbar-thumb:active,
   .mobile-fund-table {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(var(--mobile-bottom-nav-height, 56px) + 36px);
   }
 
   .mobile-fund-table-scroll {
@@ -1825,7 +1826,11 @@ html::-webkit-scrollbar-thumb:active,
     align-items: center;
     min-width: 0;
     overflow: hidden;
-    font-size: 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    white-space: nowrap !important;
+    word-break: keep-all !important;
   }
 
   /* 移动端表格行：长按进批量/排序时尽量避免系统文字选择与 iOS 放大镜/呼出菜单（兼容 WebKit / Chromium） */
@@ -1953,10 +1958,12 @@ html::-webkit-scrollbar-thumb:active,
     min-height: 100%;
   }
 
-  /* 移动端表格表体基金名称字体优化（提升易读性） */
+  /* 移动端表格表体基金名称字体优化（提升易读性与留白呼吸感） */
   .mobile-fund-table .table-row .name-cell .name-text {
-    font-size: 16px;
+    font-size: 14.5px;
     font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -1971,7 +1978,9 @@ html::-webkit-scrollbar-thumb:active,
   }
 
   .mobile-fund-table .table-row .name-cell .code-text {
-    font-size: 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    opacity: 0.85;
   }
 
   .mobile-fund-table .value-cell {

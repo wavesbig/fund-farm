@@ -119,7 +119,7 @@ export default function SearchBar({
               'h-[38px] w-full rounded-lg pl-9 text-[16PX] md:text-sm bg-card border-border shadow-[0_1px_2px_rgba(50,50,93,0.06),0_1px_1px_rgba(0,0,0,0.04)] text-foreground placeholder:text-muted-foreground/80 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-[border-color,box-shadow,background-color] duration-150 ease-out',
               hasValue ? 'pr-16' : 'pr-20'
             )}
-            placeholder="搜索基金名称或代码..."
+            placeholder="搜索代码、名称..."
             value={searchTerm}
             onChange={handleSearchInput}
             onFocus={() => setShowDropdown(true)}

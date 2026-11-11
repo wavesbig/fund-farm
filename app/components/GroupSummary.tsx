@@ -236,7 +236,7 @@ export default function GroupSummary({
       <div className="glass card group-summary-card mb-3 p-4 md:px-6 md:py-4 rounded-xl border border-border shadow-sm">
         <div className="flex items-end justify-between min-w-0 gap-4">
           {/* 左侧：全部资产与总额 (严格光学左对齐) */}
-          <div className="flex-[4] min-w-0">
+          <div className="flex-[4] md:flex-[5] shrink-0 min-w-0">
             <div className="flex items-center gap-1.5 mb-1.5">
               <span className="text-sm font-medium text-muted-foreground tracking-wide" key={portfolioTabId}>
                 {portfolioScopeLabel}
@@ -301,23 +301,23 @@ export default function GroupSummary({
           </div>
 
           {/* 右侧：当日收益、持有收益与吸顶固定按钮 */}
-          <div className="flex gap-4 md:gap-6 flex-[5] min-w-0 justify-end items-end">
+          <div className="flex gap-2.5 sm:gap-4 md:gap-6 flex-[7] md:flex-[5] min-w-0 justify-end items-end">
             {/* 当日收益 */}
             <div className="text-right flex-1 min-w-0">
-              <div className="text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1.5">
-                <span>当日收益{showTodayPercent ? '(%)' : ''}</span>
+              <div className="text-xs md:text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1 whitespace-nowrap">
+                <span className="whitespace-nowrap shrink-0">{showTodayPercent ? '当日收益率' : '当日收益'}</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      className="size-5 rounded text-muted-foreground/50 hover:text-primary hover:bg-primary/10 active:scale-95 transition-all cursor-pointer inline-flex items-center justify-center"
+                      className="size-4.5 md:size-5 rounded text-muted-foreground/50 hover:text-primary hover:bg-primary/10 active:scale-95 transition-all cursor-pointer inline-flex items-center justify-center shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (summary.hasAnyTodayData) setShowTodayPercent(!showTodayPercent);
                       }}
                       aria-label="切换金额与百分比"
                     >
-                      <ArrowLeftRight className="size-3" strokeWidth={1.8} />
+                      <ArrowLeftRight className="size-2.5 md:size-3" strokeWidth={1.8} />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" sideOffset={4}>
@@ -379,20 +379,20 @@ export default function GroupSummary({
 
             {/* 持有收益 */}
             <div className={`text-right ${isMobile ? 'flex-1' : ''} min-w-0`}>
-              <div className="text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1.5">
-                <span>持有收益{showPercent ? '(%)' : ''}</span>
+              <div className="text-xs md:text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1 whitespace-nowrap">
+                <span className="whitespace-nowrap shrink-0">{showPercent ? '持有收益率' : '持有收益'}</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      className="size-5 rounded text-muted-foreground/50 hover:text-primary hover:bg-primary/10 active:scale-95 transition-all cursor-pointer inline-flex items-center justify-center"
+                      className="size-4.5 md:size-5 rounded text-muted-foreground/50 hover:text-primary hover:bg-primary/10 active:scale-95 transition-all cursor-pointer inline-flex items-center justify-center shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowPercent(!showPercent);
                       }}
                       aria-label="切换金额与百分比"
                     >
-                      <ArrowLeftRight className="size-3" strokeWidth={1.8} />
+                      <ArrowLeftRight className="size-2.5 md:size-3" strokeWidth={1.8} />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" sideOffset={4}>

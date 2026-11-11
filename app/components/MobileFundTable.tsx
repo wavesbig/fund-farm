@@ -1176,24 +1176,24 @@ const MobileFundTable = memo(function MobileFundTable({
     [EDIT_MOVE_TO_FRONT_COL]: 72,
     [EDIT_DRAG_COL]: 72,
     tags: 120,
-    relatedSector: 120,
+    relatedSector: 110,
     period1w: 72,
     period1m: 72,
     period3m: 72,
     period6m: 72,
     period1y: 72,
-    latestNav: 64,
-    estimateNav: 64,
-    yesterdayChangePercent: 72,
-    estimateChangePercent: 80,
+    latestNav: 72,
+    estimateNav: 72,
+    yesterdayChangePercent: 78,
+    estimateChangePercent: 82,
     sinceAddedChangePercent: 80,
     totalChangePercent: 80,
-    holdingDays: 64,
+    holdingDays: 68,
     todayProfit: 80,
     yesterdayProfit: 80,
     holdingProfit: 80,
     holdingCost: 80,
-    costNav: 64
+    costNav: 70
   };
 
   const relatedSectorEnabled = mobileColumnVisibility?.relatedSector !== false;
@@ -1990,7 +1990,8 @@ const MobileFundTable = memo(function MobileFundTable({
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     textAlign: 'right',
-                    fontSize: pctText != null ? '12.5px' : '14px'
+                    fontSize: pctText != null ? '11px' : '13px',
+                    color: 'var(--muted-foreground)'
                   }}
                 >
                   {firstLine}
@@ -2249,7 +2250,7 @@ const MobileFundTable = memo(function MobileFundTable({
                     {info.getValue() ?? '—'}
                   </span>
                 </span>
-                <span className="muted" style={{ fontSize: '13px' }}>
+                <span className="text-[11px] text-muted-foreground/80 tabular-nums leading-tight block mt-0.5">
                   {displayDate}
                 </span>
               </div>
@@ -2283,7 +2284,7 @@ const MobileFundTable = memo(function MobileFundTable({
                   </span>
                 </span>
                 {hasEstimateNav && displayDate && displayDate !== '-' ? (
-                  <span className="muted" style={{ fontSize: '13px' }}>
+                  <span className="text-[11px] text-muted-foreground/80 tabular-nums leading-tight block mt-0.5">
                     {displayDate}
                   </span>
                 ) : null}
@@ -2316,7 +2317,7 @@ const MobileFundTable = memo(function MobileFundTable({
                     {info.getValue() ?? '—'}
                   </span>
                 </span>
-                <span className="muted" style={{ fontSize: '13px' }}>
+                <span className="text-[11px] text-muted-foreground/80 tabular-nums leading-tight block mt-0.5">
                   {displayDate}
                 </span>
               </div>
@@ -2352,7 +2353,7 @@ const MobileFundTable = memo(function MobileFundTable({
                   </span>
                 </span>
                 {hasText && displayTime && displayTime !== '-' ? (
-                  <span className="muted" style={{ fontSize: '13px' }}>
+                  <span className="text-[11px] text-muted-foreground/80 tabular-nums leading-tight block mt-0.5">
                     {displayTime}
                   </span>
                 ) : null}
@@ -2877,10 +2878,16 @@ const MobileFundTable = memo(function MobileFundTable({
                     : alignClass.includes('text-right')
                       ? 'flex-end'
                       : 'flex-start',
-                  width: '100%'
+                  width: '100%',
+                  whiteSpace: 'nowrap',
+                  wordBreak: 'keep-all'
                 }}
               >
-                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                {header.isPlaceholder ? null : (
+                  <span style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}>
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </span>
+                )}
                 {isSortEnabled && (
                   <span
                     style={{

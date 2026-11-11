@@ -115,7 +115,7 @@ export const BrandLogo = React.memo(function BrandLogo({ isSyncing = false }: Br
         </svg>
       </div>
 
-      <span className="text-[17px] font-semibold tracking-tight text-foreground">养基场</span>
+      <span className="hidden min-[420px]:inline text-[16px] font-semibold tracking-tight text-foreground">养基场</span>
     </div>
   );
 });
