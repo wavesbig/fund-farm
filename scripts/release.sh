@@ -134,9 +134,15 @@ printf '==> 发布 %s：GitHub Release\n' "$tag"
 if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
   gh release create "$tag" --title "$tag" --notes-file "$release_notes"
 else
-  # gh 不可用时兜底：取 git 凭据管理器中已存的 GitHub 凭据直接调 API 创建
+  # gh 不可用时兜底：取凭据直接调 API 创建
   repo=$(git remote get-url origin | sed -E 's#.*github\.com[:/]##; s#\.git$##')
-  token=$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill 2>/dev/null | sed -n 's/^password=//p')
+  token="${GITHUB_TOKEN:-}"
+  if [[ -z "$token" ]]; then
+    token=$(cmd.exe /c "echo ghcr.io | docker-credential-desktop get" 2>/dev/null | node -e "const fs=require('fs');try{console.log(JSON.parse(fs.readFileSync(0,'utf-8')).Secret||'')}catch{}" || true)
+  fi
+  if [[ -z "$token" ]]; then
+    token=$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill 2>/dev/null | sed -n 's/^password=//p' || true)
+  fi
   payload=$(node -e 'const fs=require("node:fs");process.stdout.write(JSON.stringify({tag_name:process.argv[1],name:process.argv[1],body:fs.readFileSync(process.argv[2],"utf8").trimEnd()}))' "$tag" "$release_notes")
   resp_file=$(mktemp)
   http_code=$(curl --silent --show-error -o "$resp_file" -w '%{http_code}' \
