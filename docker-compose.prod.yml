@@ -1,0 +1,15 @@
+# 生产部署：直接拉取 GHCR 镜像。
+# 首次部署：
+#   docker compose -f docker-compose.prod.yml up -d
+# 数据目录 ./data 自动创建与持久化。
+services:
+  app:
+    image: ghcr.io/wavesbig/fund-farm:latest   # 锁定版本可改为具体 tag（如 :1.0.0）
+    container_name: fund-farm
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped

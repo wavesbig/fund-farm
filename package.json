@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
+    "release": "bash scripts/release.sh",
     "prepare": "husky"
   },
   "dependencies": {
