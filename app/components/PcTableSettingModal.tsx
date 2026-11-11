@@ -162,9 +162,9 @@ export default function PcTableSettingModal({
         value={item}
         className="flex items-center gap-2 p-2.5 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 transition-[background-color,border-color,box-shadow] duration-150 ease-out shadow-xs backdrop-blur-sm"
         layout
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.98 }}
+        initial={{ opacity: 0, scale: 0.98, y: 6 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.14, ease: 'easeOut' } }}
         onDragStart={() => {
           isDraggingRef.current = true;
           if (timerRef.current) {
@@ -184,11 +184,8 @@ export default function PcTableSettingModal({
           }, 1000);
         }}
         transition={{
-          type: 'spring',
-          stiffness: 500,
-          damping: 35,
-          mass: 1,
-          layout: { duration: 0.2 }
+          duration: 0.2,
+          ease: 'easeOut'
         }}
       >
         <div className="flex items-center px-1.5 cursor-grab text-muted-foreground/60 hover:text-foreground touch-none select-none">
@@ -345,7 +342,7 @@ export default function PcTableSettingModal({
                         onReorder={handlePinnedReorder}
                         className="flex flex-col gap-2"
                       >
-                        <AnimatePresence mode="popLayout">{pinnedItems.map(renderItem)}</AnimatePresence>
+                        <AnimatePresence initial={false}>{pinnedItems.map(renderItem)}</AnimatePresence>
                       </Reorder.Group>
                     </div>
                   )}
@@ -360,7 +357,7 @@ export default function PcTableSettingModal({
                         onReorder={handleUnpinnedReorder}
                         className="flex flex-col gap-2"
                       >
-                        <AnimatePresence mode="popLayout">{unpinnedItems.map(renderItem)}</AnimatePresence>
+                        <AnimatePresence initial={false}>{unpinnedItems.map(renderItem)}</AnimatePresence>
                       </Reorder.Group>
                     </div>
                   )}

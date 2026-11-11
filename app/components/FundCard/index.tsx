@@ -20,7 +20,7 @@ import { Stat, ConsecutiveTrendBadge } from '../Common';
 import FundTrendChart from '../FundTrendChart';
 import FundIntradayChart from '../FundIntradayChart';
 import FundDailyEarnings from '../FundDailyEarnings';
-import { ChevronIcon, SettingsIcon, StarIcon, SwitchIcon, TrashIcon, LinkIcon } from '../Icons';
+import { ChevronDown, Settings2, Star, ArrowLeftRight, Trash2, Link2 } from 'lucide-react';
 import { getTagThemeBadgeProps } from '../AddTagDialog';
 
 dayjs.extend(utc);
@@ -148,13 +148,9 @@ function MoreSection({
           }}
         >
           <span>{expanded ? '收起' : '更多'}</span>
-          <ChevronIcon
-            width="14"
-            height="14"
-            style={{
-              transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.25s ease'
-            }}
+          <ChevronDown
+            className={cn('size-3.5 transition-transform duration-250', expanded ? 'rotate-180' : '')}
+            strokeWidth={1.8}
           />
         </button>
         <div style={{ flex: 1, height: '1px', background: 'var(--border, rgba(255,255,255,0.08))' }} />
@@ -475,7 +471,7 @@ const FundCard = memo(function Index({
                     e.currentTarget.style.color = 'var(--muted-foreground)';
                   }}
                 >
-                  <PlusCircle size={18} />
+                  <PlusCircle size={18} strokeWidth={1.8} />
                 </button>
               </TooltipTrigger>
               <TooltipContent>
@@ -486,13 +482,22 @@ const FundCard = memo(function Index({
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  className={`icon-button fav-button ${favorites?.has(f.code) ? 'active' : ''}`}
+                  className={`icon-button fav-button active:scale-95 transition-all ${favorites?.has(f.code) ? 'active' : ''}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     onToggleFavorite?.(f.code);
                   }}
+                  aria-label={favorites?.has(f.code) ? '取消自选' : '添加自选'}
                 >
-                  <StarIcon width="18" height="18" filled={favorites?.has(f.code)} />
+                  <Star
+                    className={cn(
+                      'size-4 transition-all duration-200',
+                      favorites?.has(f.code)
+                        ? 'fill-amber-400 text-amber-400 scale-105'
+                        : 'text-muted-foreground/50 hover:text-amber-400'
+                    )}
+                    strokeWidth={1.8}
+                  />
                 </button>
               </TooltipTrigger>
               <TooltipContent>
@@ -501,40 +506,25 @@ const FundCard = memo(function Index({
             </Tooltip>
           ) : null}
           <div className="title-text" style={{ minWidth: 0 }}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="name-text">
-                  {isHoldingLinked ? (
-                    <Tooltip delayDuration={150}>
-                      <TooltipTrigger asChild>
-                        <span
-                          aria-label="已关联持仓"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            marginRight: 6,
-                            color: 'var(--primary)',
-                            verticalAlign: 'middle',
-                            position: 'relative',
-                            bottom: 2
-                          }}
-                        >
-                          <LinkIcon width="14" height="14" />
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>持仓来自自定义分组汇总</TooltipContent>
-                    </Tooltip>
-                  ) : null}
-                  <ConsecutiveTrendBadge trend={fundExtraData?.consecutiveTrend} />
-                  {f.name}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{isNavUpdated(f.jzrq, todayStr, f.confirmDays) ? '今日净值已更新' : ''}</p>
-              </TooltipContent>
-            </Tooltip>
+            <span className="name-text">
+              {f.name}
+              {isHoldingLinked ? (
+                <Tooltip delayDuration={150}>
+                  <TooltipTrigger asChild>
+                    <span
+                      aria-label="已关联持仓"
+                      className="inline-flex items-center ml-1.5 text-primary align-middle relative -top-0.5 cursor-help"
+                    >
+                      <Link2 className="size-3.5" strokeWidth={1.8} />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>持仓来自自定义分组汇总</TooltipContent>
+                </Tooltip>
+              ) : null}
+              <ConsecutiveTrendBadge trend={fundExtraData?.consecutiveTrend} />
+            </span>
             <span className="muted">
-              #{f.code}
+              {f.code}
               {hasPending && <span className="pending-indicator">待</span>}
               {(hasDca || dcaPlans?.[f.code]?.enabled === true) && <span className="dca-indicator">定</span>}
               {isNavUpdated(f.jzrq, todayStr, f.confirmDays) && <span className="updated-indicator">✓</span>}
@@ -619,16 +609,12 @@ const FundCard = memo(function Index({
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  className="icon-button danger"
+                  type="button"
+                  className="inline-flex items-center justify-center size-7 rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-all cursor-pointer"
                   onClick={() => onRemoveFund?.(f)}
-                  style={{
-                    width: '28px',
-                    height: '28px',
-                    opacity: 1,
-                    cursor: 'pointer'
-                  }}
+                  aria-label="删除"
                 >
-                  <TrashIcon width="14" height="14" />
+                  <Trash2 className="size-3.5" strokeWidth={1.8} />
                 </button>
               </TooltipTrigger>
               <TooltipContent>
@@ -745,7 +731,7 @@ const FundCard = memo(function Index({
                       onHoldingClick?.(f);
                     }}
                   >
-                    未设置 <SettingsIcon width="12" height="12" />
+                    未设置 <Settings2 className="size-3 inline-block ml-0.5 opacity-70" strokeWidth={1.8} />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -769,7 +755,7 @@ const FundCard = memo(function Index({
                     }}
                   >
                     <span className="label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      持仓金额 <SettingsIcon width="12" height="12" style={{ opacity: 0.7 }} />
+                      持仓金额 <Settings2 className="size-3 opacity-70" strokeWidth={1.8} />
                     </span>
                     <span className="value">{masked ? '******' : `${formatMoney(profit.amount)}`}</span>
                   </div>
@@ -800,6 +786,7 @@ const FundCard = memo(function Index({
                     onTodayPercentModeToggle?.(f.code);
                   }
                 }}
+                title={profit.profitToday != null ? '点击切换金额/百分比' : undefined}
                 style={{
                   cursor: profit.profitToday != null ? 'pointer' : 'default',
                   flexDirection: 'column',
@@ -808,37 +795,32 @@ const FundCard = memo(function Index({
               >
                 <span className="label" style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   当日收益{todayPercentModes?.[f.code] ? '(%)' : ''}
-                  {profit.profitToday != null && <SwitchIcon />}
+                  {profit.profitToday != null && (
+                    <ArrowLeftRight className="size-3 opacity-70 ml-0.5 inline-block" strokeWidth={1.8} />
+                  )}
                 </span>
                 {profit.profitToday != null ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span
-                        className={`value ${
-                          masked ? '' : profit.profitToday > 0 ? 'up' : profit.profitToday < 0 ? 'down' : ''
-                        }`}
-                        style={{ display: 'inline-block' }}
-                      >
-                        {masked ? (
-                          '******'
-                        ) : (
-                          <>
-                            {profit.profitToday > 0 ? '+' : profit.profitToday < 0 ? '-' : ''}
-                            {todayPercentModes?.[f.code]
-                              ? `${Math.abs(
-                                  holding?.cost * holding?.share
-                                    ? (profit.profitToday / (holding.cost * holding.share)) * 100
-                                    : 0
-                                ).toFixed(2)}%`
-                              : `${formatMoney(Math.abs(profit.profitToday))}`}
-                          </>
-                        )}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>点击切换金额/百分比</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <span
+                    className={`value ${
+                      masked ? '' : profit.profitToday > 0 ? 'up' : profit.profitToday < 0 ? 'down' : ''
+                    }`}
+                    style={{ display: 'inline-block' }}
+                  >
+                    {masked ? (
+                      '******'
+                    ) : (
+                      <>
+                        {profit.profitToday > 0 ? '+' : profit.profitToday < 0 ? '-' : ''}
+                        {todayPercentModes?.[f.code]
+                          ? `${Math.abs(
+                              holding?.cost * holding?.share
+                                ? (profit.profitToday / (holding.cost * holding.share)) * 100
+                                : 0
+                            ).toFixed(2)}%`
+                          : `${formatMoney(Math.abs(profit.profitToday))}`}
+                      </>
+                    )}
+                  </span>
                 ) : (
                   <span className="value muted" style={{ display: 'inline-block' }}>
                     --
@@ -852,6 +834,7 @@ const FundCard = memo(function Index({
                     e.stopPropagation();
                     onPercentModeToggle?.(f.code);
                   }}
+                  title="点击切换金额/百分比"
                   style={{ cursor: 'pointer', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}
                 >
                   <span
@@ -859,36 +842,29 @@ const FundCard = memo(function Index({
                     style={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}
                   >
                     持有收益{percentModes?.[f.code] ? '(%)' : ''}
-                    <SwitchIcon />
+                    <ArrowLeftRight className="size-3 opacity-70 ml-0.5 inline-block" strokeWidth={1.8} />
                   </span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span
-                        className={`value ${
-                          masked ? '' : profit.profitTotal > 0 ? 'up' : profit.profitTotal < 0 ? 'down' : ''
-                        }`}
-                        style={{ display: 'inline-block' }}
-                      >
-                        {masked ? (
-                          '******'
-                        ) : (
-                          <>
-                            {profit.profitTotal > 0 ? '+' : profit.profitTotal < 0 ? '-' : ''}
-                            {percentModes?.[f.code]
-                              ? `${Math.abs(
-                                  holding?.cost * holding?.share
-                                    ? (profit.profitTotal / (holding.cost * holding.share)) * 100
-                                    : 0
-                                ).toFixed(2)}%`
-                              : `${formatMoney(Math.abs(profit.profitTotal))}`}
-                          </>
-                        )}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>点击切换金额/百分比</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <span
+                    className={`value ${
+                      masked ? '' : profit.profitTotal > 0 ? 'up' : profit.profitTotal < 0 ? 'down' : ''
+                    }`}
+                    style={{ display: 'inline-block' }}
+                  >
+                    {masked ? (
+                      '******'
+                    ) : (
+                      <>
+                        {profit.profitTotal > 0 ? '+' : profit.profitTotal < 0 ? '-' : ''}
+                        {percentModes?.[f.code]
+                          ? `${Math.abs(
+                              holding?.cost * holding?.share
+                                ? (profit.profitTotal / (holding.cost * holding.share)) * 100
+                                : 0
+                            ).toFixed(2)}%`
+                          : `${formatMoney(Math.abs(profit.profitTotal))}`}
+                      </>
+                    )}
+                  </span>
                 </div>
               )}
             </>
@@ -1032,14 +1008,12 @@ const FundCard = memo(function Index({
                 <div className="row" style={{ width: '100%', flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span>前10重仓</span>
-                    <ChevronIcon
-                      width="16"
-                      height="16"
-                      className="muted"
-                      style={{
-                        transform: collapsedCodes?.has(f.code) ? 'rotate(-90deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.2s ease'
-                      }}
+                    <ChevronDown
+                      className={cn(
+                        'size-4 text-muted-foreground transition-transform duration-200',
+                        collapsedCodes?.has(f.code) ? '-rotate-90' : 'rotate-0'
+                      )}
+                      strokeWidth={1.8}
                     />
                   </div>
                 </div>
@@ -1122,14 +1096,11 @@ const FundCard = memo(function Index({
                 <div className="row" style={{ width: '100%', flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span>我的收益</span>
-                    <ChevronIcon
-                      width="16"
-                      height="16"
-                      className="muted"
-                      style={{
-                        transform: !collapsedEarnings?.has(f.code) ? 'rotate(0deg)' : 'rotate(-90deg)',
-                        transition: 'transform 0.2s ease'
-                      }}
+                    <ChevronDown
+                      className={cn(
+                        'size-4 text-muted-foreground transition-transform duration-200',
+                        !collapsedEarnings?.has(f.code) ? 'rotate-0' : '-rotate-90'
+                      )}
                     />
                   </div>
                   <span className="muted" style={{ fontSize: 13 }}>

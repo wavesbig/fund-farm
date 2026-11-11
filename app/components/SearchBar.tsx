@@ -109,7 +109,10 @@ export default function SearchBar({
     <>
       <form className="form flex items-center gap-2 w-full" onSubmit={addFund}>
         <div className="relative flex-1 flex items-center min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10 opacity-70" />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70 pointer-events-none z-10"
+            strokeWidth={1.8}
+          />
           <Input
             ref={inputRef}
             className={cn(
@@ -132,10 +135,10 @@ export default function SearchBar({
               <button
                 type="button"
                 onClick={handleClear}
-                className="size-5 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/[0.08] [data-theme=light]:hover:bg-black/[0.06] transition-colors cursor-pointer"
+                className="size-5 rounded-full flex items-center justify-center text-muted-foreground/70 hover:text-foreground hover:bg-white/[0.08] [data-theme=light]:hover:bg-black/[0.06] active:scale-95 transition-all cursor-pointer"
                 aria-label="清空输入"
               >
-                <X className="size-3.5" />
+                <X className="size-3" strokeWidth={2} />
               </button>
             )}
             {isSearching && (

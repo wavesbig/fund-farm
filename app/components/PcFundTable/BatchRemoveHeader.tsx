@@ -75,9 +75,9 @@ export function BatchRemoveHeader({
           }}
           disabled={!!disabled}
           type="button"
-          className="h-6 px-2 gap-1 text-xs text-primary border-primary/30 hover:bg-primary/10 hover:text-primary"
+          className="h-6 px-2 gap-1 text-xs text-primary border-primary/30 hover:bg-primary/10 hover:text-primary active:scale-95 transition-all"
         >
-          <FolderPlus className="size-3" />
+          <FolderPlus className="size-3.5" strokeWidth={1.8} />
           <span>移动分组</span>
         </Button>
         <Button
@@ -89,9 +89,9 @@ export function BatchRemoveHeader({
           }}
           disabled={!!disabled}
           type="button"
-          className="h-6 px-2 gap-1 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+          className="h-6 px-2 gap-1 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive active:scale-95 transition-all"
         >
-          <Trash2 className="size-3" />
+          <Trash2 className="size-3.5" strokeWidth={1.8} />
           <span>批量删除</span>
         </Button>
         {onClose && (
@@ -104,9 +104,9 @@ export function BatchRemoveHeader({
             }}
             type="button"
             aria-label="退出编辑"
-            className="size-6 text-muted-foreground hover:text-foreground rounded"
+            className="size-6 text-muted-foreground hover:text-foreground rounded active:scale-95 transition-all"
           >
-            <X className="size-3.5" />
+            <X className="size-3.5" strokeWidth={2} />
           </Button>
         )}
       </div>

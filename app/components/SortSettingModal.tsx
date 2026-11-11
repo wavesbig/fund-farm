@@ -66,15 +66,12 @@ function SortSettingReorderItem({
         isMobile ? 'mobile-setting-item' : 'pc-table-setting-item'
       )}
       layout
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.98 }}
+      initial={{ opacity: 0, scale: 0.98, y: 6 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.14, ease: 'easeOut' } }}
       transition={{
-        type: 'spring',
-        stiffness: 500,
-        damping: 35,
-        mass: 1,
-        layout: { duration: 0.2 }
+        duration: 0.2,
+        ease: 'easeOut'
       }}
       style={isMobile ? { touchAction: 'pan-y' } : undefined}
       dragListener={false}
@@ -382,7 +379,7 @@ export default function SortSettingModal({ open, onClose }: SortSettingModalProp
             layoutScroll={isMobile}
             style={isMobile ? { touchAction: 'pan-y' } : undefined}
           >
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence initial={false}>
               {localRules
                 .filter((item) => item.id !== 'default')
                 .map((item) => (

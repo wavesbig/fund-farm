@@ -63,7 +63,10 @@ export default function RefreshButton({
             disabled={refreshing || fundsLength === 0}
             aria-busy={refreshing}
           >
-            <RotateCw className={cn('size-4 transition-transform duration-500', refreshing && 'animate-spin')} />
+            <RotateCw
+              className={cn('size-4 transition-transform duration-500', refreshing && 'animate-spin')}
+              strokeWidth={1.8}
+            />
           </button>
         </div>
       </TooltipTrigger>

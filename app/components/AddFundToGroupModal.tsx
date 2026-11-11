@@ -3,8 +3,7 @@
 import * as React from 'react';
 import { useState, useMemo } from 'react';
 import { isArray, isObject } from 'lodash';
-import { Search, Info, Check } from 'lucide-react';
-import { CloseIcon, PlusIcon } from './Icons';
+import { Search, Info, Check, Plus, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,7 +86,7 @@ export default function AddFundToGroupModal({
         <DialogTitle className="sr-only">添加基金到分组</DialogTitle>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2.5 font-semibold text-base">
-            <PlusIcon width="20" height="20" />
+            <Plus className="size-5 text-primary" />
             <span>添加基金到分组</span>
           </div>
           <Button
@@ -96,8 +95,9 @@ export default function AddFundToGroupModal({
             size="icon-xs"
             onClick={onClose}
             className="text-muted-foreground hover:text-foreground"
+            aria-label="关闭"
           >
-            <CloseIcon width="18" height="18" />
+            <X className="size-4" />
           </Button>
         </div>
 

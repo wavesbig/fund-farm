@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Field, FieldLabel, FieldContent } from '@/components/ui/field';
-import { PlusIcon } from './Icons';
+import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MAX_GROUP_NAME_LENGTH = 8;
@@ -41,7 +41,7 @@ export default function GroupModal({ onClose, onConfirm }: GroupModalProps) {
         <div className="glass card modal !max-w-[280px] !w-full">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2.5">
-              <PlusIcon className="w-5 h-5 shrink-0 text-[var(--foreground)]" aria-hidden />
+              <Plus className="w-5 h-5 shrink-0 text-[var(--foreground)]" aria-hidden />
               <DialogTitle asChild>
                 <span className="text-base font-semibold text-[var(--foreground)]">新增分组</span>
               </DialogTitle>

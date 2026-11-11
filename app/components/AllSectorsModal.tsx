@@ -7,6 +7,7 @@ import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from '@/components/ui/drawer';
 import { useModalStore } from '../stores';
@@ -168,15 +169,15 @@ export default function AllSectorsModal({ onClose }: AllSectorsModalProps) {
         {filteredAndSortedSectors.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground text-sm">暂无数据</div>
         ) : (
-          <div className="fund-history-table-wrapper border border-[var(--border)] rounded-xl bg-[var(--card)] mt-4 overflow-hidden">
-            <table className="fund-history-table w-full border-collapse text-xs text-foreground">
-              <thead>
-                <tr className="border-b border-[var(--border)] bg-secondary/40">
-                  <th className="py-2.5 px-3 font-semibold text-left text-[var(--muted)] sticky top-0 bg-background/80 backdrop-blur-xs z-1">
+          <div className="fund-history-table-wrapper border border-border rounded-xl bg-card mt-4 overflow-hidden">
+            <Table className="text-xs text-foreground">
+              <TableHeader>
+                <TableRow className="border-b border-border bg-secondary/40">
+                  <TableHead className="py-2.5 px-3 font-semibold text-left text-muted-foreground sticky top-0 bg-background/80 backdrop-blur-xs z-1">
                     板块名称
-                  </th>
-                  <th
-                    className="py-2.5 px-3 font-semibold text-right text-[var(--muted)] sticky top-0 bg-background/80 backdrop-blur-xs z-1 cursor-pointer select-none"
+                  </TableHead>
+                  <TableHead
+                    className="py-2.5 px-3 font-semibold text-right text-muted-foreground sticky top-0 bg-background/80 backdrop-blur-xs z-1 cursor-pointer select-none"
                     onClick={() => handleSortChange('change_pct')}
                   >
                     <div className="inline-flex items-center gap-1">
@@ -198,9 +199,9 @@ export default function AllSectorsModal({ onClose }: AllSectorsModalProps) {
                         </span>
                       </span>
                     </div>
-                  </th>
-                  <th
-                    className="py-2.5 px-3 font-semibold text-right text-[var(--muted)] sticky top-0 bg-background/80 backdrop-blur-xs z-1 cursor-pointer select-none"
+                  </TableHead>
+                  <TableHead
+                    className="py-2.5 px-3 font-semibold text-right text-muted-foreground sticky top-0 bg-background/80 backdrop-blur-xs z-1 cursor-pointer select-none"
                     onClick={() => handleSortChange('net_inflow')}
                   >
                     <div className="inline-flex items-center gap-1">
@@ -222,32 +223,34 @@ export default function AllSectorsModal({ onClose }: AllSectorsModalProps) {
                         </span>
                       </span>
                     </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredAndSortedSectors.map((sector) => {
                   const pctStr = sector.change_pct != null ? String(sector.change_pct) : '0.00';
 
                   return (
-                    <tr
+                    <TableRow
                       key={sector.id || sector.sector_id}
-                      className="border-b border-[var(--border)] last:border-0 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                      className="border-b border-border last:border-0 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                     >
-                      <td className="py-2 px-3 font-medium truncate max-w-[150px] sm:max-w-none text-foreground">
+                      <TableCell className="py-2 px-3 font-medium truncate max-w-[150px] sm:max-w-none text-foreground">
                         {sector.sector_name}
-                      </td>
-                      <td className={cn('py-2 px-3 text-right font-semibold tabular-nums', getColorClass(pctStr))}>
+                      </TableCell>
+                      <TableCell
+                        className={cn('py-2 px-3 text-right font-semibold tabular-nums', getColorClass(pctStr))}
+                      >
                         {formatPercent(pctStr)}
-                      </td>
-                      <td className={cn('py-2 px-3 text-right tabular-nums', getColorClass(sector.net_inflow))}>
+                      </TableCell>
+                      <TableCell className={cn('py-2 px-3 text-right tabular-nums', getColorClass(sector.net_inflow))}>
                         {sector.net_inflow ? (sector.net_inflow / 100000000).toFixed(2) + '亿' : '--'}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>

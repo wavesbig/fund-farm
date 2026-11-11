@@ -47,9 +47,9 @@ function MobileSettingReorderItem({
       value={item}
       className="flex items-center gap-2 p-2.5 rounded-xl border border-border/70 bg-card/60 hover:bg-card/90 transition-[background-color,border-color,box-shadow] duration-150 ease-out shadow-xs backdrop-blur-sm"
       layout
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.98 }}
+      initial={{ opacity: 0, scale: 0.98, y: 6 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.14, ease: 'easeOut' } }}
       onDragStart={() => {
         setIsReordering(true);
         onDragStart?.();
@@ -59,11 +59,8 @@ function MobileSettingReorderItem({
         onDragEnd?.();
       }}
       transition={{
-        type: 'spring',
-        stiffness: 500,
-        damping: 35,
-        mass: 1,
-        layout: { duration: 0.2 }
+        duration: 0.2,
+        ease: 'easeOut'
       }}
       style={{ touchAction: 'pan-y' }}
       dragListener={false}
@@ -295,7 +292,7 @@ export default function MobileSettingModal({
                 layoutScroll
                 style={{ touchAction: 'pan-y' }}
               >
-                <AnimatePresence mode="popLayout">
+                <AnimatePresence initial={false}>
                   {localColumns.map((item, index) => (
                     <MobileSettingReorderItem
                       key={item.id || `col-${index}`}

@@ -68,7 +68,11 @@ export default function MobileBottomNav({ value, onChange, hidden }: MobileBotto
                   >
                     <span className="mobile-bottom-nav-tab-inner">
                       <span className="mobile-bottom-nav-icon-wrap">
-                        <Icon className="mobile-bottom-nav-icon" aria-hidden strokeWidth={2} />
+                        <Icon
+                          className="mobile-bottom-nav-icon transition-transform duration-150"
+                          aria-hidden
+                          strokeWidth={active ? 2.2 : 1.8}
+                        />
                       </span>
                       <span className="mobile-bottom-nav-label">{label}</span>
                     </span>

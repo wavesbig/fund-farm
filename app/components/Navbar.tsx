@@ -159,7 +159,7 @@ export const Navbar = memo(function Navbar({
                         : 'scale-[0.25] opacity-0 blur-[4px] pointer-events-none'
                     )}
                   >
-                    <Sun className="size-4" />
+                    <Sun className="size-4" strokeWidth={1.8} />
                   </span>
                   <span
                     className={cn(
@@ -169,7 +169,7 @@ export const Navbar = memo(function Navbar({
                         : 'scale-100 opacity-100 blur-[0px]'
                     )}
                   >
-                    <Moon className="size-4" />
+                    <Moon className="size-4" strokeWidth={1.8} />
                   </span>
                 </span>
               </Button>

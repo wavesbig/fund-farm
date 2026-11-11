@@ -6,6 +6,7 @@ import { AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import { Folder, GripVertical, Plus, Settings2, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import ConfirmModal from './ConfirmModal';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
@@ -31,27 +32,32 @@ function GroupManageReorderItem({ item, onRename, onDeleteClick }: GroupManageRe
       key={item.id}
       value={item}
       className={cn(
-        'group-manage-item glass transition-colors duration-200 flex items-center gap-2 rounded-xl p-2 bg-[var(--card)] border border-[var(--border)]',
+        'group-manage-item flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 bg-card/60 border border-border/70 hover:border-border backdrop-blur-md shadow-xs transition-colors duration-150',
         isPreset &&
-          'border-primary/40 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent dark:from-primary/15 dark:via-primary/5 dark:to-transparent shadow-[0_2px_12px_rgba(34,211,238,0.06)] dark:shadow-[0_0_15px_rgba(34,211,238,0.08)]'
+          'border-primary/40 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent dark:from-primary/15 dark:via-primary/5 dark:to-transparent shadow-[0_2px_12px_rgba(34,211,238,0.06)]',
+        !isPreset && 'focus-within:border-primary/60 focus-within:ring-1 focus-within:ring-primary/30',
+        !isPreset &&
+          !item.name.trim() &&
+          'border-destructive/60 bg-destructive/[0.03] focus-within:border-destructive focus-within:ring-destructive/30'
       )}
       layout
       style={{ touchAction: 'pan-y' }}
       dragListener={false}
       dragControls={dragControls}
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.98 }}
+      initial={{ opacity: 0, scale: 0.98, y: 6 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{
+        opacity: 0,
+        scale: 0.96,
+        transition: { duration: 0.14, ease: 'easeOut' }
+      }}
       transition={{
-        type: 'spring',
-        stiffness: 500,
-        damping: 35,
-        mass: 1,
-        layout: { duration: 0.2 }
+        duration: 0.2,
+        ease: 'easeOut'
       }}
     >
       <div
-        className="drag-handle flex items-center px-2 cursor-grab text-[var(--muted)] hover:text-foreground touch-none select-none"
+        className="drag-handle flex items-center px-1.5 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-foreground active:scale-[0.95] transition-all touch-none select-none"
         onPointerDown={(e) => {
           dragControls.start(e);
         }}
@@ -59,10 +65,10 @@ function GroupManageReorderItem({ item, onRename, onDeleteClick }: GroupManageRe
         tabIndex={0}
         aria-label="拖拽排序"
       >
-        <GripVertical className="w-4 h-4" />
+        <GripVertical className="size-4" />
       </div>
       {isPreset ? (
-        <div className="flex flex-1 items-center gap-2.5 px-3 h-9 select-none">
+        <div className="flex flex-1 items-center gap-2.5 px-2 h-9 select-none">
           <span className="text-[14PX] font-medium text-foreground tracking-wide">{item.name || '自选'}</span>
           <Badge
             variant="outline"
@@ -72,11 +78,8 @@ function GroupManageReorderItem({ item, onRename, onDeleteClick }: GroupManageRe
           </Badge>
         </div>
       ) : (
-        <input
-          className={cn(
-            'input flex-1 h-9 rounded-lg px-3 bg-black/20 text-[16PX] md:text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary border border-transparent transition-colors',
-            !item.name.trim() && 'border-[var(--danger)] focus:ring-[var(--danger)]'
-          )}
+        <Input
+          className="flex-1 h-9 px-2 text-[16PX] md:text-sm font-medium text-foreground bg-transparent border-0 shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/45 transition-colors"
           value={item.name}
           onChange={(e) =>
             onRename(item.id, e.target.value, (e.nativeEvent as any).isComposing || isComposingRef.current)
@@ -95,21 +98,23 @@ function GroupManageReorderItem({ item, onRename, onDeleteClick }: GroupManageRe
         />
       )}
       {isPreset ? (
-        <div className="w-9 h-9 shrink-0" />
+        <div className="size-8.5 shrink-0" />
       ) : (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
-              className="w-9 h-9 shrink-0 text-[var(--danger)] hover:bg-[var(--danger)]/10 hover:text-[var(--danger)]"
+              className="size-8.5 rounded-lg shrink-0 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 active:scale-[0.94] transition-all cursor-pointer"
               onClick={() => onDeleteClick(item.id, item.name)}
+              aria-label={`删除分组 ${item.name || ''}`}
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="size-4" strokeWidth={1.8} />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
-            <p>删除分组</p>
+          <TooltipContent side="left" sideOffset={6}>
+            <p>删除此分组</p>
           </TooltipContent>
         </Tooltip>
       )}
@@ -223,7 +228,7 @@ export default function GroupManageModal({ groups, onClose, onSave }: GroupManag
                 layoutScroll
                 style={{ touchAction: 'pan-y' }}
               >
-                <AnimatePresence mode="popLayout">
+                <AnimatePresence initial={false}>
                   {items.map((item) => (
                     <GroupManageReorderItem
                       key={item.id}
@@ -246,7 +251,9 @@ export default function GroupManageModal({ groups, onClose, onSave }: GroupManag
           </div>
 
           <div className="mt-6">
-            {!isAllValid && <div className="text-[var(--danger)] text-sm mb-3 text-center">所有分组名称均不能为空</div>}
+            {!isAllValid && (
+              <div className="text-destructive text-xs font-medium mb-3 text-center">所有分组名称均不能为空</div>
+            )}
             <Button className="w-full h-10 font-medium" onClick={handleConfirm} disabled={!isAllValid}>
               完成
             </Button>

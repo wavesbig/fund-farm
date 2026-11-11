@@ -10,7 +10,10 @@ import {
   ArrowUp,
   ArrowDown,
   SlidersHorizontal,
-  Settings
+  Settings2,
+  LayoutGrid,
+  List,
+  Plus
 } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,9 +29,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { SUMMARY_TAB_ID } from '@/app/constants';
-import { GridIcon, ListIcon, PlusIcon } from './Icons';
 import type { FundGroup, SortRule } from '@/types';
 
 export interface FilterBarProps {
@@ -157,7 +160,7 @@ export const FilterBar = memo(function FilterBar({
                   onClick={scrollTabsLeftBtn}
                   onDoubleClick={scrollTabsToLeftEnd}
                 >
-                  <ChevronLeft size={16} />
+                  <ChevronLeft className="size-4" strokeWidth={1.8} />
                 </button>
                 <button
                   type="button"
@@ -167,7 +170,7 @@ export const FilterBar = memo(function FilterBar({
                   onClick={scrollTabsRightBtn}
                   onDoubleClick={scrollTabsToRightEnd}
                 >
-                  <ChevronRight size={16} />
+                  <ChevronRight className="size-4" strokeWidth={1.8} />
                 </button>
               </>
             )}
@@ -274,7 +277,7 @@ export const FilterBar = memo(function FilterBar({
                     onClick={() => setGroupModalOpen(true)}
                     aria-label="新增分组"
                   >
-                    <PlusIcon width="15" height="15" />
+                    <Plus className="size-3.5" strokeWidth={2} />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -293,7 +296,7 @@ export const FilterBar = memo(function FilterBar({
                 onClick={() => setGroupManageOpen(true)}
                 aria-label="管理分组"
               >
-                <SlidersHorizontal className="size-3.5" />
+                <SlidersHorizontal className="size-3.5" strokeWidth={1.8} />
               </button>
             </TooltipTrigger>
             <TooltipContent>
@@ -312,44 +315,47 @@ export const FilterBar = memo(function FilterBar({
           gap: 12
         }}
       >
-        {/* 视图切换按钮组：完全对齐 .tabs / .tab 胶囊及移入高亮规范 */}
-        <div role="radiogroup" aria-label="视图模式切换" className="tab-capsule shrink-0">
+        {/* 视图切换按钮组：shadcn ToggleGroup 标准化 */}
+        <ToggleGroup
+          type="single"
+          value={viewMode}
+          onValueChange={(val) => {
+            if (val) applyViewMode(val as 'card' | 'list');
+          }}
+          size="sm"
+          className="h-8 p-0.5 rounded-lg border border-border/60 bg-muted/30 shrink-0 gap-0.5"
+          aria-label="视图模式切换"
+        >
           <Tooltip>
             <TooltipTrigger asChild>
-              <button
-                type="button"
-                role="radio"
-                aria-checked={viewMode === 'card'}
-                onClick={() => applyViewMode('card')}
-                className={cn('tab-capsule-item', viewMode === 'card' && 'active')}
+              <ToggleGroupItem
+                value="card"
                 aria-label="卡片视图"
+                className="size-7 p-0 rounded-md data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-xs text-muted-foreground/70 hover:text-foreground cursor-pointer transition-all"
               >
-                <GridIcon width="15" height="15" />
-              </button>
+                <LayoutGrid className="size-3.5" strokeWidth={1.8} />
+              </ToggleGroupItem>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent side="bottom" sideOffset={4}>
               <p>卡片视图</p>
             </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <button
-                type="button"
-                role="radio"
-                aria-checked={viewMode === 'list'}
-                onClick={() => applyViewMode('list')}
-                className={cn('tab-capsule-item', viewMode === 'list' && 'active')}
+              <ToggleGroupItem
+                value="list"
                 aria-label="表格视图"
+                className="size-7 p-0 rounded-md data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-xs text-muted-foreground/70 hover:text-foreground cursor-pointer transition-all"
               >
-                <ListIcon width="15" height="15" />
-              </button>
+                <List className="size-3.5" strokeWidth={1.8} />
+              </ToggleGroupItem>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent side="bottom" sideOffset={4}>
               <p>表格视图</p>
             </TooltipContent>
           </Tooltip>
-        </div>
+        </ToggleGroup>
 
         {/* 使用标准 shadcn/ui Separator 替代手写 divider */}
         <Separator orientation="vertical" className="h-5" />
@@ -367,12 +373,15 @@ export const FilterBar = memo(function FilterBar({
                     isSorted && 'border-primary/40 text-primary bg-primary/10 hover:bg-primary/15'
                   )}
                 >
-                  <ArrowUpDown className={cn('size-3.5', isSorted ? 'text-primary' : 'text-muted-foreground')} />
+                  <ArrowUpDown
+                    className={cn('size-3.5', isSorted ? 'text-primary' : 'text-muted-foreground')}
+                    strokeWidth={1.8}
+                  />
                   <span className="truncate max-w-[120px]">{activeSortLabel}</span>
                   {isSorted && (
                     <span className="font-mono text-xs font-semibold">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                   )}
-                  <ChevronDown className="size-3 text-muted-foreground opacity-70 ml-0.5" />
+                  <ChevronDown className="size-3 text-muted-foreground opacity-70 ml-0.5" strokeWidth={1.8} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
@@ -424,11 +433,11 @@ export const FilterBar = memo(function FilterBar({
                   }}
                 >
                   <DropdownMenuRadioItem value="desc" className="text-xs cursor-pointer py-1.5">
-                    <ArrowDown className="size-3.5 mr-2 text-muted-foreground" />
+                    <ArrowDown className="size-3.5 mr-2 text-muted-foreground" strokeWidth={1.8} />
                     <span>降序（从高到低）</span>
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="asc" className="text-xs cursor-pointer py-1.5">
-                    <ArrowUp className="size-3.5 mr-2 text-muted-foreground" />
+                    <ArrowUp className="size-3.5 mr-2 text-muted-foreground" strokeWidth={1.8} />
                     <span>升序（从低到高）</span>
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
@@ -439,7 +448,7 @@ export const FilterBar = memo(function FilterBar({
                   onClick={() => setSortSettingOpen(true)}
                   className="text-xs cursor-pointer py-1.5 gap-2 text-muted-foreground hover:text-foreground"
                 >
-                  <Settings className="size-3.5" />
+                  <Settings2 className="size-3.5" strokeWidth={1.8} />
                   <span>自定义排序偏好...</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -486,7 +495,7 @@ export const FilterBar = memo(function FilterBar({
                     onClick={() => setSortSettingOpen(true)}
                     aria-label="排序偏好设置"
                   >
-                    <Settings className="size-3.5" />
+                    <Settings2 className="size-3.5" strokeWidth={1.8} />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>

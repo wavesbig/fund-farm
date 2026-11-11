@@ -6,9 +6,10 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { CalendarIcon, MinusIcon, PlusIcon, TrendUpIcon, TrendDownIcon } from './Icons';
+import { Calendar as CalendarIcon, Minus, Plus, TrendingUp, TrendingDown } from 'lucide-react';
 import { DEFAULT_TZ } from '@/app/constants';
 
 dayjs.extend(utc);
@@ -41,7 +42,7 @@ export function ConsecutiveTrendBadge({ trend }: ConsecutiveTrendBadgeProps) {
   const isUp = trend.type === 'up';
   // 连涨红(danger)，连跌绿(success)
   const color = isUp ? 'var(--danger)' : 'var(--success)';
-  const Icon = isUp ? TrendUpIcon : TrendDownIcon;
+  const Icon = isUp ? TrendingUp : TrendingDown;
 
   return (
     <Tooltip delayDuration={150}>
@@ -62,7 +63,7 @@ export function ConsecutiveTrendBadge({ trend }: ConsecutiveTrendBadgeProps) {
             cursor: 'default'
           }}
         >
-          <Icon width="12" height="12" />
+          <Icon className="size-3" strokeWidth={2.5} />
           <span style={{ lineHeight: 1 }}>{trend.days}</span>
         </span>
       </TooltipTrigger>
@@ -93,7 +94,7 @@ export function DatePicker({ value, onChange, position = 'bottom', minDate = und
       <PopoverTrigger asChild>
         <Button type="button" variant="ghost" className="input date-picker-trigger w-full justify-between font-normal">
           <span>{value || '选择日期'}</span>
-          <CalendarIcon width="16" height="16" className="muted" />
+          <CalendarIcon className="size-4 text-muted-foreground" strokeWidth={1.8} />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -154,31 +155,31 @@ export function NumericInput({ value, onChange, step = 1, min = 0, placeholder }
   };
   return (
     <div className="relative flex items-center">
-      <input
+      <Input
         type="number"
         inputMode="decimal"
         step="any"
-        className="input no-zoom tabular-nums text-[16PX] md:text-sm w-full pr-14"
+        className="no-zoom tabular-nums text-[16PX] md:text-sm w-full pr-14 h-9 bg-card border-border/70"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
       />
       <div className="absolute right-1 top-1 bottom-1 flex flex-col justify-center gap-1">
         <button
-          className="icon-button flex items-center justify-center w-10 h-5 hover:bg-white/10 transition-colors rounded cursor-pointer"
+          className="icon-button flex items-center justify-center w-10 h-5 hover:bg-white/10 active:scale-[0.96] transition-all rounded cursor-pointer"
           type="button"
           onClick={inc}
           aria-label="增加数值"
         >
-          <PlusIcon width="12" height="12" />
+          <Plus className="size-3" strokeWidth={2} />
         </button>
         <button
-          className="icon-button flex items-center justify-center w-10 h-5 hover:bg-white/10 transition-colors rounded cursor-pointer"
+          className="icon-button flex items-center justify-center w-10 h-5 hover:bg-white/10 active:scale-[0.96] transition-all rounded cursor-pointer"
           type="button"
           onClick={dec}
           aria-label="减少数值"
         >
-          <MinusIcon width="12" height="12" />
+          <Minus className="size-3" strokeWidth={2} />
         </button>
       </div>
     </div>

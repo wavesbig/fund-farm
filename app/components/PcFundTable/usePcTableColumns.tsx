@@ -3,13 +3,12 @@
 import React, { useMemo } from 'react';
 import { isString } from 'lodash';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Sparkles, Settings2, Trash2 } from 'lucide-react';
+import { Sparkles, Settings2, Trash2, SlidersHorizontal, ListChecks } from 'lucide-react';
 import { useModalStore } from '@/app/stores';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import DataSourceAccuracyBadge from '../DataSourceAccuracyBadge';
-import { SettingsIcon, TrashIcon, PencilIcon } from '../Icons';
 import BatchRemoveHeader from './BatchRemoveHeader';
 import FundNameCell from './FundNameCell';
 
@@ -122,40 +121,23 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             );
           }
           return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div className="inline-flex items-center gap-1.5">
               <span>基金名称</span>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    className="icon-button"
+                    className="inline-flex items-center justify-center size-6 rounded text-muted-foreground/70 hover:text-foreground hover:bg-muted/80 active:scale-95 transition-all cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation?.();
                       setIsEditMode(true);
                     }}
-                    aria-label="编辑"
-                    style={{
-                      border: 'none',
-                      width: '28px',
-                      height: '28px',
-                      minWidth: '28px',
-                      backgroundColor: 'transparent',
-                      color: 'var(--text)',
-                      flexShrink: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      opacity: 0.6,
-                      transition: 'opacity 0.2s'
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.6')}
+                    aria-label="批量管理"
                   >
-                    <PencilIcon width="14" height="14" />
+                    <ListChecks className="size-3.5" strokeWidth={1.8} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>编辑模式</TooltipContent>
+                <TooltipContent>批量管理与操作</TooltipContent>
               </Tooltip>
             </div>
           );
@@ -722,7 +704,7 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
                   }
                 }}
               >
-                未设置 <SettingsIcon width="12" height="12" />
+                未设置 <Settings2 className="size-3 inline-block ml-1 opacity-70" />
               </div>
             );
           }
@@ -756,23 +738,22 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
                 </span>
               </div>
               <button
-                className="icon-button no-hover"
+                className="icon-button no-hover inline-flex items-center justify-center size-7 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation?.();
                   onHoldingAmountClickRef.current?.(original, { hasHolding: true });
                 }}
                 style={{
                   border: 'none',
-                  width: '28px',
-                  height: '28px',
                   marginLeft: 4,
                   flexShrink: 0,
                   backgroundColor: 'transparent',
                   color: holdingLocked ? 'var(--muted)' : undefined,
                   cursor: 'pointer'
                 }}
+                aria-label="编辑持仓"
               >
-                <SettingsIcon width="14" height="14" />
+                <Settings2 className="size-3.5" />
               </button>
             </div>
           );
@@ -1081,17 +1062,24 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
         header: () => (
           <div className="inline-flex items-center justify-center gap-1.5 w-full">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">操作</span>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center size-6 rounded text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
-              title="个性化设置"
-              onClick={(e) => {
-                e.stopPropagation?.();
-                setSettingModalOpen(true);
-              }}
-            >
-              <Settings2 className="size-3.5" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center size-6 rounded text-muted-foreground/70 hover:text-foreground hover:bg-muted/80 active:scale-95 transition-all cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation?.();
+                    setSettingModalOpen(true);
+                  }}
+                  aria-label="自定义表格列与显示偏好"
+                >
+                  <SlidersHorizontal className="size-3.5" strokeWidth={1.8} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>自定义列与显示偏好</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         ),
         size: 80,
@@ -1116,11 +1104,11 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div className="flex items-center justify-center w-full py-1">
               <button
                 type="button"
-                className="inline-flex items-center justify-center size-7 rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center size-7 rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-all cursor-pointer"
                 title="删除"
                 onClick={handleClick}
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-3.5" strokeWidth={1.8} />
               </button>
             </div>
           );

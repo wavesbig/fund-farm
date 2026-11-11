@@ -21,7 +21,7 @@ import { Line } from 'react-chartjs-2';
 import { fetchFundHistory } from '../api/fund';
 import * as qk from '../lib/query-keys';
 import { getChartAxisAvoidRects, getChartTooltipPosition } from '../lib/chartTooltipPosition';
-import { ChevronIcon } from './Icons';
+import { ChevronDown } from 'lucide-react';
 import FundHistoryNetValue from './FundHistoryNetValue';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
@@ -885,13 +885,11 @@ export default function FundTrendChart({
           <div className="row" style={{ width: '100%', flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span>业绩走势</span>
-              <ChevronIcon
-                width="16"
-                height="16"
-                className="muted"
+              <ChevronDown
+                className="size-4 text-muted-foreground transition-transform duration-200"
+                strokeWidth={1.8}
                 style={{
-                  transform: !isExpanded ? 'rotate(-90deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s ease'
+                  transform: !isExpanded ? 'rotate(-90deg)' : 'rotate(0deg)'
                 }}
               />
             </div>

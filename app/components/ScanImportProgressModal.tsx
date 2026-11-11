@@ -1,8 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { motion } from 'framer-motion';
 import { Spinner } from '@/components/ui/spinner';
+import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export interface ScanImportProgress {
   current?: number;
@@ -16,35 +17,35 @@ export interface ScanImportProgressModalProps {
 }
 
 export default function ScanImportProgressModal({ scanImportProgress }: ScanImportProgressModalProps) {
+  const total = Number(scanImportProgress.total) || 0;
+  const current = Number(scanImportProgress.current) || 0;
+  const progressPercent = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
+
   return (
-    <motion.div
-      className="modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label="导入进度"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="glass card modal w-[320px] max-w-[90vw] text-center p-6"
+    <Dialog open>
+      <DialogContent
+        overlayClassName="!z-[12000]"
+        showCloseButton={false}
+        className="!z-[12010] w-[340px] max-w-[92vw] p-6 text-center rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl"
       >
         <div className="flex justify-center mb-4">
           <Spinner className="size-10 text-primary" />
         </div>
-        <div className="font-semibold text-base mb-2">正在导入基金…</div>
-        {Number(scanImportProgress.total) > 0 && (
-          <div className="text-muted-foreground text-xs mb-3">
-            进度 {scanImportProgress.current} / {scanImportProgress.total}
+        <DialogTitle className="font-semibold text-base mb-1 text-center">正在导入基金…</DialogTitle>
+        {total > 0 && (
+          <DialogDescription className="text-muted-foreground text-xs mb-3 text-center">
+            进度 {current} / {total}
+          </DialogDescription>
+        )}
+        {total > 0 && (
+          <div className="w-full mb-3">
+            <Progress value={progressPercent} className="h-1.5" />
           </div>
         )}
         <div className="text-muted-foreground text-xs leading-relaxed">
           成功 {scanImportProgress.success ?? 0}，失败 {scanImportProgress.failed ?? 0}
         </div>
-      </motion.div>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   );
 }

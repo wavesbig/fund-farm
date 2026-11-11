@@ -6,6 +6,7 @@ import { AnimatePresence } from 'framer-motion';
 import { History, X } from 'lucide-react';
 import ConfirmModal from './ConfirmModal';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { formatMoney } from '@/lib/utils';
 
@@ -186,9 +187,12 @@ export default function TransactionHistoryModal({
                           {item.type === 'buy' ? '买入' : '卖出'}
                         </span>
                         {item.type === 'buy' && item.isDca && (
-                          <span className="text-[10PX] px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30">
+                          <Badge
+                            variant="outline"
+                            className="text-[10PX] px-1.5 py-0 h-4.5 rounded font-normal bg-primary/15 text-primary border-primary/30"
+                          >
                             定投
-                          </span>
+                          </Badge>
                         )}
                       </div>
                       <span className="text-xs text-muted-foreground tabular-nums">
@@ -235,9 +239,12 @@ export default function TransactionHistoryModal({
                           {item.type === 'buy' ? '买入' : '卖出'}
                         </span>
                         {item.type === 'buy' && item.isDca && (
-                          <span className="text-[10PX] px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30">
+                          <Badge
+                            variant="outline"
+                            className="text-[10PX] px-1.5 py-0 h-4.5 rounded font-normal bg-primary/15 text-primary border-primary/30"
+                          >
                             定投
-                          </span>
+                          </Badge>
                         )}
                       </div>
                       <span className="text-xs text-muted-foreground tabular-nums">{item.date}</span>

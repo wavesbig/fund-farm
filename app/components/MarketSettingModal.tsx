@@ -16,6 +16,7 @@ import {
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { SortableContext, rectSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { isNumber } from 'lodash';
 import { Settings2, X, RotateCcw, Minus } from 'lucide-react';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from '@/components/ui/drawer';
@@ -82,7 +83,7 @@ function SortableIndexItem({ item, canRemove, onRemove }: SortableIndexItemProps
       )}
       <div className="text-xs font-semibold tracking-tight pr-4 truncate text-foreground">{item.name}</div>
       <div className={cn('text-base font-bold tabular-nums font-mono', colorClass)}>
-        {typeof item.price === 'number' ? item.price.toFixed(2) : String(item.price ?? '-')}
+        {isNumber(item.price) ? item.price.toFixed(2) : String(item.price ?? '-')}
       </div>
       <div className={cn('text-xs font-medium tabular-nums font-mono flex items-center gap-1', colorClass)}>
         <span>{((item.change ?? 0) >= 0 ? '+' : '') + (item.change ?? 0).toFixed(2)}</span>

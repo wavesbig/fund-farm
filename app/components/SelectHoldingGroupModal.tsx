@@ -3,8 +3,7 @@
 import * as React from 'react';
 import { useMemo, useState } from 'react';
 import { isArray, isPlainObject } from 'lodash';
-import { Check } from 'lucide-react';
-import { CloseIcon } from './Icons';
+import { Check, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -71,8 +70,9 @@ export default function SelectHoldingGroupModal({
             size="icon-xs"
             onClick={onClose}
             className="text-muted-foreground hover:text-foreground"
+            aria-label="关闭"
           >
-            <CloseIcon width="18" height="18" />
+            <X className="size-4" />
           </Button>
         </div>
 

@@ -17,7 +17,7 @@ import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import { Line } from 'react-chartjs-2';
 import { isNumber } from 'lodash';
-import { SwitchIcon } from './Icons';
+import { ArrowLeftRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ocrFundChart } from '@/app/lib/query-keys';
 import { useStorageStore } from '../stores';
@@ -368,7 +368,7 @@ export default function FundIntradayChart({
                 gap: 4
               }}
             >
-              <SwitchIcon width="12" height="12" /> {showImageChartPreference ? '本地估值分时图' : '净值估算图'}
+              <ArrowLeftRight className="size-3" /> {showImageChartPreference ? '本地估值分时图' : '净值估算图'}
             </button>
           )}
         </span>

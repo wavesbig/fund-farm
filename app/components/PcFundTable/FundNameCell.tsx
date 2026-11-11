@@ -2,7 +2,7 @@
 
 import React, { memo, useContext } from 'react';
 import { isArray, isObject } from 'lodash';
-import { Plus, GripVertical, Star, Link as LinkIcon } from 'lucide-react';
+import { Plus, GripVertical, Star, Link2 } from 'lucide-react';
 import { ConsecutiveTrendBadge } from '../Common';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -68,7 +68,7 @@ export const FundNameCell = memo(
                   {...rowContext?.listeners}
                   onClick={(e) => e.stopPropagation?.()}
                 >
-                  <GripVertical className="size-4" />
+                  <GripVertical className="size-4" strokeWidth={1.8} />
                 </button>
               </TooltipTrigger>
               <TooltipContent>
@@ -83,7 +83,7 @@ export const FundNameCell = memo(
                   className="drag-handle inline-flex items-center justify-center size-5 shrink-0 text-muted-foreground/30 cursor-not-allowed"
                   onClick={(e) => e.stopPropagation?.()}
                 >
-                  <GripVertical className="size-4" />
+                  <GripVertical className="size-4" strokeWidth={1.8} />
                 </button>
               </TooltipTrigger>
               <TooltipContent>拖拽基金顺序需要在默认排序下操作</TooltipContent>
@@ -92,7 +92,7 @@ export const FundNameCell = memo(
         {showFavoriteButton ? (
           <button
             type="button"
-            className="fav-button inline-flex items-center justify-center size-6 shrink-0 rounded-md text-muted-foreground/40 hover:text-amber-400 hover:bg-amber-400/10 transition-colors cursor-pointer"
+            className="fav-button inline-flex items-center justify-center size-6 shrink-0 rounded-md text-muted-foreground/40 hover:text-amber-400 hover:bg-amber-400/10 active:scale-95 transition-all cursor-pointer"
             title={isFavorites ? '取消自选' : '添加自选'}
             onClick={(e) => {
               e.stopPropagation?.();
@@ -102,8 +102,9 @@ export const FundNameCell = memo(
             <Star
               className={cn(
                 'size-4 transition-all duration-200',
-                isFavorites ? 'fill-amber-400 text-amber-400 scale-110' : ''
+                isFavorites ? 'fill-amber-400 text-amber-400 scale-105' : ''
               )}
+              strokeWidth={1.8}
             />
           </button>
         ) : null}
@@ -134,17 +135,6 @@ export const FundNameCell = memo(
           style={onOpenCardDialog ? { cursor: 'pointer' } : undefined}
         >
           <div className="flex items-center gap-1.5 min-w-0">
-            {holdingLocked ? (
-              <Tooltip delayDuration={150}>
-                <TooltipTrigger asChild>
-                  <span aria-label="已关联持仓" className="inline-flex items-center shrink-0 text-primary">
-                    <LinkIcon className="size-3.5" />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>持仓来自自定义分组汇总</TooltipContent>
-              </Tooltip>
-            ) : null}
-            <ConsecutiveTrendBadge trend={fundExtraDataByCode?.[code]?.consecutiveTrend} />
             <span
               className={cn(
                 'font-semibold text-foreground text-sm tracking-tight hover:text-primary transition-colors',
@@ -153,16 +143,29 @@ export const FundNameCell = memo(
             >
               {info.getValue() ?? '—'}
             </span>
+            {holdingLocked ? (
+              <Tooltip delayDuration={150}>
+                <TooltipTrigger asChild>
+                  <span aria-label="已关联持仓" className="inline-flex items-center shrink-0 text-primary">
+                    <Link2 className="size-3.5" strokeWidth={1.8} />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>持仓来自自定义分组汇总</TooltipContent>
+              </Tooltip>
+            ) : null}
+            <ConsecutiveTrendBadge trend={fundExtraDataByCode?.[code]?.consecutiveTrend} />
           </div>
 
           {code ? (
             <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-              <span className="font-mono text-xs text-muted-foreground/90 font-medium">#{code}</span>
+              <span className="font-mono text-xs text-muted-foreground/80 font-medium tracking-wide tabular-nums">
+                {code}
+              </span>
 
               {hasPending && (
                 <Tooltip delayDuration={150}>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center justify-center size-3.5 text-[10px] font-semibold rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                    <span className="inline-flex items-center justify-center px-1 h-3.5 text-[10px] font-semibold rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 leading-none">
                       待
                     </span>
                   </TooltipTrigger>
@@ -172,7 +175,7 @@ export const FundNameCell = memo(
               {hasDca && (
                 <Tooltip delayDuration={150}>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center justify-center size-3.5 text-[10px] font-semibold rounded bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30">
+                    <span className="inline-flex items-center justify-center px-1 h-3.5 text-[10px] font-semibold rounded bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 leading-none">
                       定
                     </span>
                   </TooltipTrigger>
@@ -182,7 +185,7 @@ export const FundNameCell = memo(
               {isUpdated && (
                 <Tooltip delayDuration={150}>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center justify-center size-3.5 text-[10px] font-semibold rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                    <span className="inline-flex items-center justify-center px-1 h-3.5 text-[10px] font-semibold rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 leading-none">
                       ✓
                     </span>
                   </TooltipTrigger>

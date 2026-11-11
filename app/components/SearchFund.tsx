@@ -8,6 +8,7 @@ import { Field, FieldContent } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 export interface SearchFundProps {
   value?: string;
@@ -34,7 +35,8 @@ export default function SearchFund({
       <Field orientation="horizontal" className="items-stretch gap-2">
         <FieldContent className="relative min-w-0">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
+            className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70 pointer-events-none"
+            strokeWidth={1.8}
             aria-hidden="true"
           />
           <Input
@@ -42,10 +44,14 @@ export default function SearchFund({
             onChange={(e) => onSearch?.(e.target.value)}
             placeholder={placeholder}
             disabled={disabled}
-            className={`pl-9 ${showClear ? 'pr-9' : ''}`}
+            className={cn(
+              'h-9 w-full rounded-lg pl-9 text-[16PX] md:text-sm bg-card border-border shadow-xs text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-[border-color,box-shadow,background-color] duration-150 ease-out',
+              showClear ? 'pr-9' : ''
+            )}
             ref={inputRef}
             onBlur={() => {
-              // 移动端键盘收起时页面可能回弹，失焦后把输入框滚回可见区域
+              // 仅在移动端键盘收起时恢复位置，避免 PC 端失焦时页面抖动跳跃
+              if (typeof window !== 'undefined' && window.innerWidth > 640) return;
               const el = inputRef.current;
               if (!el) return;
               setTimeout(() => {
@@ -79,7 +85,7 @@ export default function SearchFund({
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 size-6 text-muted-foreground hover:text-foreground"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 size-6 text-muted-foreground hover:text-foreground active:scale-95 transition-all"
                   aria-label="清空搜索"
                   onMouseDown={(e) => {
                     // 避免点击导致 input 失焦
@@ -90,7 +96,7 @@ export default function SearchFund({
                     inputRef.current?.focus();
                   }}
                 >
-                  <X className="h-4 w-4" aria-hidden="true" />
+                  <X className="size-3.5" strokeWidth={2} aria-hidden="true" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

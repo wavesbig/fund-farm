@@ -1280,7 +1280,7 @@ input[type='number'] {
 .fav-button {
   padding: 4px;
   color: var(--muted);
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition: color 0.15s ease, transform 0.15s ease-out, background-color 0.15s ease;
   background: transparent;
   border: none;
   width: auto;
@@ -1289,6 +1289,10 @@ input[type='number'] {
 
 .fav-button:hover {
   color: var(--accent);
+}
+
+.fav-button:active {
+  transform: scale(0.96);
 }
 
 .fav-button.active {
@@ -1311,16 +1315,16 @@ input[type='number'] {
   -webkit-backdrop-filter: none;
 }
 
-/* PC 列表：左右分块，左侧可横向滚动，右侧操作列固定不参与滚动 */
+/* PC 列表：垂直排列容器 */
 .table-pc-wrap {
   display: flex;
-  flex-direction: row;
+  flex-direction: column !important;
   width: 100%;
   min-width: 0;
 }
 
 .table-scroll-area {
-  flex: 1;
+  width: 100%;
   min-width: 0;
   overflow-x: auto;
   /* 横向滚动条样式与项目整体规范一致：深色背景、边框色、圆角、hover 高亮 */
@@ -2319,9 +2323,13 @@ html::-webkit-scrollbar-thumb:active,
   background: transparent;
   color: var(--muted-foreground);
   cursor: pointer;
-  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease-out;
   outline: none;
   user-select: none;
+}
+
+.toolbar-icon-btn:active {
+  transform: scale(0.96);
 }
 
 @media (min-width: 641px) and (hover: hover) {

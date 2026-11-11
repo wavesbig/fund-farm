@@ -8,7 +8,7 @@ import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, close
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
 import { useModalStore, storageStore } from '@/app/stores';
 import ConfirmModal from '../ConfirmModal';
 import PcTableSettingModal from '../PcTableSettingModal';
@@ -33,7 +33,6 @@ import {
   sortableRowA11yProps,
   type PcFundTableProps
 } from './types';
-import { ResetIcon } from '../Icons';
 import FundDetailDialog from './FundDetailDialog';
 import usePcTableColumns from './usePcTableColumns';
 import { useFundDataEnhancer } from './useFundDataEnhancer';
@@ -771,12 +770,15 @@ export const PcFundTable = memo(function PcFundTable({
                   <span className="inline-flex items-center text-muted-foreground ml-0.5">
                     {isSorted ? (
                       sortOrder === 'asc' ? (
-                        <ArrowUp className="size-3.5 text-primary stroke-[2.5]" />
+                        <ArrowUp className="size-3.5 text-primary" strokeWidth={2} />
                       ) : (
-                        <ArrowDown className="size-3.5 text-primary stroke-[2.5]" />
+                        <ArrowDown className="size-3.5 text-primary" strokeWidth={2} />
                       )
                     ) : (
-                      <ArrowUpDown className="size-3 opacity-30 hover:opacity-100 transition-opacity" />
+                      <ArrowUpDown
+                        className="size-3 text-muted-foreground/40 hover:text-foreground transition-colors"
+                        strokeWidth={1.8}
+                      />
                     )}
                   </span>
                 )}
@@ -803,15 +805,14 @@ export const PcFundTable = memo(function PcFundTable({
   return (
     <EditModeContext.Provider value={{ isEditMode, selectedCodes, toggleSelected }}>
       <>
-        <div className="table-pc-wrap w-full flex flex-col gap-2">
-          {showTopScrollbar && !showPortalHeader && (
-            <div className="pc-fund-table-top-scrollbar" ref={topScrollbarRef}>
-              <div className="pc-fund-table-top-scrollbar-inner" style={{ width: `${tableScrollWidth}px` }} />
-            </div>
-          )}
-
+        <div className="table-pc-wrap w-full flex flex-col gap-2" style={{ display: 'flex', flexDirection: 'column' }}>
           {/* shadcn UI Data-Table 现代化卡片容器 */}
-          <div className="rounded-xl border border-border bg-card shadow-xs overflow-hidden">
+          <div className="rounded-xl border border-border bg-card shadow-xs overflow-hidden flex flex-col">
+            {showTopScrollbar && !showPortalHeader && (
+              <div className="pc-fund-table-top-scrollbar border-b border-border/40" ref={topScrollbarRef}>
+                <div className="pc-fund-table-top-scrollbar-inner" style={{ width: `${tableScrollWidth}px` }} />
+              </div>
+            )}
             <div className="table-scroll-area overflow-x-auto w-full">
               <div className="table-scroll-area-inner" ref={tableContainerRef} style={tableCssVariables}>
                 <style>{`
@@ -922,22 +923,22 @@ export const PcFundTable = memo(function PcFundTable({
                   }
                 `}</style>
 
-                <table
-                  className="w-full caption-bottom text-sm pc-table-fixed"
-                  style={{ width: `${Math.max(totalHeaderWidth, 1)}px`, minWidth: '100%' }}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragMove={handleDragMove}
+                  onDragEnd={handleDragEnd}
+                  onDragCancel={handleDragCancel}
+                  modifiers={[restrictToVerticalAxis]}
+                  autoScroll={false}
                 >
-                  <thead>{renderTableHeader(false)}</thead>
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragStart={handleDragStart}
-                    onDragMove={handleDragMove}
-                    onDragEnd={handleDragEnd}
-                    onDragCancel={handleDragCancel}
-                    modifiers={[restrictToVerticalAxis]}
-                    autoScroll={false}
-                  >
-                    <SortableContext items={data.map((item: any) => item.code)} strategy={verticalListSortingStrategy}>
+                  <SortableContext items={data.map((item: any) => item.code)} strategy={verticalListSortingStrategy}>
+                    <table
+                      className="w-full caption-bottom text-sm pc-table-fixed"
+                      style={{ width: `${Math.max(totalHeaderWidth, 1)}px`, minWidth: '100%' }}
+                    >
+                      <thead>{renderTableHeader(false)}</thead>
                       <tbody className="[&_tr:last-child]:border-0">
                         {tableRows.map((row, index) => (
                           <MemoizedTableRow
@@ -963,9 +964,9 @@ export const PcFundTable = memo(function PcFundTable({
                           />
                         ))}
                       </tbody>
-                    </SortableContext>
-                  </DndContext>
-                </table>
+                    </table>
+                  </SortableContext>
+                </DndContext>
 
                 {table.getRowModel().rows.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground w-full">
@@ -978,7 +979,7 @@ export const PcFundTable = memo(function PcFundTable({
                   <ConfirmModal
                     title="重置列宽"
                     message="是否重置表格列宽为默认值？"
-                    icon={<ResetIcon width="20" height="20" className="shrink-0 text-[var(--primary)]" />}
+                    icon={<RotateCcw className="size-5 shrink-0 text-primary" />}
                     confirmVariant="primary"
                     onConfirm={handleResetSizing}
                     onCancel={() => setResetConfirmOpen(false)}
@@ -997,7 +998,7 @@ export const PcFundTable = memo(function PcFundTable({
                         zIndex: 25,
                         backgroundColor: 'var(--table-pinned-header-bg)'
                       }}
-                      className="shadow-md border-b border-border overflow-hidden"
+                      className="shadow-md border-b border-border overflow-hidden flex flex-col"
                     >
                       {showTopScrollbar && (
                         <div

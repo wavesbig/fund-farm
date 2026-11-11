@@ -9,7 +9,7 @@ import FilterBar from './components/FilterBar';
 import FundListView from './components/FundListView';
 import NavLayout from './components/NavLayout';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import Image from 'next/image';
 
 import { createAvatar } from '@dicebear/core';
@@ -33,7 +33,6 @@ import FundCard from './components/FundCard';
 
 import GroupSummary from './components/GroupSummary';
 import GroupAccountSummaryCard from './components/GroupAccountSummaryCard';
-import { CloseIcon, GridIcon, ListIcon, MoonIcon, PlusIcon, SettingsIcon, SortIcon, SunIcon } from './components/Icons';
 import RefreshButton from './components/RefreshButton';
 const UpdateChecker = dynamic(() => import('./components/UpdateChecker'), { ssr: false });
 import MarketIndexAccordion from './components/MarketIndexAccordion';
@@ -4279,9 +4278,9 @@ export default function HomePage() {
                       <Button
                         variant="outline"
                         onClick={() => setAddFundToGroupOpen(true)}
-                        className="w-full h-12 border-2 border-dashed border-border hover:border-primary hover:text-primary hover:bg-primary/5 text-muted-foreground font-medium rounded-xl mt-4 gap-2 text-sm transition-[background-color,border-color,color] duration-150 ease-out shadow-none"
+                        className="w-full h-12 border-2 border-dashed border-border hover:border-primary hover:text-primary hover:bg-primary/5 text-muted-foreground font-medium rounded-xl mt-4 gap-2 text-sm transition-all duration-150 ease-out active:scale-[0.98] shadow-none"
                       >
-                        <PlusIcon width="18" height="18" />
+                        <Plus className="size-4" strokeWidth={2} />
                         <span>添加基金到此分组</span>
                       </Button>
                     )}

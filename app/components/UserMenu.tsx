@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { AnimatePresence } from 'framer-motion';
-import { CircleHelp, History, LogOut, Settings, TrendingUp, User } from 'lucide-react';
+import { CircleHelp, History, LogOut, Settings2, TrendingUp, User } from 'lucide-react';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import ConfirmModal from './ConfirmModal';
 import { Button } from '@/components/ui/button';
@@ -111,7 +111,7 @@ export default function UserMenu({
                 />
               </div>
             ) : (
-              <User className="size-4" />
+              <User className="size-4" strokeWidth={1.8} />
             )}
           </Button>
         </DropdownMenuTrigger>
@@ -127,7 +127,7 @@ export default function UserMenu({
                     setTimeout(handleOpenPortfolioEarnings, 150);
                   }}
                 >
-                  <TrendingUp className="size-4" />
+                  <TrendingUp className="size-4" strokeWidth={1.8} />
                   <span>我的收益</span>
                 </DropdownMenuItem>
 
@@ -138,7 +138,7 @@ export default function UserMenu({
                     setTimeout(handleOpenTutorial, 150);
                   }}
                 >
-                  <CircleHelp className="size-4" />
+                  <CircleHelp className="size-4" strokeWidth={1.8} />
                   <span>使用帮助</span>
                 </DropdownMenuItem>
 
@@ -149,7 +149,7 @@ export default function UserMenu({
                     setTimeout(handleOpenUpdateLog, 150);
                   }}
                 >
-                  <History className="size-4" />
+                  <History className="size-4" strokeWidth={1.8} />
                   <span>更新日志</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
@@ -166,7 +166,7 @@ export default function UserMenu({
                 setTimeout(handleOpenSettings, 150);
               }}
             >
-              <Settings className="size-4" />
+              <Settings2 className="size-4" strokeWidth={1.8} />
               <span>系统设置</span>
             </DropdownMenuItem>
           </DropdownMenuGroup>
@@ -180,7 +180,7 @@ export default function UserMenu({
               setLogoutConfirmOpen(true);
             }}
           >
-            <LogOut className="size-4" />
+            <LogOut className="size-4" strokeWidth={1.8} />
             <span>锁定访问 / 退出</span>
           </DropdownMenuItem>
         </DropdownMenuContent>

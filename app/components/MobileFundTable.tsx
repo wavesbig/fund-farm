@@ -29,22 +29,22 @@ import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifi
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { isArray, isFunction, isObject, isString, throttle } from 'lodash';
-import { Sparkles } from 'lucide-react';
+import {
+  Sparkles,
+  SlidersHorizontal,
+  ListChecks,
+  X,
+  GripVertical,
+  FolderPlus,
+  Trash2,
+  Link2,
+  Star,
+  ArrowUpToLine
+} from 'lucide-react';
 import MobileFundCardDrawer from './MobileFundCardDrawer';
 import MobileSettingModal from './MobileSettingModal';
 import MoveGroupModal from './MoveGroupModal';
 import SuccessModal from './SuccessModal';
-import {
-  ArrowUpToLineIcon,
-  CloseIcon,
-  DragIcon,
-  FolderPlusIcon,
-  LinkIcon,
-  PencilIcon,
-  SettingsIcon,
-  StarIcon,
-  TrashIcon
-} from './Icons';
 import { ConsecutiveTrendBadge } from './Common';
 import {
   fetchFundPeriodReturns,
@@ -55,6 +55,7 @@ import {
 import { storageStore } from '../stores';
 import { asyncPool } from '@/app/lib/asyncHelper';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { getTagThemeBadgeProps } from '@/app/components/AddTagDialog';
 import { cn } from '@/lib/utils';
 import DataSourceAccuracyBadge from './DataSourceAccuracyBadge';
@@ -180,7 +181,7 @@ function EditDragHandleCell({ disabled }) {
       {...(disabled ? {} : rowSortable.activatorProps)}
       {...(disabled ? {} : rowSortable.listeners)}
     >
-      <DragIcon width="18" height="18" />
+      <GripVertical className="size-4 text-muted-foreground/60" strokeWidth={1.8} />
     </span>
   );
 }
@@ -230,14 +231,12 @@ function MobileEditBatchHeader({
           onClick={(e) => e.stopPropagation?.()}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', flexShrink: 0 }}
         >
-          <input
-            ref={checkboxRef}
-            type="checkbox"
-            checked={!!checked}
-            onChange={(e) => onToggleAll?.(e.target.checked)}
+          <Checkbox
+            checked={indeterminate ? 'indeterminate' : !!checked}
+            onCheckedChange={(val) => onToggleAll?.(!!val)}
             onClick={(e) => e.stopPropagation?.()}
-            style={{ width: 14, height: 14, accentColor: 'var(--primary)', cursor: 'pointer' }}
             aria-label="全选"
+            className="size-4"
           />
           <span className="muted" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>
             已选 {selectedCount}/{totalCount}
@@ -270,12 +269,12 @@ function MobileEditBatchHeader({
               color: 'var(--primary)'
             }}
           >
-            <FolderPlusIcon width="17" height="17" />
+            <FolderPlus className="size-4" strokeWidth={1.8} />
           </button>
         ) : null}
         <button
           type="button"
-          className="icon-button"
+          className="icon-button active:scale-95 transition-all"
           onClick={(e) => {
             e.stopPropagation?.();
             onRemove?.();
@@ -296,11 +295,11 @@ function MobileEditBatchHeader({
             color: 'var(--danger)'
           }}
         >
-          <TrashIcon width="17" height="17" />
+          <Trash2 className="size-4" strokeWidth={1.8} />
         </button>
         <button
           type="button"
-          className="icon-button"
+          className="icon-button active:scale-95 transition-all"
           onClick={(e) => {
             e.stopPropagation?.();
             onClose?.();
@@ -320,7 +319,7 @@ function MobileEditBatchHeader({
             color: 'var(--text)'
           }}
         >
-          <CloseIcon width="18" height="18" />
+          <X className="size-4" strokeWidth={2} />
         </button>
       </div>
     </div>
@@ -1525,11 +1524,10 @@ const MobileFundTable = memo(function MobileFundTable({
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
-            <input
-              type="checkbox"
+            <Checkbox
               disabled={holdingLocked}
               checked={!holdingLocked && editSelected}
-              onChange={() => {
+              onCheckedChange={() => {
                 if (!code || holdingLocked) return;
                 setEditSelectedCodes((prev) => {
                   const next = new Set(prev);
@@ -1538,35 +1536,30 @@ const MobileFundTable = memo(function MobileFundTable({
                   return next;
                 });
               }}
-              style={{
-                width: 18,
-                height: 18,
-                accentColor: 'var(--primary)',
-                cursor: holdingLocked ? 'not-allowed' : 'pointer'
-              }}
+              className="size-4.5"
+              aria-label={`选择 ${info.getValue() || code}`}
             />
           </label>
           <div className="title-text">
             <span className={`name-text ${showFullFundName ? 'show-full' : ''}`}>
+              {info.getValue() ?? '—'}
               {holdingLocked ? (
                 <span
                   aria-label="已关联持仓"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    marginRight: 6,
+                    marginLeft: 6,
                     color: 'var(--primary)',
                     verticalAlign: 'middle',
-                    marginBottom: 2,
                     position: 'relative',
                     cursor: 'default'
                   }}
                 >
-                  <LinkIcon width="14" height="14" />
+                  <Link2 className="size-3.5" strokeWidth={1.8} />
                 </span>
               ) : null}
               <ConsecutiveTrendBadge trend={fundExtraDataByCode?.[code]?.consecutiveTrend} />
-              {info.getValue() ?? '—'}
             </span>
             {holdingAmountDisplay ? (
               <span className="muted code-text">
@@ -1577,7 +1570,7 @@ const MobileFundTable = memo(function MobileFundTable({
               </span>
             ) : code ? (
               <span className="muted code-text">
-                #{code}
+                {code}
                 {hasPending && <span className="pending-indicator">待</span>}
                 {hasDca && <span className="dca-indicator">定</span>}
                 {isUpdated && <span className="updated-indicator">✓</span>}
@@ -1597,35 +1590,32 @@ const MobileFundTable = memo(function MobileFundTable({
           showGroupDeleteButton ? (
             <button
               type="button"
-              className="icon-button"
+              className="inline-flex items-center justify-center size-6.5 rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-all cursor-pointer shrink-0 mr-1"
               onClick={(e) => {
                 e.stopPropagation?.();
                 onRemoveFundRef.current?.(original);
               }}
-              style={{
-                backgroundColor: 'transparent',
-                flexShrink: 0,
-                opacity: 1,
-                cursor: 'pointer',
-                border: 'none',
-                height: 26,
-                width: 26,
-                marginRight: 4
-              }}
+              aria-label="从分组中删除"
             >
-              <TrashIcon width="18" height="18" />
+              <Trash2 className="size-3.5" strokeWidth={1.8} />
             </button>
           ) : null
         ) : (
           <button
-            className={`icon-button fav-button ${isFavorites ? 'active' : ''}`}
+            className={`icon-button fav-button active:scale-95 transition-all ${isFavorites ? 'active' : ''}`}
             onClick={(e) => {
               e.stopPropagation?.();
               onToggleFavoriteRef.current?.(original);
             }}
             style={{ backgroundColor: 'transparent' }}
           >
-            <StarIcon width="18" height="18" filled={isFavorites} />
+            <Star
+              className={cn(
+                'size-4 transition-all duration-200',
+                isFavorites ? 'fill-amber-400 text-amber-400 scale-105' : 'text-muted-foreground/50'
+              )}
+              strokeWidth={1.8}
+            />
           </button>
         )}
         <div className="title-text">
@@ -1647,25 +1637,24 @@ const MobileFundTable = memo(function MobileFundTable({
               }
             }}
           >
+            {info.getValue() ?? '—'}
             {holdingLocked ? (
               <span
                 aria-label="已关联持仓"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  marginRight: 6,
+                  marginLeft: 6,
                   color: 'var(--primary)',
                   verticalAlign: 'middle',
-                  bottom: 2,
                   position: 'relative',
                   cursor: 'default'
                 }}
               >
-                <LinkIcon width="14" height="14" />
+                <Link2 className="size-3.5" strokeWidth={1.8} />
               </span>
             ) : null}
             <ConsecutiveTrendBadge trend={fundExtraDataByCode?.[code]?.consecutiveTrend} />
-            {info.getValue() ?? '—'}
           </span>
           {holdingAmountDisplay ? (
             <span
@@ -1706,7 +1695,7 @@ const MobileFundTable = memo(function MobileFundTable({
                 }
               }}
             >
-              #{code}
+              {code}
               {hasPending && <span className="pending-indicator">待</span>}
               {hasDca && <span className="dca-indicator">定</span>}
               {isUpdated && <span className="updated-indicator">✓</span>}
@@ -1751,58 +1740,31 @@ const MobileFundTable = memo(function MobileFundTable({
               );
             }
             return (
-              <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 6 }}>
+              <div className="flex items-center w-full gap-1.5">
                 <button
                   type="button"
-                  className="icon-button"
+                  className="inline-flex items-center justify-center size-7 rounded text-muted-foreground/80 hover:text-foreground hover:bg-muted/60 active:scale-95 transition-all cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation?.();
                     setSettingModalOpen(true);
                   }}
-                  style={{
-                    border: 'none',
-                    width: '28px',
-                    height: '28px',
-                    minWidth: '28px',
-                    backgroundColor: 'transparent',
-                    color: 'var(--text)',
-                    flexShrink: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
+                  aria-label="自定义表格列与显示偏好"
                 >
-                  <SettingsIcon width="18" height="18" />
+                  <SlidersHorizontal className="size-3.5" strokeWidth={1.8} />
                 </button>
-                {true && (
-                  <button
-                    type="button"
-                    className="icon-button"
-                    onClick={(e) => {
-                      e.stopPropagation?.();
-                      clearEditLongPressTimer();
-                      setIsEditMode(true);
-                      setEditSelectedCodes(new Set());
-                    }}
-                    aria-label="编辑"
-                    style={{
-                      border: 'none',
-                      width: '28px',
-                      height: '28px',
-                      minWidth: '28px',
-                      backgroundColor: 'transparent',
-                      color: 'var(--text)',
-                      flexShrink: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      opacity: 1,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <PencilIcon width="18" height="18" />
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center size-7 rounded text-muted-foreground/80 hover:text-foreground hover:bg-muted/60 active:scale-95 transition-all cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation?.();
+                    clearEditLongPressTimer();
+                    setIsEditMode(true);
+                    setEditSelectedCodes(new Set());
+                  }}
+                  aria-label="批量管理与操作"
+                >
+                  <ListChecks className="size-3.5" strokeWidth={1.8} />
+                </button>
               </div>
             );
           },
@@ -1851,7 +1813,7 @@ const MobileFundTable = memo(function MobileFundTable({
                     onReorder(idx, 0);
                   }}
                 >
-                  <ArrowUpToLineIcon width={18} height={18} aria-hidden />
+                  <ArrowUpToLine className="size-4" strokeWidth={1.8} aria-hidden />
                 </button>
               </div>
             );

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { isArray, isObject } from 'lodash';
-import { ChevronRight, Settings } from 'lucide-react';
+import { ChevronRight, Settings2 } from 'lucide-react';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -417,19 +417,17 @@ export default function MarketIndexAccordion({
                 onClick={() => setSettingOpen(true)}
                 aria-label="指数个性化设置"
               >
-                <Settings className="h-4 w-4" />
+                <Settings2 className="size-4" strokeWidth={1.8} />
               </Button>
               <button
                 type="button"
-                className="h-7 w-7 inline-flex items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--text)] cursor-pointer rounded-md transition-colors"
+                className="h-7 w-7 inline-flex items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--text)] hover:bg-white/[0.06] [data-theme=light]:hover:bg-black/[0.04] active:scale-95 cursor-pointer rounded-md transition-all"
                 onClick={() => setOpenValue((v) => (v === 'indices' ? '' : 'indices'))}
                 aria-label={openValue === 'indices' ? '收起指数列表' : '展开指数列表'}
               >
                 <ChevronRight
-                  className={cn(
-                    'w-4 h-4 transition-transform duration-200',
-                    openValue === 'indices' ? 'rotate-90' : ''
-                  )}
+                  className={cn('size-4 transition-transform duration-200', openValue === 'indices' ? 'rotate-90' : '')}
+                  strokeWidth={1.8}
                   aria-hidden="true"
                 />
               </button>

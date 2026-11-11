@@ -2,12 +2,13 @@
 
 import * as React from 'react';
 import { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { useStorageStore, useModalStore } from '../stores';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
+import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import UsageTipsCarousel from './UsageTipsCarousel';
 import { cn } from '@/lib/utils';
 
@@ -67,23 +68,17 @@ export default function ScanPickModal({
     [isScanning, onFilesDrop]
   );
 
+  const totalCount = Number(scanProgress.total) || 0;
+  const currentCount = Number(scanProgress.current) || 0;
+  const progressPercent = totalCount > 0 ? Math.min(100, Math.round((currentCount / totalCount) * 100)) : 0;
+  const isVerify = scanProgress.stage === 'verify';
+
   return (
-    <motion.div
-      className="modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label={isScanning ? '正在识别持仓图片' : '选择持仓截图'}
-      onClick={isScanning ? undefined : onClose}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' } }}
-        exit={{ opacity: 0, y: -12, filter: 'blur(4px)', transition: { duration: 0.15, ease: 'easeOut' } }}
-        className="glass card modal scan-pick-modal p-6 w-[440px] max-w-[92vw]"
-        onClick={(e) => e.stopPropagation()}
+    <Dialog open onOpenChange={(open) => !open && !isScanning && onClose?.()}>
+      <DialogContent
+        overlayClassName="!z-[12000]"
+        showCloseButton={!isScanning}
+        className="!z-[12010] p-6 w-[450px] max-w-[92vw] rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl"
       >
         {isScanning ? (
           /* 识别进行中状态：内联呈现，无缝衔接 */
@@ -91,14 +86,19 @@ export default function ScanPickModal({
             <div className="flex justify-center mb-4">
               <Spinner className="size-10 text-primary" />
             </div>
-            <div className="font-semibold text-base mb-2">
-              {scanProgress.stage === 'verify' ? '正在匹配与验证基金…' : '正在识别持仓图片…'}
-            </div>
-            {Number(scanProgress.total) > 0 && (
-              <div className="text-muted-foreground text-xs mb-4">
-                {scanProgress.stage === 'verify'
-                  ? `已验证 ${scanProgress.current || 0} / ${scanProgress.total} 只基金`
-                  : `已处理 ${scanProgress.current || 0} / ${scanProgress.total} 张图片`}
+            <DialogTitle className="font-semibold text-base mb-1 text-center">
+              {isVerify ? '正在匹配与验证基金…' : '正在识别持仓图片…'}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-xs mb-3 text-center">
+              {totalCount > 0
+                ? isVerify
+                  ? `已验证 ${currentCount} / ${totalCount} 只基金`
+                  : `已处理 ${currentCount} / ${totalCount} 张图片`
+                : '正在全力分析图片中的基金持仓数据…'}
+            </DialogDescription>
+            {totalCount > 0 && (
+              <div className="w-full mb-4">
+                <Progress value={progressPercent} className="h-1.5" />
               </div>
             )}
             <UsageTipsCarousel />
@@ -106,7 +106,7 @@ export default function ScanPickModal({
               type="button"
               variant="destructive"
               onClick={onCancelScan}
-              className="w-full mt-2 rounded-xl h-10 font-medium"
+              className="w-full mt-2 rounded-xl h-9.5 text-xs font-medium cursor-pointer"
             >
               终止识别
             </Button>
@@ -114,14 +114,14 @@ export default function ScanPickModal({
         ) : (
           /* 初始选择状态 */
           <>
-            <div className="flex items-center justify-between mb-3 font-semibold text-base">
-              <span>选择持仓截图</span>
+            <div className="flex items-center justify-between mb-2">
+              <DialogTitle className="font-semibold text-base">选择持仓截图</DialogTitle>
               <Button
                 type="button"
                 variant="secondary"
                 size="sm"
                 onClick={() => useModalStore.setState({ aiConfigModalOpen: true })}
-                className="h-7 px-2.5 text-xs gap-1.5"
+                className="h-7 px-2.5 text-xs gap-1.5 cursor-pointer"
                 title="配置通用大模型 (DeepSeek / Qwen / OpenAI 等兼容接口)"
               >
                 <Sparkles className={cn('size-3.5', hasAiKey ? 'text-primary' : 'text-muted-foreground')} />
@@ -150,10 +150,10 @@ export default function ScanPickModal({
               )}
             </div>
 
-            <div className="text-muted-foreground text-xs leading-relaxed mb-3">
+            <DialogDescription className="text-muted-foreground text-xs leading-relaxed mb-3">
               从相册选择一张或多张持仓截图，系统将自动识别提取其中的
               <span className="text-primary font-medium mx-1">基金代码、持仓金额与收益</span>，并支持批量导入。
-            </div>
+            </DialogDescription>
 
             <div
               className={cn(
@@ -185,16 +185,16 @@ export default function ScanPickModal({
             </div>
 
             <div className="flex justify-end gap-2.5 mt-4">
-              <Button type="button" variant="secondary" onClick={onClose} className="rounded-xl h-10 px-4">
+              <Button type="button" variant="secondary" onClick={onClose} className="rounded-xl h-9.5 px-4 text-xs">
                 取消
               </Button>
-              <Button type="button" variant="default" onClick={onPick} className="rounded-xl h-10 px-4">
+              <Button type="button" variant="default" onClick={onPick} className="rounded-xl h-9.5 px-4 text-xs">
                 选择图片
               </Button>
             </div>
           </>
         )}
-      </motion.div>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   );
 }

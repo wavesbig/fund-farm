@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import ConfirmModal from './ConfirmModal';
-import { AlertTriangleIcon } from './Icons';
+import { AlertTriangle } from 'lucide-react';
 import type { FundGroup } from '@/types';
 
 export interface MoveFundsParams {
@@ -186,7 +186,7 @@ export default function MoveGroupModal({
         <ConfirmModal
           title="覆盖确认"
           message={`目标分组已存在 ${conflicts.length} 支基金的持仓数据。继续迁移将覆盖目标分组的持仓数据，是否继续？`}
-          icon={<AlertTriangleIcon width="20" height="20" className="shrink-0 text-[var(--danger)]" aria-hidden />}
+          icon={<AlertTriangle className="size-5 shrink-0 text-destructive" aria-hidden />}
           confirmVariant="danger"
           confirmText="继续迁移"
           onCancel={() => setConfirmOverwriteOpen(false)}

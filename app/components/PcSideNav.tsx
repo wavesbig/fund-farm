@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Home, TrendingUp, ChevronRight, LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 interface TabItem {
@@ -37,7 +38,10 @@ export default function PcSideNav({ value, onChange }: PcSideNavProps) {
     >
       <nav className="pc-side-nav" role="navigation" aria-label="侧边导航">
         <div className="pc-side-nav-handle">
-          <ChevronRight className="size-4 text-muted-foreground" strokeWidth={2.5} />
+          <ChevronRight
+            className={cn('size-4 text-muted-foreground transition-transform duration-200', isHovered && 'rotate-180')}
+            strokeWidth={2}
+          />
         </div>
         <div className="pc-side-nav-content">
           {TABS.map(({ id, label, Icon }) => {
@@ -52,7 +56,11 @@ export default function PcSideNav({ value, onChange }: PcSideNavProps) {
               >
                 <span className="pc-side-nav-item-inner">
                   <span className="pc-side-nav-icon-wrap">
-                    <Icon className="pc-side-nav-icon" aria-hidden strokeWidth={2} />
+                    <Icon
+                      className="pc-side-nav-icon transition-transform duration-150"
+                      aria-hidden
+                      strokeWidth={active ? 2.2 : 1.8}
+                    />
                   </span>
                   <span className="pc-side-nav-label">{label}</span>
                 </span>

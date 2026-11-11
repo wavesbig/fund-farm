@@ -1,10 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { motion } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
 import UsageTipsCarousel from './UsageTipsCarousel';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export interface SuccessModalProps {
   message: string;
@@ -14,36 +14,28 @@ export interface SuccessModalProps {
 }
 
 export default function SuccessModal({ message, onClose, overlayStyle, cardStyle }: SuccessModalProps) {
+  const handleOpenChange = (open: boolean) => {
+    if (!open) onClose();
+  };
+
   return (
-    <motion.div
-      className="modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label="成功提示"
-      onClick={onClose}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, pointerEvents: 'none' }}
-      style={{ pointerEvents: 'auto', ...overlayStyle }}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' } }}
-        exit={{ opacity: 0, y: -12, filter: 'blur(4px)', transition: { duration: 0.15, ease: 'easeOut' } }}
-        className="max-w-[420px] w-[92vw] p-6 rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl text-left"
-        onClick={(e) => e.stopPropagation()}
-        onPointerDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
-        style={{ pointerEvents: 'auto', ...cardStyle }}
+    <Dialog open onOpenChange={handleOpenChange}>
+      <DialogContent
+        overlayClassName="!z-[12000]"
+        showCloseButton={false}
+        className="!z-[12010] max-w-[420px] w-[92vw] p-6 rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl text-left"
+        style={cardStyle}
       >
         <div className="text-center py-2">
           <div className="size-12 rounded-2xl flex items-center justify-center bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 mx-auto shadow-xs mb-3.5">
             <CheckCircle2 className="size-6" />
           </div>
-          <h3 className="text-base sm:text-lg font-semibold tracking-tight text-foreground">{message}</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1 mb-4 leading-relaxed">
+          <DialogTitle className="text-base sm:text-lg font-semibold tracking-tight text-foreground text-center">
+            {message}
+          </DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-1 mb-4 leading-relaxed text-center">
             操作已成功完成，您可以继续使用。
-          </p>
+          </DialogDescription>
           <UsageTipsCarousel style={{ marginBottom: 0 }} />
           <Button
             type="button"
@@ -57,7 +49,7 @@ export default function SuccessModal({ message, onClose, overlayStyle, cardStyle
             完成并关闭
           </Button>
         </div>
-      </motion.div>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -4,10 +4,10 @@ import * as React from 'react';
 import { isBoolean, isNumber, isObject } from 'lodash';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
-import { PinIcon, PinOffIcon, EyeIcon, EyeOffIcon, SwitchIcon } from './Icons';
+import { Pin, Eye, EyeOff, ArrowLeftRight } from 'lucide-react';
 import FitText from './FitText';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { formatMoney } from '@/lib/utils';
+import { cn, formatMoney } from '@/lib/utils';
 import { SUMMARY_TAB_ID } from '@/app/constants';
 import type { Fund, Holding, Group } from '@/types';
 
@@ -233,25 +233,19 @@ export default function GroupSummary({
 
   return (
     <div className={isSticky ? 'group-summary-sticky' : ''} style={style}>
-      <div className="glass card group-summary-card mb-3 p-4 md:px-6 md:py-5 relative rounded-xl border border-border shadow-sm">
-        <span
-          className="sticky-toggle-btn absolute top-2 right-2 w-7 h-7 p-1.5 opacity-80 rounded-md z-10 text-muted-foreground hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors flex items-center justify-center"
-          onClick={() => {
-            onToggleSticky?.(!isSticky);
-          }}
-        >
-          {isSticky ? <PinIcon width="14" height="14" /> : <PinOffIcon width="14" height="14" />}
-        </span>
-        <div className="flex items-end justify-between min-w-0">
+      <div className="glass card group-summary-card mb-3 p-4 md:px-6 md:py-4 rounded-xl border border-border shadow-sm">
+        <div className="flex items-end justify-between min-w-0 gap-4">
+          {/* 左侧：全部资产与总额 (严格光学左对齐) */}
           <div className="flex-[4] min-w-0">
             <div className="flex items-center gap-1.5 mb-1.5">
-              <div className="text-sm font-medium text-muted-foreground tracking-wide" key={portfolioTabId}>
+              <span className="text-sm font-medium text-muted-foreground tracking-wide" key={portfolioTabId}>
                 {portfolioScopeLabel}
-              </div>
+              </span>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    className="fav-button p-0.5 inline-flex items-center cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                    type="button"
+                    className="size-5 inline-flex items-center justify-center rounded text-muted-foreground/60 hover:text-foreground hover:bg-muted/60 active:scale-[0.96] transition-transform duration-150 ease-out cursor-pointer"
                     onClick={() => {
                       if (onToggleMasked) {
                         onToggleMasked();
@@ -261,40 +255,75 @@ export default function GroupSummary({
                     }}
                     aria-label={isMasked ? '显示资产' : '隐藏资产'}
                   >
-                    {isMasked ? <EyeOffIcon width="15" height="15" /> : <EyeIcon width="15" height="15" />}
+                    <span className="grid place-items-center size-3.5 overflow-hidden">
+                      <span
+                        className={cn(
+                          '[grid-area:1/1] transition-[opacity,filter,scale] duration-250 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:scale-100 motion-reduce:blur-[0px]',
+                          isMasked
+                            ? 'scale-100 opacity-100 blur-[0px]'
+                            : 'scale-[0.25] opacity-0 blur-[4px] pointer-events-none'
+                        )}
+                      >
+                        <EyeOff className="size-3.5" strokeWidth={1.8} />
+                      </span>
+                      <span
+                        className={cn(
+                          '[grid-area:1/1] transition-[opacity,filter,scale] duration-250 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:scale-100 motion-reduce:blur-[0px]',
+                          isMasked
+                            ? 'scale-[0.25] opacity-0 blur-[4px] pointer-events-none'
+                            : 'scale-100 opacity-100 blur-[0px]'
+                        )}
+                      >
+                        <Eye className="size-3.5" strokeWidth={1.8} />
+                      </span>
+                    </span>
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="bottom" sideOffset={4}>
                   <p>{isMasked ? '点击显示所有持仓数据' : '点击隐藏所有持仓数据'}</p>
                 </TooltipContent>
               </Tooltip>
             </div>
+
             <div
-              className="text-2xl md:text-3xl font-bold tracking-tight min-w-0 cursor-pointer overflow-hidden tabular-nums"
+              className="text-2xl md:text-3xl font-bold tracking-tight min-w-0 cursor-pointer overflow-hidden tabular-nums hover:opacity-90 transition-opacity"
               onClick={() => setIsAssetMasked((v) => !v)}
+              title={isMasked || isAssetMasked ? '点击显示资产金额' : '点击隐藏资产金额'}
             >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="block w-full">
-                    {isMasked || isAssetMasked ? (
-                      <span className="mask-text relative top-0.5" style={{ fontSize: assetSize }}>
-                        ******
-                      </span>
-                    ) : (
-                      <CountUp value={summary.totalAsset} maxFontSize={assetSize} minFontSize={16} as="div" />
-                    )}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{isMasked || isAssetMasked ? '点击显示资产金额' : '点击隐藏资产金额'}</p>
-                </TooltipContent>
-              </Tooltip>
+              {isMasked || isAssetMasked ? (
+                <span className="mask-text" style={{ fontSize: assetSize }}>
+                  ******
+                </span>
+              ) : (
+                <CountUp value={summary.totalAsset} maxFontSize={assetSize} minFontSize={16} as="div" />
+              )}
             </div>
           </div>
-          <div className="flex gap-4 flex-[5] min-w-0">
+
+          {/* 右侧：当日收益、持有收益与吸顶固定按钮 */}
+          <div className="flex gap-4 md:gap-6 flex-[5] min-w-0 justify-end items-end">
+            {/* 当日收益 */}
             <div className="text-right flex-1 min-w-0">
-              <div className="text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1">
-                当日收益{showTodayPercent ? '(%)' : ''} <SwitchIcon className="opacity-70" />
+              <div className="text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1.5">
+                <span>当日收益{showTodayPercent ? '(%)' : ''}</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="size-5 rounded text-muted-foreground/50 hover:text-primary hover:bg-primary/10 active:scale-95 transition-all cursor-pointer inline-flex items-center justify-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (summary.hasAnyTodayData) setShowTodayPercent(!showTodayPercent);
+                      }}
+                      aria-label="切换金额与百分比"
+                    >
+                      <ArrowLeftRight className="size-3" strokeWidth={1.8} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={4}>
+                    <p>点击切换金额 (¥) / 百分比 (%)</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <div
                 className={`${
@@ -309,45 +338,37 @@ export default function GroupSummary({
                   summary.hasAnyTodayData ? 'cursor-pointer' : 'cursor-default'
                 }`}
                 onClick={() => summary.hasAnyTodayData && setShowTodayPercent(!showTodayPercent)}
+                title={summary.hasAnyTodayData ? '点击切换金额/百分比' : undefined}
               >
                 {summary.hasAnyTodayData ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="block w-full">
-                        {isMasked ? (
-                          <span className="mask-text" style={{ fontSize: metricSize }}>
-                            ******
-                          </span>
-                        ) : (
-                          <>
-                            {showTodayPercent ? (
-                              <CountUp
-                                value={Math.abs(summary.todayReturnRate)}
-                                prefix={todayProfitPrefix}
-                                suffix="%"
-                                maxFontSize={metricSize}
-                                minFontSize={14}
-                                as="div"
-                                style={{ textAlign: 'right' }}
-                              />
-                            ) : (
-                              <CountUp
-                                value={Math.abs(summary.totalProfitToday)}
-                                prefix={todayProfitPrefix}
-                                maxFontSize={metricSize}
-                                minFontSize={14}
-                                as="div"
-                                style={{ textAlign: 'right' }}
-                              />
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>点击切换金额/百分比</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  isMasked ? (
+                    <span className="mask-text" style={{ fontSize: metricSize }}>
+                      ******
+                    </span>
+                  ) : (
+                    <>
+                      {showTodayPercent ? (
+                        <CountUp
+                          value={Math.abs(summary.todayReturnRate)}
+                          prefix={todayProfitPrefix}
+                          suffix="%"
+                          maxFontSize={metricSize}
+                          minFontSize={14}
+                          as="div"
+                          style={{ textAlign: 'right' }}
+                        />
+                      ) : (
+                        <CountUp
+                          value={Math.abs(summary.totalProfitToday)}
+                          prefix={todayProfitPrefix}
+                          maxFontSize={metricSize}
+                          minFontSize={14}
+                          as="div"
+                          style={{ textAlign: 'right' }}
+                        />
+                      )}
+                    </>
+                  )
                 ) : (
                   <span className="inline-block" style={{ fontSize: metricSize }}>
                     --
@@ -355,50 +376,96 @@ export default function GroupSummary({
                 )}
               </div>
             </div>
+
+            {/* 持有收益 */}
             <div className={`text-right ${isMobile ? 'flex-1' : ''} min-w-0`}>
-              <div className="text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1">
-                持有收益{showPercent ? '(%)' : ''} <SwitchIcon className="opacity-70" />
+              <div className="text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1.5">
+                <span>持有收益{showPercent ? '(%)' : ''}</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="size-5 rounded text-muted-foreground/50 hover:text-primary hover:bg-primary/10 active:scale-95 transition-all cursor-pointer inline-flex items-center justify-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowPercent(!showPercent);
+                      }}
+                      aria-label="切换金额与百分比"
+                    >
+                      <ArrowLeftRight className="size-3" strokeWidth={1.8} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={4}>
+                    <p>点击切换金额 (¥) / 百分比 (%)</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <div
                 className={`${
                   summary.totalHoldingReturn > 0 ? 'up' : summary.totalHoldingReturn < 0 ? 'down' : 'text-foreground'
                 } text-lg md:text-xl font-semibold tracking-tight tabular-nums cursor-pointer overflow-hidden`}
                 onClick={() => setShowPercent(!showPercent)}
+                title="点击切换金额/百分比"
               >
+                {isMasked ? (
+                  <span className="mask-text" style={{ fontSize: metricSize }}>
+                    ******
+                  </span>
+                ) : (
+                  <>
+                    {showPercent ? (
+                      <CountUp
+                        value={Math.abs(summary.returnRate)}
+                        prefix={holdingReturnPrefix}
+                        suffix="%"
+                        maxFontSize={metricSize}
+                        minFontSize={14}
+                        as="div"
+                        style={{ textAlign: 'right' }}
+                      />
+                    ) : (
+                      <CountUp
+                        value={Math.abs(summary.totalHoldingReturn)}
+                        maxFontSize={metricSize}
+                        minFontSize={14}
+                        as="div"
+                        style={{ textAlign: 'right' }}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* 吸顶固定按钮：独立列排列，绝不遮挡持有收益 */}
+            <div className="flex flex-col justify-start items-center self-stretch shrink-0">
+              <div className="h-5 flex items-center mb-1.5">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="block w-full">
-                      {isMasked ? (
-                        <span className="mask-text" style={{ fontSize: metricSize }}>
-                          ******
-                        </span>
-                      ) : (
-                        <>
-                          {showPercent ? (
-                            <CountUp
-                              value={Math.abs(summary.returnRate)}
-                              prefix={holdingReturnPrefix}
-                              suffix="%"
-                              maxFontSize={metricSize}
-                              minFontSize={14}
-                              as="div"
-                              style={{ textAlign: 'right' }}
-                            />
-                          ) : (
-                            <CountUp
-                              value={Math.abs(summary.totalHoldingReturn)}
-                              maxFontSize={metricSize}
-                              minFontSize={14}
-                              as="div"
-                              style={{ textAlign: 'right' }}
-                            />
-                          )}
-                        </>
+                    <button
+                      type="button"
+                      className={cn(
+                        'size-6 rounded-md transition-all active:scale-[0.96] duration-150 ease-out flex items-center justify-center cursor-pointer',
+                        isSticky
+                          ? 'text-primary bg-primary/10 hover:bg-primary/20 shadow-xs'
+                          : 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/60'
                       )}
-                    </div>
+                      onClick={() => {
+                        onToggleSticky?.(!isSticky);
+                      }}
+                      aria-label={isSticky ? '取消吸顶固定' : '吸顶固定收益卡片'}
+                    >
+                      <Pin
+                        className={cn(
+                          'size-3.5 transition-transform duration-250 ease-[cubic-bezier(0.2,0,0,1)]',
+                          isSticky ? 'fill-current -rotate-45' : 'rotate-0'
+                        )}
+                        strokeWidth={1.8}
+                      />
+                    </button>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p>点击切换金额/百分比</p>
+                  <TooltipContent side="bottom" sideOffset={4}>
+                    <p>{isSticky ? '取消吸顶固定' : '吸顶固定此汇总卡片'}</p>
                   </TooltipContent>
                 </Tooltip>
               </div>

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { UpdateIcon } from './Icons';
+import { Sparkles } from 'lucide-react';
 
 export interface UpdatePromptModalProps {
   updateContent?: string;
@@ -24,7 +24,7 @@ export default function UpdatePromptModal({ updateContent, open, onClose, onRefr
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5 mb-3 text-base font-semibold">
-            <UpdateIcon width="20" height="20" className="text-emerald-500 shrink-0" />
+            <Sparkles className="size-5 text-emerald-500 shrink-0" />
             <span>更新提示</span>
           </DialogTitle>
         </DialogHeader>
