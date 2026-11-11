@@ -1,78 +1,77 @@
-import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
-import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('d:/git_space/navdeck/node_modules/playwright');
 
-console.log('==> 1. 启动生产服务 Next.js (port 3000)...');
-const server = spawn('npm.cmd', ['run', 'start', '--', '-p', '3000'], {
-  stdio: 'pipe',
-  shell: true,
-  env: { ...process.env, PORT: '3000' }
-});
+const PASSWORD = process.env.UNLOCK_PASSWORD || '';
+const BASE_URL = 'http://localhost:3000';
 
-server.stdout.on('data', d => process.stdout.write(`[server] ${d}`));
-server.stderr.on('data', d => process.stderr.write(`[server] ${d}`));
-
-// 轮询检查 3000 端口可用
-let ready = false;
-for (let i = 0; i < 40; i++) {
-  try {
-    const res = await fetch('http://localhost:3000');
-    if (res.ok) {
-      ready = true;
-      break;
-    }
-  } catch {}
-  await new Promise(r => setTimeout(r, 1000));
-}
-
-if (!ready) {
-  server.kill();
-  console.error('服务启动超时');
-  process.exit(1);
-}
-
-console.log('==> 2. 服务已就绪，启动 Chromium 进行高精度截屏...');
+console.log('==> 启动 Chromium 进行带密码解锁的高精度真实截屏...');
 const browser = await chromium.launch({ headless: true });
 
+async function unlockIfLocked(page) {
+  try {
+    const pwdInput = await page.$('input[type="password"]');
+    if (pwdInput) {
+      console.log('    [检测到锁屏] 正在输入密码解锁...');
+      await pwdInput.fill(PASSWORD);
+      await page.waitForTimeout(200);
+      const submitBtn = await page.$('button[type="submit"]');
+      if (submitBtn) {
+        await submitBtn.click();
+      } else {
+        await pwdInput.press('Enter');
+      }
+      await page.waitForSelector('input[type="password"]', { state: 'detached', timeout: 6000 }).catch(() => {});
+      await page.waitForTimeout(2500); // 等待数据与表格动效稳定
+      console.log('    ✓ 解锁成功，已进入主界面');
+    }
+  } catch (e) {
+    console.warn('    解锁处理跳过:', e.message);
+  }
+}
+
 try {
-  // 1. PC 端主界面
+  // 1. PC 桌面端主界面
+  console.log('==> 1. 正在截取 PC 端主界面...');
   const pcContext = await browser.newContext({
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 2,
   });
   const pcPage = await pcContext.newPage();
-  await pcPage.goto('http://localhost:3000', { waitUntil: 'networkidle' });
-  await pcPage.waitForTimeout(3000); // 等待图表与估值计算渲染
+  await pcPage.goto(BASE_URL, { waitUntil: 'networkidle' });
+  await unlockIfLocked(pcPage);
+  await pcPage.waitForTimeout(3000); // 等待分时图和数据加载
 
   const pcDemo1 = resolve('doc/pc-demo-01.png');
   await pcPage.screenshot({ path: pcDemo1 });
-  console.log(`✓ 已生成 PC 主界面截图: ${pcDemo1}`);
+  console.log(`✓ 已生成真实 PC 主界面截图: ${pcDemo1}`);
 
-  // 2. PC 端设置弹窗
+  // 2. PC 端系统设置与大模型中心弹窗
+  console.log('==> 2. 正在打开系统设置并截取...');
   try {
-    const avatarBtn = await pcPage.$('header button:has(svg.lucide-user), header button:has(img)');
-    if (avatarBtn) {
-      await avatarBtn.click();
-      await pcPage.waitForTimeout(500);
-      const settingsItem = await pcPage.$('[role="menuitem"]:has-text("系统设置")');
-      if (settingsItem) {
-        await settingsItem.click();
-        await pcPage.waitForTimeout(1000);
+    // 触发右上角用户菜单
+    const userBtn = await pcPage.$('header button:has(svg.lucide-user), header button:has(img)');
+    if (userBtn) {
+      await userBtn.click();
+      await pcPage.waitForTimeout(400);
+      const settingsMenuItem = await pcPage.$('[role="menuitem"]:has-text("系统设置")');
+      if (settingsMenuItem) {
+        await settingsMenuItem.click();
+        await pcPage.waitForTimeout(1200);
       }
     }
   } catch (err) {
-    console.warn('打开系统设置失败:', err.message);
+    console.warn('无法打开系统设置弹窗:', err.message);
   }
   const pcDemo2 = resolve('doc/pc-demo-02.png');
   await pcPage.screenshot({ path: pcDemo2 });
-  console.log(`✓ 已生成 PC 设置界面截图: ${pcDemo2}`);
+  console.log(`✓ 已生成真实 PC 设置界面截图: ${pcDemo2}`);
   await pcContext.close();
 
-  // 3. 移动端界面
+  // 3. 移动端自适应界面
+  console.log('==> 3. 正在截取移动端适配界面...');
   const mobileContext = await browser.newContext({
     viewport: { width: 393, height: 852 },
     deviceScaleFactor: 2,
@@ -80,20 +79,18 @@ try {
     hasTouch: true,
   });
   const mobilePage = await mobileContext.newPage();
-  await mobilePage.goto('http://localhost:3000', { waitUntil: 'networkidle' });
+  await mobilePage.goto(BASE_URL, { waitUntil: 'networkidle' });
+  await unlockIfLocked(mobilePage);
   await mobilePage.waitForTimeout(3000);
 
   const mobileDemo = resolve('doc/mobile-demo-01.png');
   await mobilePage.screenshot({ path: mobileDemo });
-  console.log(`✓ 已生成移动端适配截图: ${mobileDemo}`);
+  console.log(`✓ 已生成真实移动端适配截图: ${mobileDemo}`);
   await mobileContext.close();
 
 } finally {
   await browser.close().catch(() => {});
-  try {
-    server.kill();
-  } catch {}
 }
 
-console.log('==> 截屏全部顺利完成！');
+console.log('==> 🎉 所有真实截图均已全部生成完成！');
 process.exit(0);
