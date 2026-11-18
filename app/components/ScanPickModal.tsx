@@ -114,7 +114,7 @@ export default function ScanPickModal({
         ) : (
           /* 初始选择状态 */
           <>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 pr-8">
               <DialogTitle className="font-semibold text-base">选择持仓截图</DialogTitle>
               <Button
                 type="button"
