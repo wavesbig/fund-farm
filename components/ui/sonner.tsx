@@ -12,11 +12,23 @@ function getTheme(): 'light' | 'dark' {
 }
 
 const Toaster = ({ ...props }: ToasterProps) => {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mql = window.matchMedia('(max-width: 640px)');
+    setIsMobile(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+
   return (
     <Sonner
-      position="top-center"
+      position={isMobile ? 'bottom-center' : 'top-right'}
       theme={getTheme()}
-      className="toaster pointer-events-none fixed inset-x-0 top-4 z-[70] flex items-start justify-center px-4 sm:top-6"
+      className="toaster pointer-events-none z-[70]"
+      closeButton
       icons={{
         success: <CircleCheckIcon className="h-4 w-4 text-emerald-500" />,
         info: <InfoIcon className="h-4 w-4 text-sky-500" />,
@@ -29,7 +41,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         classNames: {
           toast:
             'pointer-events-auto relative flex w-full max-w-sm items-start gap-3 rounded-xl border border-slate-200 bg-white/90 text-slate-900 px-4 py-3 shadow-lg shadow-black/10 backdrop-blur-md transition-[opacity,transform,box-shadow] duration-200 ease-out ' +
-            'data-[state=open]:animate-in data-[state=open]:fade-in data-[state=open]:slide-in-from-top sm:data-[state=open]:slide-in-from-bottom ' +
+            'data-[state=open]:animate-in data-[state=open]:fade-in data-[state=open]:slide-in-from-top-2 sm:data-[state=open]:slide-in-from-right-2 ' +
             'data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-right ' +
             'data-[swipe=move]:translate-x-[var(--sonner-swipe-move-x)] data-[swipe=move]:transition-none ' +
             'data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-transform data-[swipe=end]:translate-x-[var(--sonner-swipe-end-x)] ' +

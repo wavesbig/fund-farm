@@ -2452,9 +2452,11 @@ export default function HomePage() {
 
   const handleSearchInput = (e) => {
     setSearchTerm(e.target.value);
+    sonnerToast.dismiss('empty-fund-input');
   };
 
   const toggleSelectFund = (fund) => {
+    sonnerToast.dismiss('empty-fund-input');
     setSelectedFunds((prev) => {
       const exists = prev.find((f) => f.CODE === fund.CODE);
       if (exists) {
@@ -2827,9 +2829,11 @@ export default function HomePage() {
       new Set([...selectedFunds.map((f) => f.CODE), ...manualTokens.filter((t) => /^\d{6}$/.test(t))])
     );
     if (selectedCodes.length === 0) {
+      inputRef.current?.focus();
       sonnerToast.warning('请输入或选择基金代码', {
         id: 'empty-fund-input',
-        description: '支持输入 6 位基金代码或在搜索列表中勾选基金'
+        description: '支持输入 6 位基金代码或在搜索列表中勾选基金',
+        duration: 2500
       });
       return;
     }
