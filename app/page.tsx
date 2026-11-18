@@ -299,7 +299,8 @@ export default function HomePage() {
   const [viewMode, setViewMode] = useState('list'); // card, list
   // 全局隐藏金额状态（影响分组汇总、列表和卡片）
   const [maskAmounts, setMaskAmounts] = useState(false);
-  const user = null;
+  const authUser = useAuthStore((s) => s.user);
+  const user = authUser ? { id: authUser.username, name: authUser.username } : null;
   const userAvatar = '';
 
   // 搜索相关状态

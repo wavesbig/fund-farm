@@ -48,7 +48,14 @@ export default function MineTab({
             )}
           </div>
           <div className="mine-profile-text">
-            <div className="mine-profile-title">养基场</div>
+            <div className="mine-profile-title flex items-center gap-1.5">
+              <span>养基场</span>
+              {user?.name && (
+                <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-normal">
+                  {user.name}
+                </span>
+              )}
+            </div>
             <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
               实时基金估值与持仓管理
             </div>

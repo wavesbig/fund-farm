@@ -10,6 +10,7 @@ export function initAuthTable(): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS auth_meta (
       id INTEGER PRIMARY KEY CHECK (id = 1),
+      username TEXT,
       password_hash TEXT,
       salt TEXT,
       created_at TEXT,
@@ -22,14 +23,39 @@ export function initAuthTable(): void {
       expires_at TEXT
     );
   `);
+
+  // 检查是否已有 auth_meta 表但缺少 username 字段（支持老版本平滑迁移）
+  try {
+    const tableInfo = db.prepare('PRAGMA table_info(auth_meta)').all() as Array<{ name: string }>;
+    const hasUsername = tableInfo.some((col) => col.name === 'username');
+    if (!hasUsername) {
+      db.exec('ALTER TABLE auth_meta ADD COLUMN username TEXT;');
+    }
+  } catch {
+    // 忽略特定环境下 PRAGMA 异常
+  }
 }
 
 /**
- * 检查当前系统是否已设置访问密码
+ * 获取环境变量中配置的默认账号与密码
+ */
+export function getEnvCredentials(): { username: string; password?: string } {
+  const rawUser = process.env.APP_USERNAME || process.env.ADMIN_USERNAME;
+  const rawPass = process.env.APP_PASSWORD || process.env.ADMIN_PASSWORD;
+
+  const username = isString(rawUser) && rawUser.trim() ? rawUser.trim() : 'admin';
+  const password = isString(rawPass) && rawPass.trim() ? rawPass.trim() : undefined;
+
+  return { username, password };
+}
+
+/**
+ * 检查当前系统是否已设置访问账号密码
  */
 export function isPasswordSet(): boolean {
   // 1. 如果环境变量指定了密码，视为已设置
-  if (process.env.APP_PASSWORD && process.env.APP_PASSWORD.trim() !== '') {
+  const envCreds = getEnvCredentials();
+  if (envCreds.password) {
     return true;
   }
 
@@ -42,6 +68,23 @@ export function isPasswordSet(): boolean {
 }
 
 /**
+ * 获取当前系统配置的用户名（供前端展示）
+ */
+export function getStoredUser(): { username: string } | null {
+  const envCreds = getEnvCredentials();
+  if (envCreds.password) {
+    return { username: envCreds.username };
+  }
+
+  initAuthTable();
+  const db = getSqliteDb();
+  const stmt = db.prepare('SELECT username, password_hash FROM auth_meta WHERE id = 1');
+  const row = stmt.get() as { username?: string; password_hash?: string } | undefined;
+  if (!row || !row.password_hash) return null;
+  return { username: row.username || 'admin' };
+}
+
+/**
  * 对明文密码加盐哈希
  */
 function hashPassword(password: string, salt: string): string {
@@ -49,39 +92,60 @@ function hashPassword(password: string, salt: string): string {
 }
 
 /**
- * 校验用户输入的密码是否正确
+ * 校验用户输入的账号与密码是否正确
  */
-export function verifyPassword(inputPassword: unknown): boolean {
+export function verifyCredentials(inputUsername: unknown, inputPassword: unknown): boolean {
   if (!isString(inputPassword) || !inputPassword) return false;
+  const inputPassTrim = inputPassword.trim();
+  const inputUserTrim = isString(inputUsername) ? inputUsername.trim() : '';
 
-  // 1. 优先使用环境变量 APP_PASSWORD
-  const envPassword = process.env.APP_PASSWORD?.trim();
-  if (envPassword) {
-    const a = Buffer.from(inputPassword);
-    const b = Buffer.from(envPassword);
+  // 1. 优先使用环境变量 APP_PASSWORD / ADMIN_PASSWORD
+  const envCreds = getEnvCredentials();
+  if (envCreds.password) {
+    const expectedUsername = envCreds.username || 'admin';
+    // 若输入了用户名，则严格或不区分大小写匹配；若未输入（兼容老客户端），则允许通过
+    if (inputUserTrim && inputUserTrim.toLowerCase() !== expectedUsername.toLowerCase()) {
+      return false;
+    }
+
+    const a = Buffer.from(inputPassTrim);
+    const b = Buffer.from(envCreds.password);
     return a.length === b.length && crypto.timingSafeEqual(a, b);
   }
 
-  // 2. 从 SQLite 校验哈希
+  // 2. 从 SQLite 校验哈希与用户名
   initAuthTable();
   const db = getSqliteDb();
-  const stmt = db.prepare('SELECT password_hash, salt FROM auth_meta WHERE id = 1');
-  const row = stmt.get() as { password_hash?: string; salt?: string } | undefined;
+  const stmt = db.prepare('SELECT username, password_hash, salt FROM auth_meta WHERE id = 1');
+  const row = stmt.get() as { username?: string; password_hash?: string; salt?: string } | undefined;
   if (!row || !row.password_hash || !row.salt) return false;
 
-  const computedHash = hashPassword(inputPassword, row.salt);
+  const expectedUsername = row.username || 'admin';
+  if (inputUserTrim && inputUserTrim.toLowerCase() !== expectedUsername.toLowerCase()) {
+    return false;
+  }
+
+  const computedHash = hashPassword(inputPassTrim, row.salt);
   const a = Buffer.from(computedHash);
   const b = Buffer.from(row.password_hash);
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 /**
- * 设置或更新访问密码（写入 SQLite）
+ * 校验用户输入的密码是否正确（向下兼容旧调用）
  */
-export function setPassword(newPassword: unknown): void {
+export function verifyPassword(inputPassword: unknown): boolean {
+  return verifyCredentials(undefined, inputPassword);
+}
+
+/**
+ * 设置或更新账号与密码（写入 SQLite）
+ */
+export function setAccount(newUsername: unknown, newPassword: unknown): void {
   if (!isString(newPassword) || newPassword.trim().length === 0) {
     throw new Error('密码不能为空');
   }
+  const cleanUsername = isString(newUsername) && newUsername.trim() ? newUsername.trim() : 'admin';
 
   initAuthTable();
   const db = getSqliteDb();
@@ -90,13 +154,20 @@ export function setPassword(newPassword: unknown): void {
   const now = new Date().toISOString();
 
   const stmt = db.prepare(`
-    INSERT OR REPLACE INTO auth_meta (id, password_hash, salt, created_at, updated_at)
-    VALUES (1, ?, ?, COALESCE((SELECT created_at FROM auth_meta WHERE id = 1), ?), ?)
+    INSERT OR REPLACE INTO auth_meta (id, username, password_hash, salt, created_at, updated_at)
+    VALUES (1, ?, ?, ?, COALESCE((SELECT created_at FROM auth_meta WHERE id = 1), ?), ?)
   `);
-  stmt.run(passwordHash, salt, now, now);
+  stmt.run(cleanUsername, passwordHash, salt, now, now);
 
   // 清空所有历史会话，强制旧会话失效重新登录
   db.exec('DELETE FROM auth_sessions;');
+}
+
+/**
+ * 设置或更新访问密码（向下兼容旧调用）
+ */
+export function setPassword(newPassword: unknown): void {
+  setAccount('admin', newPassword);
 }
 
 /**
@@ -127,7 +198,6 @@ export function verifySessionToken(token: unknown): boolean {
 
   initAuthTable();
   const db = getSqliteDb();
-  const now = new Date().toISOString();
 
   // 查询并自动清除已过期会话
   const stmt = db.prepare('SELECT expires_at FROM auth_sessions WHERE token = ?');
@@ -157,9 +227,9 @@ export function revokeSessionToken(token: unknown): void {
  * 从 Next.js Request 中校验认证状态
  */
 export function verifyRequestAuth(request: Request): boolean {
-  // 如果系统尚未初始化密码，默认放行供初次配置
+  // 如果系统尚未初始化密码，绝不能放行数据访问！必须在前端完成初始化设置并登录
   if (!isPasswordSet()) {
-    return true;
+    return false;
   }
 
   // 1. 尝试从 Authorization Header 提取 Token (Bearer <token>)

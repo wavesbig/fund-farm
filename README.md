@@ -114,7 +114,8 @@ docker compose up -d --build
 
 | 环境变量 | 类型 | 默认值 | 说明 |
 | :--- | :---: | :---: | :--- |
-| `APP_PASSWORD` | 可选 | 无 | 强制设定的访问密码（可在未设置密码时作为初始全局密码） |
+| `APP_USERNAME` | 可选 | `admin` | 默认管理员账号名（Docker 部署时若配合 `APP_PASSWORD` 可直接跳过首次引导设置） |
+| `APP_PASSWORD` | 可选 | 无 | 强制设定的访问密码（可在 Docker 部署或未设置密码时作为初始管理员密码） |
 | `OPENAI_API_KEY` | 可选 | 无 | 大模型 API Key（用于 AI 智能解析持仓截图） |
 | `OPENAI_BASE_URL` | 可选 | `https://api.deepseek.com/v1` | 兼容服务商 Base URL（支持 DeepSeek / 硅基流动 / OpenAI 等） |
 | `OPENAI_MODEL` | 可选 | `deepseek-chat` | 调用的 LLM 模型标识名称 |

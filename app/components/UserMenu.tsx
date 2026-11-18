@@ -38,6 +38,7 @@ export default function UserMenu({
   onUpdateLog
 }: UserMenuProps) {
   const isMobile = useIsMobile();
+  const authUser = useAuthStore((s) => s.user);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
@@ -117,6 +118,15 @@ export default function UserMenu({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="w-48 p-1.5" sideOffset={8}>
+          <div className="px-2.5 py-1.5 text-xs text-muted-foreground flex items-center justify-between select-none">
+            <span>当前账号</span>
+            <span className="font-semibold text-foreground max-w-[90px] truncate" title={authUser?.username || 'admin'}>
+              {authUser?.username || 'admin'}
+            </span>
+          </div>
+
+          <DropdownMenuSeparator />
+
           {!isMobile && (
             <>
               <DropdownMenuGroup>

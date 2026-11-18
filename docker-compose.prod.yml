@@ -12,4 +12,7 @@ services:
       - ./data:/app/data
     environment:
       - NODE_ENV=production
+      # 默认管理员账号名与密码（可选：若配置则自动作为初始凭据，无需首次手动引导设置）
+      # - APP_USERNAME=admin
+      # - APP_PASSWORD=your_secure_password
     restart: unless-stopped

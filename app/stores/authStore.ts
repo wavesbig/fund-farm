@@ -1,20 +1,31 @@
 import { create } from 'zustand';
+import { isObject, isString } from 'lodash';
 import {
   checkAuthStatus,
-  loginWithPassword,
-  setupInitialPassword,
+  loginWithCredentials,
+  setupInitialAccount,
   logoutAuth,
-  type AuthStatusResponse
+  getStoredUsername,
+  type AuthStatusResponse,
+  type AuthUser
 } from '../lib/authClient';
 
 export interface AuthStoreState {
   isChecking: boolean;
   isInitialized: boolean;
   isAuthenticated: boolean;
+  user: AuthUser | null;
   error: string;
   check: () => Promise<AuthStatusResponse | null>;
-  login: (password: string, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
-  setup: (password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (
+    passwordOrParams: string | { username?: string; password: string; rememberMe?: boolean },
+    rememberMe?: boolean,
+    username?: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  setup: (
+    passwordOrParams: string | { username?: string; password: string },
+    username?: string
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
 }
 
@@ -22,6 +33,7 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
   isChecking: true,
   isInitialized: false,
   isAuthenticated: false,
+  user: null,
   error: '',
 
   /**
@@ -33,42 +45,77 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
       const res = await checkAuthStatus();
       set({
         isChecking: false,
-        isInitialized: res?.isInitialized !== false,
-        isAuthenticated: Boolean(res?.isAuthenticated)
+        isInitialized: Boolean(res?.isInitialized),
+        isAuthenticated: Boolean(res?.isAuthenticated),
+        user: res?.user || (res?.isAuthenticated ? { username: getStoredUsername() || 'admin' } : null)
       });
       return res;
     } catch {
-      set({ isChecking: false, isAuthenticated: false });
+      set({ isChecking: false, isAuthenticated: false, user: null });
       return null;
     }
   },
 
   /**
-   * 提交密码登录
+   * 提交账号与密码登录
    */
-  login: async (password: string, rememberMe: boolean = true) => {
+  login: async (passwordOrParams, rememberMe = true, username) => {
     set({ error: '' });
-    const res = await loginWithPassword(password, rememberMe);
+
+    let finalParams: { username?: string; password: string; rememberMe?: boolean };
+    if (isObject(passwordOrParams) && !isString(passwordOrParams)) {
+      finalParams = passwordOrParams;
+    } else {
+      finalParams = {
+        password: String(passwordOrParams || ''),
+        rememberMe,
+        username: username || getStoredUsername() || undefined
+      };
+    }
+
+    const res = await loginWithCredentials(finalParams);
     if (res?.success) {
-      set({ isAuthenticated: true, error: '' });
+      set({
+        isAuthenticated: true,
+        user: res.user || { username: finalParams.username || 'admin' },
+        error: ''
+      });
       return { success: true };
     }
+
     const msg = res?.error || '登录失败，请重试';
     set({ error: msg });
     return { success: false, error: msg };
   },
 
   /**
-   * 首次创建管理员密码
+   * 首次创建管理员账号与密码
    */
-  setup: async (password: string) => {
+  setup: async (passwordOrParams, username) => {
     set({ error: '' });
-    const res = await setupInitialPassword(password);
+
+    let finalParams: { username?: string; password: string };
+    if (isObject(passwordOrParams) && !isString(passwordOrParams)) {
+      finalParams = passwordOrParams;
+    } else {
+      finalParams = {
+        password: String(passwordOrParams || ''),
+        username: username || 'admin'
+      };
+    }
+
+    const res = await setupInitialAccount(finalParams);
     if (res?.success) {
-      set({ isAuthenticated: true, isInitialized: true, error: '' });
+      set({
+        isAuthenticated: true,
+        isInitialized: true,
+        user: res.user || { username: finalParams.username || 'admin' },
+        error: ''
+      });
       return { success: true };
     }
-    const msg = res?.error || '设置密码失败';
+
+    const msg = res?.error || '设置账号密码失败';
     set({ error: msg });
     return { success: false, error: msg };
   },
@@ -78,6 +125,6 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
    */
   logout: async () => {
     await logoutAuth();
-    set({ isAuthenticated: false, error: '' });
+    set({ isAuthenticated: false, user: null, error: '' });
   }
 }));

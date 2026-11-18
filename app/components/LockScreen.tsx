@@ -1,16 +1,18 @@
 'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, KeyRound, Eye, EyeOff, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
+import { Lock, KeyRound, Eye, EyeOff, ShieldCheck, ArrowRight, Loader2, User } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import { getStoredUsername } from '../lib/authClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 
 export default function LockScreen() {
   const { isInitialized, login, setup, error } = useAuthStore();
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
@@ -18,37 +20,58 @@ export default function LockScreen() {
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState('');
 
+  // 初始化加载上次登录保存的账号名，若无则默认 admin
+  useEffect(() => {
+    const savedUser = getStoredUsername();
+    if (savedUser) {
+      setUsername(savedUser);
+    } else {
+      setUsername('admin');
+    }
+  }, []);
+
   const displayError = localError || error;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError('');
 
-    const trimmed = password.trim();
-    if (!trimmed) {
-      setLocalError('请输入密码');
+    const trimmedUser = username.trim();
+    const trimmedPass = password.trim();
+
+    if (!trimmedUser) {
+      setLocalError('请输入账号名');
+      return;
+    }
+
+    if (!trimmedPass) {
+      setLocalError('请输入访问密码');
       return;
     }
 
     if (!isInitialized) {
-      if (trimmed.length < 4) {
+      if (trimmedUser.length < 2) {
+        setLocalError('账号名长度不能少于 2 位');
+        return;
+      }
+      if (trimmedPass.length < 4) {
         setLocalError('密码长度不能少于 4 位');
         return;
       }
-      if (trimmed !== confirmPassword.trim()) {
+      if (trimmedPass !== confirmPassword.trim()) {
         setLocalError('两次输入的密码不一致');
         return;
       }
       setLoading(true);
       try {
-        await setup(trimmed);
+        await setup({ username: trimmedUser, password: trimmedPass });
       } finally {
         setLoading(false);
       }
     } else {
       setLoading(true);
       try {
-        await login(trimmed, rememberMe);
+        await login({ username: trimmedUser, password: trimmedPass, rememberMe });
       } finally {
         setLoading(false);
       }
@@ -74,10 +97,12 @@ export default function LockScreen() {
 
         {/* 标题与描述 */}
         <h2 className="text-xl font-bold mb-2 text-foreground text-center">
-          {isInitialized ? '安全访问锁' : '设置访问密码'}
+          {isInitialized ? '安全访问锁' : '设置访问账号与密码'}
         </h2>
         <p className="text-xs text-center text-[var(--muted)] leading-relaxed mb-6">
-          {isInitialized ? '持仓与资产隐私已加密保护，请输入密码解锁' : '首次使用，请为养基场创建访问密码'}
+          {isInitialized
+            ? '持仓与资产隐私已加密保护，请输入账号密码解锁'
+            : '首次使用，请为养基场创建管理员账号与访问密码'}
         </p>
 
         {/* 错误提示 */}
@@ -96,6 +121,24 @@ export default function LockScreen() {
 
         {/* 表单 */}
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-3.5">
+          {/* 账号名输入框 */}
+          <div className="relative w-full flex items-center">
+            <div className="absolute left-3 text-[var(--muted)] flex items-center pointer-events-none">
+              <User className="w-4 h-4" />
+            </div>
+            <Input
+              type="text"
+              value={username}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setLocalError('');
+              }}
+              placeholder={isInitialized ? '请输入账号名 (默认 admin)' : '设置管理员账号 (默认 admin)'}
+              autoComplete="username"
+              className="w-full pl-9 pr-4 h-10 rounded-lg text-[16PX] md:text-sm bg-black/20 border-white/10"
+            />
+          </div>
+
           {/* 密码输入框 */}
           <div className="relative w-full flex items-center">
             <div className="absolute left-3 text-[var(--muted)] flex items-center pointer-events-none">
@@ -109,13 +152,14 @@ export default function LockScreen() {
                 setLocalError('');
               }}
               placeholder={isInitialized ? '请输入访问密码...' : '设置管理员密码 (>=4位)'}
+              autoComplete={isInitialized ? 'current-password' : 'new-password'}
               autoFocus
               className="w-full pl-9 pr-10 h-10 rounded-lg text-[16PX] md:text-sm bg-black/20 border-white/10"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 text-[var(--muted)] hover:text-foreground transition-colors p-1"
+              className="absolute right-3 text-[var(--muted)] hover:text-foreground transition-colors p-1 cursor-pointer"
               aria-label={showPassword ? '隐藏密码' : '显示密码'}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -136,6 +180,7 @@ export default function LockScreen() {
                   setLocalError('');
                 }}
                 placeholder="请再次确认新密码"
+                autoComplete="new-password"
                 className="w-full pl-9 pr-10 h-10 rounded-lg text-[16PX] md:text-sm bg-black/20 border-white/10"
               />
             </div>
@@ -155,7 +200,7 @@ export default function LockScreen() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-11 rounded-xl mt-1.5 font-semibold text-sm gap-2"
+            className="w-full h-11 rounded-xl mt-1.5 font-semibold text-sm gap-2 cursor-pointer"
           >
             {loading ? (
               <>

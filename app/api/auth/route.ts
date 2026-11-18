@@ -2,27 +2,31 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import {
   isPasswordSet,
-  verifyPassword,
-  setPassword,
+  verifyCredentials,
+  setAccount,
   createSession,
   verifyRequestAuth,
-  revokeSessionToken
+  revokeSessionToken,
+  getStoredUser
 } from '@/app/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * GET: 检查当前登录状态和是否已设置密码
+ * GET: 检查当前登录状态和是否已设置账号密码
  */
 export async function GET(request: NextRequest) {
   try {
     const initialized = isPasswordSet();
-    const authenticated = !initialized || verifyRequestAuth(request);
+    // 关键修正：未初始化时必须为未登录未授权（isAuthenticated: false），绝不能直接进入首页
+    const authenticated = initialized && verifyRequestAuth(request);
+    const user = authenticated ? getStoredUser() : null;
 
     return NextResponse.json({
       success: true,
       isInitialized: initialized,
-      isAuthenticated: authenticated
+      isAuthenticated: authenticated,
+      user
     });
   } catch (err: any) {
     console.error('[API /api/auth GET Error]', err);
@@ -38,25 +42,32 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const action = body.action || 'login';
 
-    // 1. 首次初始化设置密码
+    // 1. 首次初始化设置账号与密码
     if (action === 'setup') {
       if (isPasswordSet()) {
-        return NextResponse.json({ success: false, error: '系统密码已设置，请直接登录' }, { status: 400 });
+        return NextResponse.json({ success: false, error: '系统账号密码已设置，请直接登录' }, { status: 400 });
       }
 
+      const username = (body.username || 'admin').trim();
       const password = (body.password || '').trim();
+
+      if (!username || username.length < 2) {
+        return NextResponse.json({ success: false, error: '账号名长度不能少于 2 位' }, { status: 400 });
+      }
+
       if (!password || password.length < 4) {
         return NextResponse.json({ success: false, error: '密码长度不能少于 4 位' }, { status: 400 });
       }
 
-      setPassword(password);
+      setAccount(username, password);
       const session = createSession(true);
 
       const res = NextResponse.json({
         success: true,
-        message: '密码设置成功',
+        message: '账号密码设置成功',
         token: session.token,
-        expiresAt: session.expiresAt
+        expiresAt: session.expiresAt,
+        user: { username }
       });
 
       // 写入安全 Cookie
@@ -73,23 +84,27 @@ export async function POST(request: NextRequest) {
 
     // 2. 登录认证
     if (action === 'login') {
+      const username = (body.username || '').trim();
       const password = (body.password || '').trim();
+
       if (!password) {
         return NextResponse.json({ success: false, error: '请输入访问密码' }, { status: 400 });
       }
 
-      const isValid = verifyPassword(password);
+      const isValid = verifyCredentials(username, password);
       if (!isValid) {
-        return NextResponse.json({ success: false, error: '密码错误，请重新输入' }, { status: 401 });
+        return NextResponse.json({ success: false, error: '账号或密码错误，请重新输入' }, { status: 401 });
       }
 
       const rememberMe = body.rememberMe !== false;
       const session = createSession(rememberMe);
+      const currentUser = getStoredUser();
 
       const res = NextResponse.json({
         success: true,
         token: session.token,
-        expiresAt: session.expiresAt
+        expiresAt: session.expiresAt,
+        user: currentUser || { username: username || 'admin' }
       });
 
       // 写入 Cookie
@@ -105,7 +120,7 @@ export async function POST(request: NextRequest) {
       return res;
     }
 
-    // 3. 修改密码
+    // 3. 修改账号或密码
     if (action === 'change-password') {
       if (!verifyRequestAuth(request)) {
         return NextResponse.json({ success: false, error: '未授权，请先登录' }, { status: 401 });
@@ -113,8 +128,9 @@ export async function POST(request: NextRequest) {
 
       const oldPassword = (body.oldPassword || '').trim();
       const newPassword = (body.newPassword || '').trim();
+      const newUsername = (body.newUsername || '').trim();
 
-      if (!verifyPassword(oldPassword)) {
+      if (!verifyCredentials(undefined, oldPassword)) {
         return NextResponse.json({ success: false, error: '原密码错误' }, { status: 400 });
       }
 
@@ -122,13 +138,17 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: '新密码长度不能少于 4 位' }, { status: 400 });
       }
 
-      setPassword(newPassword);
+      const currentUser = getStoredUser();
+      const finalUsername = newUsername || currentUser?.username || 'admin';
+
+      setAccount(finalUsername, newPassword);
       const session = createSession(true);
 
       const res = NextResponse.json({
         success: true,
-        message: '密码修改成功',
-        token: session.token
+        message: '账号密码修改成功',
+        token: session.token,
+        user: { username: finalUsername }
       });
 
       res.cookies.set('fund_auth_token', session.token, {
