@@ -14,6 +14,10 @@ RUN npx next build
 FROM node:22-alpine AS runner
 WORKDIR /app
 
+LABEL org.opencontainers.image.source="https://github.com/wavesbig/fund-farm"
+LABEL org.opencontainers.image.description="Real-time mutual fund valuation tracker (养基场)"
+LABEL org.opencontainers.image.licenses="AGPL-3.0"
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
