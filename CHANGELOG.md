@@ -1,3 +1,9 @@
+## v1.0.3 - 2026-11-18
+
+### 变更
+
+- feat(auth): fix initial setup guard and support docker default credentials
+
 ## v1.0.2 - 2026-11-11
 
 ### 变更
