@@ -1,3 +1,10 @@
+## v1.0.4 - 2026-11-18
+
+### 变更
+
+- fix(docker): add fallback for npm install during multiarch build
+- refactor(layout): adopt shadcn sticky header standard and eliminate navbar height hacks
+
 ## v1.0.3 - 2026-11-18
 
 ### 变更
