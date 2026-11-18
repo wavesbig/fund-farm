@@ -6,6 +6,7 @@ import MobileBottomNav from './MobileBottomNav';
 
 export interface NavLayoutProps {
   children: React.ReactNode;
+  header?: React.ReactNode;
   mainTab: string;
   setMainTab: (tab: string) => void;
   isMobile: boolean;
@@ -19,6 +20,7 @@ export interface NavLayoutProps {
 
 export default function NavLayout({
   children,
+  header,
   mainTab,
   setMainTab,
   isMobile,
@@ -32,6 +34,7 @@ export default function NavLayout({
   return (
     <>
       <PcSideNav value={mainTab} onChange={setMainTab} />
+      {header}
       <div ref={containerRef} className={containerClassName} style={{ width: isMobile ? '100%' : containerWidth }}>
         {children}
 

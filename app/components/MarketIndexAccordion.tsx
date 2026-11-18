@@ -327,9 +327,7 @@ export default function MarketIndexAccordion({
   const isUp = current ? current.change >= 0 : false;
   const colorClass = isUp ? 'text-[var(--danger)]' : 'text-[var(--success)]';
 
-  const topMargin = Number(navbarHeight) || 0;
   const containerStyle = {
-    marginTop: topMargin,
     position: 'relative' as const,
     zIndex: 10,
     width: isMobile ? 'calc(100% + 24px)' : '100%',

@@ -59,6 +59,7 @@ html[data-font-size='extra-large'] {
 
 :root,
 [data-theme='dark'] {
+  --navbar-height: 56px;
   /* Stripe / Söhne Typography: with OpenType ss01 & tabular numbers */
   --font-mono: -apple-system, BlinkMacSystemFont, "Söhne", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   
@@ -764,21 +765,21 @@ body::before {
 }
 
 .navbar {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
   width: 100%;
   z-index: 50;
   padding: 6px 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 56px;
+  min-height: var(--navbar-height, 56px);
   box-sizing: border-box;
   background: var(--header-bg);
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-header);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 [data-theme='light'] .navbar {
@@ -860,22 +861,24 @@ body::before {
 
 /* Mobile Layout */
 @media (max-width: 640px) {
+  :root {
+    --navbar-height: 52px;
+  }
+
   .content {
-    padding-top: 100px;
     overflow-x: clip;
   }
 
   .navbar {
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
     padding: 6px 0;
     border-radius: 0;
     border-top: none;
     border-left: none;
     border-right: none;
     border-bottom: 1px solid var(--border);
-    min-height: 52px;
+    min-height: var(--navbar-height, 52px);
     background: var(--header-bg);
   }
 

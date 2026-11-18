@@ -323,7 +323,11 @@ export default function HomePage() {
   // 动态计算 Navbar 和 FilterBar 高度（抽离到 useNavHeights）
   // 注意：isMobile 在此处尚未声明，shouldShowMarketIndex 由 page.jsx 内独立 useEffect 处理
   const containerRef = useRef(null);
-  const { navbarRef, filterBarRef, navbarHeight, filterBarHeight } = useNavHeights({ groups, currentTab });
+  const { navbarRef, filterBarRef, navbarHeight, filterBarHeight } = useNavHeights({
+    groups,
+    currentTab,
+    isAuthenticated
+  });
 
   const [percentModes, setPercentModes] = useState({}); // { [code]: boolean }
   const [todayPercentModes, setTodayPercentModes] = useState({}); // { [code]: boolean }
@@ -4054,6 +4058,38 @@ export default function HomePage() {
       showThemeTransition={showThemeTransition}
       setShowThemeTransition={setShowThemeTransition}
       mobileBottomNavHidden={mobileBottomNavHidden}
+      header={
+        mobileHomeTabVisible ? (
+          <>
+            <Announcement />
+            <Navbar
+              navbarRef={navbarRef}
+              containerWidth={containerWidth}
+              refreshing={refreshing}
+              isSyncing={isSyncing}
+              selectedFunds={selectedFunds}
+              toggleSelectFund={toggleSelectFund}
+              dropdownRef={dropdownRef}
+              inputRef={inputRef}
+              searchTerm={searchTerm}
+              handleSearchInput={handleSearchInput}
+              showDropdown={showDropdown}
+              setShowDropdown={setShowDropdown}
+              searchResults={searchResults}
+              isSearching={isSearching}
+              isScanning={isScanning}
+              handleScanClick={handleScanClick}
+              addFund={addFund}
+              refreshMs={refreshMs}
+              manualRefresh={manualRefresh}
+              fundsLength={funds.length}
+              refreshCycleStartRef={refreshCycleStartRef}
+              theme={theme}
+              handleThemeToggle={handleThemeToggle}
+            />
+          </>
+        ) : null
+      }
     >
       <div
         className="mobile-main-tab-panel mobile-main-tab-panel--home"
@@ -4061,38 +4097,8 @@ export default function HomePage() {
         aria-hidden={!mobileHomeTabVisible || undefined}
       >
         <>
-          <Announcement />
-          <Navbar
-            navbarRef={navbarRef}
-            containerWidth={containerWidth}
-            refreshing={refreshing}
-            isSyncing={isSyncing}
-            selectedFunds={selectedFunds}
-            toggleSelectFund={toggleSelectFund}
-            dropdownRef={dropdownRef}
-            inputRef={inputRef}
-            searchTerm={searchTerm}
-            handleSearchInput={handleSearchInput}
-            showDropdown={showDropdown}
-            setShowDropdown={setShowDropdown}
-            searchResults={searchResults}
-            isSearching={isSearching}
-            isScanning={isScanning}
-            handleScanClick={handleScanClick}
-            addFund={addFund}
-            refreshMs={refreshMs}
-            manualRefresh={manualRefresh}
-            fundsLength={funds.length}
-            refreshCycleStartRef={refreshCycleStartRef}
-            theme={theme}
-            handleThemeToggle={handleThemeToggle}
-          />
           {shouldShowMarketIndex && (
-            <MarketIndexAccordion
-              navbarHeight={navbarHeight}
-              onCustomSettingsChange={triggerCustomSettingsSync}
-              refreshing={refreshing}
-            />
+            <MarketIndexAccordion onCustomSettingsChange={triggerCustomSettingsSync} refreshing={refreshing} />
           )}
           <div style={{ display: mainTab === 'home' ? 'contents' : 'none' }}>
             <div className="grid">

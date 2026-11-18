@@ -127,8 +127,7 @@ export const FilterBar = memo(function FilterBar({
       ref={filterBarRef}
       className="filter-bar"
       style={{
-        top: `${navbarHeight}px`,
-        marginTop: !shouldShowMarketIndex ? navbarHeight : 0,
+        top: 'var(--navbar-height, 56px)',
         marginBottom: 8,
         display: 'flex',
         justifyContent: 'space-between',
