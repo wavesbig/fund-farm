@@ -2010,36 +2010,36 @@ html::-webkit-scrollbar-thumb:active,
     padding: 12px !important;
   }
 
-  .name-cell {
+  .table-row .name-cell {
     grid-area: name;
   }
 
-  .value-cell {
+  .table-row .value-cell {
     grid-area: value;
   }
 
-  .change-cell {
+  .table-row .change-cell {
     grid-area: change;
   }
 
-  .profit-cell {
+  .table-row .profit-cell {
     grid-area: profit;
   }
 
-  .time-cell {
+  .table-row .time-cell {
     grid-area: time;
     justify-content: flex-end;
   }
 
-  .action-cell {
+  .table-row .action-cell {
     display: none;
   }
 
-  .holding-cell {
+  .table-row .holding-cell {
     display: none;
   }
 
-  .holding-amount-cell {
+  .table-row .holding-amount-cell {
     display: none;
   }
 
@@ -2066,7 +2066,7 @@ html::-webkit-scrollbar-thumb:active,
 
 @media (max-width: 768px) {
   /* 非 mobile-fund-table 下的操作列删除按钮隐藏（如旧列表布局）；mobile-fund-table 内由上面覆盖为显示 */
-  .action-cell .danger {
+  .table-row .action-cell .danger {
     display: none;
   }
 

@@ -146,6 +146,7 @@ const MemoizedTableRow = memo(
   (prevProps, nextProps) => {
     return (
       prevProps.index === nextProps.index &&
+      prevProps.row.getVisibleCells().length === nextProps.row.getVisibleCells().length &&
       prevProps.sortBy === nextProps.sortBy &&
       prevProps.isFavorites === nextProps.isFavorites &&
       prevProps.isSelected === nextProps.isSelected &&
@@ -787,6 +788,11 @@ export const PcFundTable = memo(function PcFundTable({
                 <div
                   onMouseDown={header.column.getCanResize() ? header.getResizeHandler() : undefined}
                   onTouchStart={header.column.getCanResize() ? header.getResizeHandler() : undefined}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    header.column.resetSize?.();
+                  }}
+                  title="拖拽调节列宽，双击恢复默认"
                   className={cn(
                     'resizer',
                     header.column.getIsResizing() ? 'isResizing' : '',
@@ -816,11 +822,16 @@ export const PcFundTable = memo(function PcFundTable({
             <div className="table-scroll-area overflow-x-auto w-full">
               <div className="table-scroll-area-inner" ref={tableContainerRef} style={tableCssVariables}>
                 <style>{`
-                  /* 确保原生 table 单元格严格使用固定列宽 */
+                  /* 确保原生 table 单元格严格使用固定列宽与正确布局 */
                   .pc-table-fixed {
                     table-layout: fixed !important;
                     border-collapse: separate !important;
                     border-spacing: 0 !important;
+                  }
+
+                  .pc-table-fixed th,
+                  .pc-table-fixed td {
+                    display: table-cell !important;
                   }
 
                   /* 表头整体背景：100% 实心背景色，彻底杜绝半透明透光 */

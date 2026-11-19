@@ -46,6 +46,9 @@ export interface UsePcTableColumnsOptions {
   fundExtraDataByCode?: Record<string, any>;
 }
 
+/** PC 表格数值列统一响应式紧凑字号，避免高分辨率或大额数字截断 */
+const PC_NUMERIC_FONT_SIZE = 'clamp(14.5px, 1.1vw, 16.5px)';
+
 export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<any, any>[] {
   const {
     currentTab,
@@ -242,10 +245,12 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
               {pctText != null ? (
                 <span
                   className={pctCls}
+                  title={pctText}
                   style={{
                     fontWeight: 700,
                     textAlign: 'right',
-                    fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                    fontSize: PC_NUMERIC_FONT_SIZE,
+                    fontVariantNumeric: 'tabular-nums',
                     display: 'block',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -280,8 +285,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         id: 'period1w',
         header: '近1周',
-        size: 88,
-        minSize: 72,
+        size: 96,
+        minSize: 84,
         cell: (info) => {
           const original = info.row.original || {};
           const code = original.code;
@@ -292,9 +297,11 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div style={{ textAlign: 'right' }}>
               <div
                 className={cls}
+                title={text !== '—' ? text : undefined}
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -310,8 +317,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         id: 'period1m',
         header: '近1月',
-        size: 88,
-        minSize: 72,
+        size: 96,
+        minSize: 84,
         cell: (info) => {
           const original = info.row.original || {};
           const code = original.code;
@@ -322,9 +329,11 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div style={{ textAlign: 'right' }}>
               <div
                 className={cls}
+                title={text !== '—' ? text : undefined}
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -340,8 +349,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         id: 'period3m',
         header: '近3月',
-        size: 88,
-        minSize: 72,
+        size: 96,
+        minSize: 84,
         cell: (info) => {
           const original = info.row.original || {};
           const code = original.code;
@@ -352,9 +361,11 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div style={{ textAlign: 'right' }}>
               <div
                 className={cls}
+                title={text !== '—' ? text : undefined}
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -370,8 +381,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         id: 'period6m',
         header: '近6月',
-        size: 88,
-        minSize: 72,
+        size: 96,
+        minSize: 84,
         cell: (info) => {
           const original = info.row.original || {};
           const code = original.code;
@@ -382,9 +393,11 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div style={{ textAlign: 'right' }}>
               <div
                 className={cls}
+                title={text !== '—' ? text : undefined}
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -400,8 +413,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         id: 'period1y',
         header: '近1年',
-        size: 88,
-        minSize: 72,
+        size: 96,
+        minSize: 84,
         cell: (info) => {
           const original = info.row.original || {};
           const code = original.code;
@@ -412,9 +425,11 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div style={{ textAlign: 'right' }}>
               <div
                 className={cls}
+                title={text !== '—' ? text : undefined}
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -430,24 +445,27 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         accessorKey: 'latestNav',
         header: '最新净值',
-        size: 100,
-        minSize: 80,
+        size: 108,
+        minSize: 90,
         cell: (info) => {
           const original = info.row.original || {};
           const rawDate = original.latestNavDate ?? '-';
           const date = isString(rawDate) && rawDate.length > 5 ? rawDate.slice(5) : rawDate;
+          const val = info.getValue() ?? '—';
           return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
               <div
+                title={val !== '—' ? String(val) : undefined}
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
                 }}
               >
-                {info.getValue() ?? '—'}
+                {val}
               </div>
               <span className="muted" style={{ fontSize: '13px' }}>
                 {date}
@@ -463,8 +481,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         accessorKey: 'estimateNav',
         header: '估算净值',
-        size: 100,
-        minSize: 80,
+        size: 108,
+        minSize: 90,
         cell: (info) => {
           const original = info.row.original || {};
           const rawDate = original.estimateNavDate ?? '-';
@@ -474,9 +492,11 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
           return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
               <div
+                title={hasEstimateNav ? String(estimateNav) : undefined}
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -508,19 +528,22 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
           const rawDate = original.yesterdayDate ?? '-';
           const date = isString(rawDate) && rawDate.length > 5 ? rawDate.slice(5) : rawDate;
           const cls = value > 0 ? 'up' : value < 0 ? 'down' : '';
+          const val = info.getValue() ?? '—';
           return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
               <div
                 className={cls}
+                title={val !== '—' ? String(val) : undefined}
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
                 }}
               >
-                {info.getValue() ?? '—'}
+                {val}
               </div>
               <span className="muted" style={{ fontSize: '13px' }}>
                 {date}
@@ -551,9 +574,11 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
               <div
                 className={cls}
+                title={hasText ? String(text) : undefined}
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -591,9 +616,11 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
               <div
                 className={cls}
+                title={hasText ? String(text) : undefined}
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -621,8 +648,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         accessorKey: 'totalChangePercent',
         header: '估算收益',
-        size: 135,
-        minSize: 100,
+        size: 145,
+        minSize: 115,
         cell: (info) => {
           const original = info.row.original || {};
           const value = original.estimateProfitValue;
@@ -635,10 +662,12 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div style={{ width: '100%' }}>
               <span
                 className={cls}
+                title={hasProfit && !masked ? `${amountStr} (${percentStr})` : undefined}
                 style={{
                   fontWeight: 700,
                   display: 'block',
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -651,7 +680,7 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
                   className={`${cls} estimate-profit-percent`}
                   style={{
                     display: 'block',
-                    fontSize: 'clamp(13px, 1.05vw, 14.5px)',
+                    fontSize: 'clamp(12px, 0.95vw, 13.5px)',
                     opacity: 0.9,
                     fontWeight: 500,
                     whiteSpace: 'nowrap',
@@ -673,8 +702,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         accessorKey: 'holdingAmount',
         header: '持仓金额',
-        size: 135,
-        minSize: 100,
+        size: 155,
+        minSize: 125,
         cell: (info) => {
           const original = info.row.original || {};
           const holdingLocked = (currentTab === 'all' || currentTab === 'fav') && !!original.isHoldingLinked;
@@ -708,9 +737,10 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
               </div>
             );
           }
+          const val = info.getValue() ?? '—';
           return (
             <div
-              title={holdingLocked ? holdingLinkedTitle : '编辑持仓'}
+              title={holdingLocked ? holdingLinkedTitle : val !== '—' && !masked ? `${val} (点击编辑持仓)` : '编辑持仓'}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -725,31 +755,31 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             >
               <div style={{ flex: '1 1 0', minWidth: 0 }}>
                 <span
+                  title={val !== '—' && !masked ? String(val) : undefined}
                   style={{
                     fontWeight: 700,
-                    fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                    fontSize: PC_NUMERIC_FONT_SIZE,
+                    fontVariantNumeric: 'tabular-nums',
                     display: 'block',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  {masked ? <span className="mask-text">******</span> : (info.getValue() ?? '—')}
+                  {masked ? <span className="mask-text">******</span> : val}
                 </span>
               </div>
               <button
-                className="icon-button no-hover inline-flex items-center justify-center size-7 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                type="button"
+                className="inline-flex items-center justify-center size-5 rounded text-muted-foreground/60 hover:text-foreground hover:bg-muted/60 transition-colors ml-1 shrink-0 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation?.();
                   onHoldingAmountClickRef.current?.(original, { hasHolding: true });
                 }}
                 style={{
                   border: 'none',
-                  marginLeft: 4,
-                  flexShrink: 0,
                   backgroundColor: 'transparent',
-                  color: holdingLocked ? 'var(--muted)' : undefined,
-                  cursor: 'pointer'
+                  color: holdingLocked ? 'var(--muted)' : undefined
                 }}
                 aria-label="编辑持仓"
               >
@@ -781,11 +811,13 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
           const text = `${(value * 100).toFixed(2)}%`;
           return (
             <span
+              title={!masked ? text : undefined}
               style={{
                 fontWeight: 700,
                 display: 'block',
                 textAlign: 'right',
-                fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                fontSize: PC_NUMERIC_FONT_SIZE,
+                fontVariantNumeric: 'tabular-nums',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
@@ -803,8 +835,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         accessorKey: 'holdingCost',
         header: '持仓成本',
-        size: 135,
-        minSize: 100,
+        size: 145,
+        minSize: 115,
         cell: (info) => {
           const original = info.row.original || {};
           if (original.holdingCostValue == null) {
@@ -814,6 +846,7 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
               </div>
             );
           }
+          const val = info.getValue() ?? '—';
           return (
             <div
               style={{
@@ -825,16 +858,18 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
               }}
             >
               <span
+                title={val !== '—' && !masked ? String(val) : undefined}
                 style={{
                   fontWeight: 700,
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   display: 'block',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
                 }}
               >
-                {masked ? <span className="mask-text">******</span> : (info.getValue() ?? '—')}
+                {masked ? <span className="mask-text">******</span> : val}
               </span>
             </div>
           );
@@ -847,8 +882,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         accessorKey: 'costNav',
         header: '成本净值',
-        size: 100,
-        minSize: 80,
+        size: 108,
+        minSize: 90,
         cell: (info) => {
           const original = info.row.original || {};
           if (original.costNavValue == null) {
@@ -858,19 +893,22 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
               </div>
             );
           }
+          const val = info.getValue() ?? '—';
           return (
             <span
+              title={val !== '—' && !masked ? String(val) : undefined}
               style={{
                 fontWeight: 700,
                 display: 'block',
                 textAlign: 'right',
-                fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                fontSize: PC_NUMERIC_FONT_SIZE,
+                fontVariantNumeric: 'tabular-nums',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
               }}
             >
-              {masked ? <span className="mask-text">******</span> : (info.getValue() ?? '—')}
+              {masked ? <span className="mask-text">******</span> : val}
             </span>
           );
         },
@@ -894,7 +932,19 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
               </div>
             );
           }
-          return <div style={{ fontWeight: 700, textAlign: 'right' }}>{value}</div>;
+          return (
+            <div
+              title={`${value} 天`}
+              style={{
+                fontWeight: 700,
+                textAlign: 'right',
+                fontSize: PC_NUMERIC_FONT_SIZE,
+                fontVariantNumeric: 'tabular-nums'
+              }}
+            >
+              {value}
+            </div>
+          );
         },
         meta: {
           align: 'right',
@@ -904,8 +954,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         accessorKey: 'todayProfit',
         header: '当日收益',
-        size: 135,
-        minSize: 100,
+        size: 145,
+        minSize: 115,
         cell: (info) => {
           const original = info.row.original || {};
           const value = original.todayProfitValue;
@@ -917,10 +967,12 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div style={{ width: '100%' }}>
               <span
                 className={cls}
+                title={hasProfit && !masked ? `${amountStr} (${percentStr})` : undefined}
                 style={{
                   fontWeight: 700,
                   display: 'block',
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -933,7 +985,7 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
                   className={`${cls} today-profit-percent`}
                   style={{
                     display: 'block',
-                    fontSize: 'clamp(13px, 1.05vw, 14.5px)',
+                    fontSize: 'clamp(12px, 0.95vw, 13.5px)',
                     opacity: 0.9,
                     fontWeight: 500,
                     whiteSpace: 'nowrap',
@@ -955,8 +1007,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         accessorKey: 'yesterdayProfit',
         header: '昨日收益',
-        size: 135,
-        minSize: 100,
+        size: 145,
+        minSize: 115,
         cell: (info) => {
           const original = info.row.original || {};
           const value = original.yesterdayProfitValue;
@@ -971,10 +1023,12 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div style={{ width: '100%' }}>
               <span
                 className={cls}
+                title={hasProfit && !masked ? `${amountStr} (${percentStr})` : undefined}
                 style={{
                   fontWeight: 700,
                   display: 'block',
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -987,7 +1041,7 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
                   className={`${pctCls} yesterday-profit-percent`}
                   style={{
                     display: 'block',
-                    fontSize: 'clamp(13px, 1.05vw, 14.5px)',
+                    fontSize: 'clamp(12px, 0.95vw, 13.5px)',
                     opacity: 0.9,
                     fontWeight: 500,
                     whiteSpace: 'nowrap',
@@ -1009,8 +1063,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
       {
         accessorKey: 'holdingProfit',
         header: '持有收益',
-        size: 135,
-        minSize: 100,
+        size: 145,
+        minSize: 115,
         cell: (info) => {
           const original = info.row.original || {};
           const value = original.holdingProfitValue;
@@ -1022,10 +1076,12 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             <div style={{ width: '100%' }}>
               <span
                 className={cls}
+                title={hasTotal && !masked ? `${amountStr} (${percentStr})` : undefined}
                 style={{
                   fontWeight: 700,
                   display: 'block',
-                  fontSize: 'clamp(16px, 1.35vw, 18.5px)',
+                  fontSize: PC_NUMERIC_FONT_SIZE,
+                  fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -1038,7 +1094,7 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
                   className={`${cls} holding-profit-percent`}
                   style={{
                     display: 'block',
-                    fontSize: 'clamp(13px, 1.05vw, 14.5px)',
+                    fontSize: 'clamp(12px, 0.95vw, 13.5px)',
                     opacity: 0.9,
                     fontWeight: 500,
                     whiteSpace: 'nowrap',
@@ -1054,7 +1110,7 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
         },
         meta: {
           align: 'right',
-          cellClassName: 'holding-cell'
+          cellClassName: 'holding-profit-cell'
         }
       },
       {
