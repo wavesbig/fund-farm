@@ -1,3 +1,11 @@
+## v1.0.5 - 2026-11-19
+
+### 变更
+
+- fix: 优化未输入基金代码提示体验及 Toast 遮挡问题
+- fix(scan): resolve overlap between AI config button and dialog close button
+- ci(docker): add opencontainers source label to link package to repository
+
 ## v1.0.4 - 2026-11-18
 
 ### 变更
