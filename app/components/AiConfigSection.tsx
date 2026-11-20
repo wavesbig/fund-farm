@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { isString, isObject, isArray, isBoolean } from 'lodash';
 import {
   Sparkles,
@@ -39,9 +39,15 @@ export interface AiConfig {
   model: string;
 }
 
+export interface AiConfigSectionRef {
+  save: () => Promise<void>;
+  test: () => Promise<void>;
+}
+
 export interface AiConfigSectionProps {
   onAiConfigChange?: (cfg: AiConfig) => void;
   showImmediateSaveButton?: boolean;
+  onSaved?: () => void;
   className?: string;
 }
 
@@ -168,11 +174,10 @@ const PRESETS: ProviderPreset[] = [
   }
 ];
 
-export default function AiConfigSection({
-  onAiConfigChange,
-  showImmediateSaveButton = true,
-  className
-}: AiConfigSectionProps) {
+const AiConfigSection = forwardRef<AiConfigSectionRef, AiConfigSectionProps>(function AiConfigSection(
+  { onAiConfigChange, showImmediateSaveButton = true, onSaved, className },
+  ref
+) {
   const setCustomSettings = useStorageStore((s) => s.setCustomSettings);
 
   const [apiKey, setApiKey] = useState('');
@@ -390,8 +395,9 @@ export default function AiConfigSection({
    * 持久化保存 AI 配置
    */
   const handleSaveImmediate = async () => {
+    const hasKey = Boolean(apiKey.trim());
     const nextAiConfig: AiConfig = {
-      enabled,
+      enabled: hasKey ? true : enabled,
       apiKey: apiKey.trim(),
       baseURL: baseURL.trim() || 'https://api.deepseek.com/v1',
       model: model.trim() || 'deepseek-chat'
@@ -400,7 +406,8 @@ export default function AiConfigSection({
     const currentSettings = useStorageStore.getState().customSettings || {};
     const nextCustomSettings = {
       ...currentSettings,
-      aiConfig: nextAiConfig
+      aiConfig: nextAiConfig,
+      scanEngineMode: hasKey ? 'ai' : 'local'
     };
 
     setCustomSettings(nextCustomSettings);
@@ -408,13 +415,21 @@ export default function AiConfigSection({
     try {
       await saveSqliteKey('customSettings', nextCustomSettings);
       setSaveSuccess(true);
-      sonnerToast.success('AI 配置已保存');
-      setTimeout(() => setSaveSuccess(false), 2000);
+      sonnerToast.success(hasKey ? 'AI 大模型配置已启用并保存' : 'AI 配置已保存');
+      setTimeout(() => {
+        setSaveSuccess(false);
+        onSaved?.();
+      }, 350);
     } catch (err) {
       console.error('[AiConfigSection] save failed:', err);
       sonnerToast.error('保存失败，请稍后重试');
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    save: handleSaveImmediate,
+    test: handleTestConnection
+  }));
 
   return (
     <div className={cn('space-y-4 text-left w-full min-w-0 max-w-full', className)}>
@@ -653,7 +668,7 @@ export default function AiConfigSection({
                 <SelectTrigger className="flex-1 h-9.5 bg-background text-xs font-mono border-border rounded-lg">
                   <SelectValue placeholder="选择模型" />
                 </SelectTrigger>
-                <SelectContent className="z-[10001] max-h-56">
+                <SelectContent className="!z-[13020] max-h-56">
                   {modelList.map((m) => (
                     <SelectItem key={m} value={m} className="text-xs font-mono">
                       {m}
@@ -768,4 +783,6 @@ export default function AiConfigSection({
       </div>
     </div>
   );
-}
+});
+
+export default AiConfigSection;

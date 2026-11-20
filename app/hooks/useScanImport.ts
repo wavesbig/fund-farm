@@ -258,6 +258,10 @@ export function useScanImport({
     }> = [];
     const addedFundCodes = new Set<string>();
 
+    const customSettings = useStorageStore.getState().customSettings || {};
+    const aiConfig = customSettings.aiConfig || {};
+    const hasAiKey = Boolean(aiConfig.apiKey && aiConfig.apiKey.trim());
+
     for (let i = 0; i < texts.length; i++) {
       if (abortScanRef.current) break;
 
@@ -267,16 +271,18 @@ export function useScanImport({
       setScanProgress((prev: any) => ({ ...prev, current: i + 1 }));
 
       let fundsRes: any = null;
-      try {
-        const fundsResString = await parseFundTextWithLLM(text);
-        if (fundsResString) {
-          fundsRes = JSON.parse(fundsResString);
+      if (hasAiKey) {
+        try {
+          const fundsResString = await parseFundTextWithLLM(text);
+          if (fundsResString) {
+            fundsRes = JSON.parse(fundsResString);
+          }
+        } catch {
+          fundsRes = null;
         }
-      } catch {
-        fundsRes = null;
       }
 
-      // 如果大模型未能解析出有效结果，使用纯前端本地规则启发式解析兜底
+      // 如果未配置 AI 或 AI 未能解析出有效结果，使用纯前端本地规则启发式解析兜底
       if (!isArray(fundsRes) || fundsRes.length === 0) {
         fundsRes = parseFundTextLocally(text);
       }
@@ -356,63 +362,69 @@ export function useScanImport({
     setScanModalOpen(true);
     abortScanRef.current = false;
 
-    // === 第一级：优先尝试 AI 多模态视觉直读 (Vision 直接读图，0 噪点、0 错别字) ===
+    const customSettings = useStorageStore.getState().customSettings || {};
+    const aiConfig = customSettings.aiConfig || {};
+    const hasAiKey = Boolean(aiConfig.apiKey && aiConfig.apiKey.trim());
+
+    // === 第一级：若配置了大模型，优先尝试 AI 多模态视觉直读 (Vision 直接读图，0 噪点、0 错别字) ===
     let visionSucceeded = false;
     const visionFundsData: any[] = [];
     const visionAddedCodes = new Set<string>();
 
-    try {
-      setScanProgress({ stage: 'vision', current: 0, total: files.length });
-      for (let i = 0; i < files.length; i++) {
-        if (abortScanRef.current) break;
-        const file = files[i];
-        setScanProgress((prev: any) => ({ ...prev, stage: 'vision', current: i + 1 }));
+    if (hasAiKey) {
+      try {
+        setScanProgress({ stage: 'vision', current: 0, total: files.length });
+        for (let i = 0; i < files.length; i++) {
+          if (abortScanRef.current) break;
+          const file = files[i];
+          setScanProgress((prev: any) => ({ ...prev, stage: 'vision', current: i + 1 }));
 
-        const base64 = await fileToDataUrl(file);
-        const resString = await parseFundImageWithLLM(base64);
-        if (resString) {
-          const parsed = JSON.parse(resString);
-          if (isArray(parsed) && parsed.length > 0) {
-            parsed.forEach((fund: any) => {
-              const code = fund.fundCode || '';
-              const name = (fund.fundName || '').trim();
-              const itemPayload = {
-                fundCode: code,
-                fundName: name,
-                holdAmounts: fund.holdAmounts || '',
-                holdGains: fund.holdGains || '',
-                cost: fund.cost || '',
-                share: fund.share || '',
-                yesterdayProfit: fund.yesterdayProfit || ''
-              };
-              if (code && !visionAddedCodes.has(code)) {
-                visionAddedCodes.add(code);
-                visionFundsData.push(itemPayload);
-              } else if (!code && name) {
-                visionFundsData.push({
-                  ...itemPayload,
-                  fundCode: ''
-                });
-              }
-            });
+          const base64 = await fileToDataUrl(file);
+          const resString = await parseFundImageWithLLM(base64);
+          if (resString) {
+            const parsed = JSON.parse(resString);
+            if (isArray(parsed) && parsed.length > 0) {
+              parsed.forEach((fund: any) => {
+                const code = fund.fundCode || '';
+                const name = (fund.fundName || '').trim();
+                const itemPayload = {
+                  fundCode: code,
+                  fundName: name,
+                  holdAmounts: fund.holdAmounts || '',
+                  holdGains: fund.holdGains || '',
+                  cost: fund.cost || '',
+                  share: fund.share || '',
+                  yesterdayProfit: fund.yesterdayProfit || ''
+                };
+                if (code && !visionAddedCodes.has(code)) {
+                  visionAddedCodes.add(code);
+                  visionFundsData.push(itemPayload);
+                } else if (!code && name) {
+                  visionFundsData.push({
+                    ...itemPayload,
+                    fundCode: ''
+                  });
+                }
+              });
+            } else {
+              // 当前图片未返回有效基金，降级
+              visionFundsData.length = 0;
+              break;
+            }
           } else {
-            // 当前图片未返回有效基金，降级
+            // 当前图片视觉直读未返回结果（可能模型不支持 Vision 或未配 key），降级
             visionFundsData.length = 0;
             break;
           }
-        } else {
-          // 当前图片视觉直读未返回结果（可能模型不支持 Vision 或未配 key），降级
-          visionFundsData.length = 0;
-          break;
         }
-      }
 
-      if (!abortScanRef.current && visionFundsData.length > 0) {
-        visionSucceeded = true;
-        await verifyAndFinalizeFunds(visionFundsData, visionAddedCodes);
+        if (!abortScanRef.current && visionFundsData.length > 0) {
+          visionSucceeded = true;
+          await verifyAndFinalizeFunds(visionFundsData, visionAddedCodes);
+        }
+      } catch {
+        visionSucceeded = false;
       }
-    } catch {
-      visionSucceeded = false;
     }
 
     if (abortScanRef.current || visionSucceeded) {
