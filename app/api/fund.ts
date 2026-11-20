@@ -2046,8 +2046,20 @@ export const parseFundTextLocally = (text: string): Array<ParsedFundScannedItem>
   const results: Array<ParsedFundScannedItem> = [];
   const seenCodes = new Set<string>();
 
-  // 预处理 OCR 文本中的千分位噪点（如 7'756 规整为 7,756）
-  const normalizedText = text.replace(/(\d)['\u0060’‘](\d{3})/g, '$1,$2');
+  // 1. 消除汉字之间的空格（OCR 经常把汉字拆成带空格的形式，如 "持 仓 成 本 价" -> "持仓成本价"）
+  let normalizedText = text;
+  for (let round = 0; round < 3; round++) {
+    normalizedText = normalizedText.replace(/([\u4e00-\u9fa5])\s+([\u4e00-\u9fa5])/g, '$1$2');
+  }
+
+  // 2. 消除千分位逗号被 OCR 误识别为点 '.' 的情况（如 4.658.04 -> 4658.04，1.807.58 -> 1807.58）
+  normalizedText = normalizedText.replace(/\b(\d{1,3})\.(\d{3})\.(\d{1,4})\b/g, '$1$2.$3');
+
+  // 3. 规整千分位各种噪点单引号反引号
+  normalizedText = normalizedText.replace(/(\d)['\u0060’‘](\d{3})/g, '$1,$2');
+
+  // 4. 纠偏负号误识别为 '='、'”'、'“' 等
+  normalizedText = normalizedText.replace(/([=“”~])(\d+(?:\.\d+)?)/g, '-$2');
 
   // 智能纠错千分位逗号被 OCR 误识别为 1 的情况（如 71756.57 -> 7756.57）
   const correctMisreadComma = (val: string): string => {
@@ -2060,14 +2072,11 @@ export const parseFundTextLocally = (text: string): Array<ParsedFundScannedItem>
     return val;
   };
 
-  // 1. 优先尝试从全文基于特定关键词提取单只基金的资产详情
+  // 健壮的数字提取正则：优先匹配完整浮点数/千分位数，杜绝 \d{1,3} 导致无逗号数字被截断
   const extractKeywordNumber = (kwRegex: RegExp, allowSign = false, autoCorrectComma = false): string => {
     const pattern = allowSign
-      ? new RegExp(
-          `${kwRegex.source}[^0-9+-]{0,10}([+-]?\\d{1,3}(?:[,'\\u0060’‘]\\d{3})*(?:\\.\\d+)?|[+-]?\\d+(?:\\.\\d+)?)`,
-          'i'
-        )
-      : new RegExp(`${kwRegex.source}[^0-9]{0,10}(\\d{1,3}(?:[,'\\u0060’‘]\\d{3})*(?:\\.\\d+)?|\\d+(?:\\.\\d+)?)`, 'i');
+      ? new RegExp(`${kwRegex.source}[^0-9+-]{0,12}([+-]?(?:\\d{1,3}(?:[,'\\u0060’‘]\\d{3})+|\\d+)(?:\\.\\d+)?)`, 'i')
+      : new RegExp(`${kwRegex.source}[^0-9]{0,12}((?:\\d{1,3}(?:[,'\\u0060’‘]\\d{3})+|\\d+)(?:\\.\\d+)?)`, 'i');
     const match = normalizedText.match(pattern);
     if (!match || !match[1]) return '';
     let val = match[1].replace(/[,'\u0060’‘]/g, '');
@@ -2079,9 +2088,27 @@ export const parseFundTextLocally = (text: string): Array<ParsedFundScannedItem>
 
   const costFromKeyword = extractKeywordNumber(/(?:持仓成本价|成本价|持仓成本|成本)/i);
   const shareFromKeyword = extractKeywordNumber(/(?:持有份额|持仓份额|总份额|份额)/i, false, true);
-  const yesterdayProfitFromKeyword = extractKeywordNumber(/(?:昨日收益|昨日盈亏)/i, true);
-  const holdGainsFromKeyword = extractKeywordNumber(/(?:持有收益|累计收益|持有盈亏|累计盈亏)/i, true);
   const holdAmountsFromKeyword = extractKeywordNumber(/(?:持有金额|资产金额|持仓金额|金额)/i, false, true);
+
+  // 针对“昨日收益 +47.17  持有收益 +1026.95”这类双列并排指标的提取
+  let yesterdayProfitFromKeyword = '';
+  let holdGainsFromKeyword = '';
+
+  const directGainsMatch = normalizedText.match(
+    /(?:持有收益|累计收益|持有盈亏|累计盈亏)[^0-9+-]{0,15}([+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)/i
+  );
+  if (directGainsMatch) {
+    holdGainsFromKeyword = directGainsMatch[1].replace(/,/g, '');
+  }
+
+  // 检查是否有一行同时包含昨日收益和持有收益两个带符号数值（如 "+47.17 +1,026.95 +41.64%"）
+  const multiValuesMatch = normalizedText.match(
+    /([+-]?\d+(?:\.\d+)?)\s+([+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s+[+-]?\d+(?:\.\d+)?%/
+  );
+  if (multiValuesMatch) {
+    yesterdayProfitFromKeyword = multiValuesMatch[1].replace(/,/g, '');
+    holdGainsFromKeyword = multiValuesMatch[2].replace(/,/g, '');
+  }
 
   const lines = normalizedText.split(/[\r\n]+/);
   for (let i = 0; i < lines.length; i++) {
