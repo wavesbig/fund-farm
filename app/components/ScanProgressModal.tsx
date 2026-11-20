@@ -20,6 +20,7 @@ export interface ScanProgressModalProps {
 
 export default function ScanProgressModal({ scanProgress, onCancel }: ScanProgressModalProps) {
   const isVerify = scanProgress.stage === 'verify';
+  const isVision = scanProgress.stage === 'vision';
   const progressPercent =
     Number(scanProgress.total) > 0
       ? Math.min(100, Math.round(((scanProgress.current || 0) / Number(scanProgress.total)) * 100))
@@ -36,13 +37,15 @@ export default function ScanProgressModal({ scanProgress, onCancel }: ScanProgre
           <Spinner className="size-10 text-primary" />
         </div>
         <DialogTitle className="font-semibold text-base mb-1 text-center">
-          {isVerify ? '正在验证基金…' : '正在识别中…'}
+          {isVerify ? '正在验证基金…' : isVision ? 'AI 正在直接看图识别…' : '正在识别中…'}
         </DialogTitle>
         <DialogDescription className="text-muted-foreground text-xs mb-3 text-center">
           {Number(scanProgress.total) > 0
             ? isVerify
               ? `已验证 ${scanProgress.current || 0} / ${scanProgress.total} 只基金`
-              : `已处理 ${scanProgress.current || 0} / ${scanProgress.total} 张图片`
+              : isVision
+                ? `AI 正在直接解析第 ${scanProgress.current || 0} / ${scanProgress.total} 张图片…`
+                : `已处理 ${scanProgress.current || 0} / ${scanProgress.total} 张图片`
             : '正在全力分析图片中的基金持仓数据…'}
         </DialogDescription>
         {Number(scanProgress.total) > 0 && (

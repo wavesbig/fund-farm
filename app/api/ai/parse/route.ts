@@ -119,41 +119,93 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 2. 基金持仓 OCR 文本解析
+    // 2. 基金持仓解析（支持图片视觉直读 Vision 与 OCR 文本解析两种模式）
+    const rawImage = isString(body.image) ? body.image.trim() : '';
     const rawText = isString(body.text) ? body.text.trim() : '';
-    if (!rawText) {
-      return NextResponse.json({ success: false, error: 'EMPTY_TEXT', message: '待解析文本为空' }, { status: 400 });
+    if (!rawImage && !rawText) {
+      return NextResponse.json(
+        { success: false, error: 'EMPTY_INPUT', message: '待解析内容（图片或文本）为空' },
+        { status: 400 }
+      );
     }
 
-    const systemPrompt = `你是一个专业的基金持仓OCR文本结构化提取助手。
-任务：从用户提供的图片OCR文字中识别所有基金持仓信息，准确提取基金名称、6位纯数字代码、持仓金额与收益。
+    const systemPrompt = `你是一个专业的基金持仓信息结构化提取助手。
+任务：从用户提供的图片或文本中识别所有基金持仓信息，尽可能全面、准确提取基金名称、6位纯数字代码、持仓金额、持有收益、持仓成本价与持有份额。
 
 提取规范：
-1. fundName（必填）：基金全名，保留完整名称与后缀（如“易方达蓝筹精选混合”、“招商中证白酒指数A”）。
-2. fundCode（重要）：6位纯数字基金代码。若文本中出现6位代码则提取；若文本只有基金名字但属于常见基金且确信代码可补全；若无法确定或无代码则填空字符串 ""。
-3. holdAmounts：持仓金额（元），仅包含纯数字与小数点（如 "15000.00"），去除逗号千分位与货币符号；找不到填空字符串 ""。
-4. holdGains：持有收益或累计收益（元），仅包含数字与小数点，亏损需带负号（如 "320.50" 或 "-85.20"）；找不到填空字符串 ""。
+1. fundName（必填）：基金全名，保留完整名称与后缀（如“易方达蓝筹精选混合”、“万家沪深300指数增强C”）。
+2. fundCode（重要）：6位纯数字基金代码。若文本/图片中出现6位代码则提取；若只有基金名字但属于常见基金且确信代码可补全；若无法确定或无代码则填空字符串 ""。
+3. holdAmounts：持有金额/资产金额（元），仅包含纯数字与小数点（如 "7756.57"），去除逗号千分位与货币符号；找不到填空字符串 ""。
+4. holdGains：持有收益或累计收益（元），仅包含数字与小数点，亏损必须带负号（如 "320.50" 或 "-972.84"）；找不到填空字符串 ""。
+5. cost：持仓成本价（元），仅包含纯数字与小数点（如 "1.9141"）；找不到填空字符串 ""。
+6. share：持有份额（份），仅包含纯数字与小数点（如 "4658.04"），去除逗号千分位；找不到填空字符串 ""。
+7. yesterdayProfit：昨日收益（元），仅包含数字与小数点，亏损带负号，盈利带正号或纯数字（如 "28.88" 或 "-15.20"）；找不到填空字符串 ""。
+
+8. 千分位逗号与OCR常见误识别纠错（极其重要）：
+OCR 引擎在识别千分位逗号（如 "7,756.57"）时，极容易把逗号 "," 误识别为数字 "1"、单引号 "'" 或空格（例如将 "7,756.57" 错误读成 "71756.57" 或 "7'756.57"，将 "4,658.04" 错读成 "41658.04"）。
+你拥有强大的常识与数学推理能力，必须执行勾稽关系校验与纠错：
+- 关系1：持有金额 ≈ 持有份额 × 基金当前净值
+- 关系2：持有本金 = 持有金额 - 持有收益 ≈ 持仓成本价 × 持有份额
+如果发现提取出的金额或份额形如 71756.57、41658.04（千位处多了一个 1），且如果将该处的 "1" 视作千分位逗号还原后（如 7756.57、4658.04），与净值、成本或收益的数学关系完全契合，必须纠正并输出还原后的正确数字（即输出 7756.57，切勿输出 71756.57）！
 
 输出格式要求：
 必须只输出合法的 JSON 数组，严禁包含任何 Markdown 格式块（不要输出 \`\`\`json 或 \`\`\`）、思考过程或额外文字。
 示例格式：
 [
   {
-    "fundCode": "005827",
-    "fundName": "易方达蓝筹精选混合",
-    "holdAmounts": "15000.00",
-    "holdGains": "320.50"
+    "fundCode": "002671",
+    "fundName": "万家沪深300指数增强C",
+    "holdAmounts": "7756.57",
+    "holdGains": "-972.84",
+    "cost": "1.9141",
+    "share": "4658.04",
+    "yesterdayProfit": "28.88"
   }
 ]`;
 
-    const completion = await client.chat.completions.create({
-      model,
-      temperature: 0,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: rawText }
-      ]
-    });
+    let userMessageContent: any = '';
+    if (rawImage) {
+      userMessageContent = [
+        {
+          type: 'text',
+          text: '请仔细观察识别这张基金持仓截图中的全部基金信息，准确提取名称、6位代码、持有金额、持有收益、持仓成本价、持有份额、昨日收益等，并按规范输出 JSON 数组。'
+        },
+        {
+          type: 'image_url',
+          image_url: {
+            url: rawImage
+          }
+        }
+      ];
+    } else {
+      // 预处理 OCR 文本中的常见千分位噪点（如 7'756 规整为 7,756）
+      userMessageContent = rawText.replace(/(\d)['\u0060’‘](\d{3})/g, '$1,$2');
+    }
+
+    let completion: any = null;
+    try {
+      completion = await client.chat.completions.create({
+        model,
+        temperature: 0,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessageContent }
+        ]
+      });
+    } catch (apiErr: any) {
+      if (rawImage) {
+        console.warn('[AI Parse] Vision request failed, model may not support image input:', apiErr.message);
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'VISION_NOT_SUPPORTED',
+            message: apiErr.message || '当前大模型不支持图片直接输入，建议降级使用本地 OCR'
+          },
+          { status: 400 }
+        );
+      }
+      throw apiErr;
+    }
 
     const responseContent = completion.choices?.[0]?.message?.content || '';
 
@@ -215,6 +267,13 @@ export async function POST(request: NextRequest) {
           ? item.holdGains.trim()
           : item.holdGains != null
             ? String(item.holdGains).trim()
+            : '',
+        cost: isString(item.cost) ? item.cost.trim() : item.cost != null ? String(item.cost).trim() : '',
+        share: isString(item.share) ? item.share.trim() : item.share != null ? String(item.share).trim() : '',
+        yesterdayProfit: isString(item.yesterdayProfit)
+          ? item.yesterdayProfit.trim()
+          : item.yesterdayProfit != null
+            ? String(item.yesterdayProfit).trim()
             : ''
       }));
 

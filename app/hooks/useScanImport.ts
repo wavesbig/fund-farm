@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import type { Dispatch, SetStateAction, RefObject, ChangeEvent } from 'react';
 import {
   parseFundTextWithLLM,
+  parseFundImageWithLLM,
   parseFundTextLocally,
   fetchFundData,
   searchFunds,
@@ -139,78 +140,30 @@ export function useScanImport({
     }
   };
 
-  const processTextsInternal = async (texts: string[]) => {
-    const searchFundsWithTimeout = async (val: string, ms: number): Promise<any[]> => {
-      let timer: NodeJS.Timeout | null = null;
-      const timeout = new Promise<any[]>((resolve) => {
-        timer = setTimeout(() => resolve([]), ms);
-      });
-      try {
-        return await Promise.race([searchFunds(val), timeout]);
-      } catch {
-        return [];
-      } finally {
-        if (timer) clearTimeout(timer);
-      }
-    };
-
-    const allFundsData: Array<{
-      fundCode: string;
-      fundName: string;
-      holdAmounts: string;
-      holdGains: string;
-    }> = [];
-    const addedFundCodes = new Set<string>();
-
-    for (let i = 0; i < texts.length; i++) {
-      if (abortScanRef.current) break;
-
-      const text = texts[i];
-      if (!text) continue;
-
-      setScanProgress((prev: any) => ({ ...prev, current: i + 1 }));
-
-      let fundsRes: any = null;
-      try {
-        const fundsResString = await parseFundTextWithLLM(text);
-        if (fundsResString) {
-          fundsRes = JSON.parse(fundsResString);
-        }
-      } catch {
-        fundsRes = null;
-      }
-
-      // 如果大模型未能解析出有效结果，使用纯前端本地规则启发式解析兜底
-      if (!isArray(fundsRes) || fundsRes.length === 0) {
-        fundsRes = parseFundTextLocally(text);
-      }
-
-      if (isArray(fundsRes) && fundsRes.length > 0) {
-        fundsRes.forEach((fund: any) => {
-          const code = fund.fundCode || '';
-          const name = (fund.fundName || '').trim();
-          if (code && !addedFundCodes.has(code)) {
-            addedFundCodes.add(code);
-            allFundsData.push({
-              fundCode: code,
-              fundName: name,
-              holdAmounts: fund.holdAmounts || '',
-              holdGains: fund.holdGains || ''
-            });
-          } else if (!code && name) {
-            allFundsData.push({
-              fundCode: '',
-              fundName: name,
-              holdAmounts: fund.holdAmounts || '',
-              holdGains: fund.holdGains || ''
-            });
-          }
-        });
-      }
+  const searchFundsWithTimeout = async (val: string, ms: number): Promise<any[]> => {
+    let timer: NodeJS.Timeout | null = null;
+    const timeout = new Promise<any[]>((resolve) => {
+      timer = setTimeout(() => resolve([]), ms);
+    });
+    try {
+      return await Promise.race([searchFunds(val), timeout]);
+    } catch {
+      return [];
+    } finally {
+      if (timer) clearTimeout(timer);
     }
+  };
 
-    if (abortScanRef.current) return;
+  const fileToDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
 
+  const verifyAndFinalizeFunds = async (allFundsData: any[], addedFundCodes: Set<string>) => {
     // 处理没有基金代码但有名称的情况，通过名称搜索基金代码
     const fundsWithoutCode = allFundsData.filter((f) => !f.fundCode && f.fundName);
     if (fundsWithoutCode.length > 0) {
@@ -267,7 +220,10 @@ export function useScanImport({
         name: found ? found.NAME || found.SHORTNAME || '' : fundInfo?.fundName || '',
         status: alreadyAdded ? 'added' : ok ? 'ok' : 'invalid',
         holdAmounts: fundInfo?.holdAmounts || '',
-        holdGains: fundInfo?.holdGains || ''
+        holdGains: fundInfo?.holdGains || '',
+        cost: fundInfo?.cost || '',
+        share: fundInfo?.share || '',
+        yesterdayProfit: fundInfo?.yesterdayProfit || ''
       });
     }
 
@@ -277,13 +233,83 @@ export function useScanImport({
     setSelectedScannedCodes(
       new Set(
         results
-          .filter((r) => r.status === 'ok' || (r.status === 'added' && (r.holdAmounts !== '' || r.holdGains !== '')))
+          .filter(
+            (r) =>
+              r.status === 'ok' ||
+              (r.status === 'added' && (r.holdAmounts !== '' || r.holdGains !== '' || r.cost !== '' || r.share !== ''))
+          )
           .map((r) => r.code)
       )
     );
     setIsOcrScan(true);
     setScanModalOpen(false);
     setScanConfirmModalOpen(true);
+  };
+
+  const processTextsInternal = async (texts: string[]) => {
+    const allFundsData: Array<{
+      fundCode: string;
+      fundName: string;
+      holdAmounts: string;
+      holdGains: string;
+      cost?: string;
+      share?: string;
+      yesterdayProfit?: string;
+    }> = [];
+    const addedFundCodes = new Set<string>();
+
+    for (let i = 0; i < texts.length; i++) {
+      if (abortScanRef.current) break;
+
+      const text = texts[i];
+      if (!text) continue;
+
+      setScanProgress((prev: any) => ({ ...prev, current: i + 1 }));
+
+      let fundsRes: any = null;
+      try {
+        const fundsResString = await parseFundTextWithLLM(text);
+        if (fundsResString) {
+          fundsRes = JSON.parse(fundsResString);
+        }
+      } catch {
+        fundsRes = null;
+      }
+
+      // 如果大模型未能解析出有效结果，使用纯前端本地规则启发式解析兜底
+      if (!isArray(fundsRes) || fundsRes.length === 0) {
+        fundsRes = parseFundTextLocally(text);
+      }
+
+      if (isArray(fundsRes) && fundsRes.length > 0) {
+        fundsRes.forEach((fund: any) => {
+          const code = fund.fundCode || '';
+          const name = (fund.fundName || '').trim();
+          const itemPayload = {
+            fundCode: code,
+            fundName: name,
+            holdAmounts: fund.holdAmounts || '',
+            holdGains: fund.holdGains || '',
+            cost: fund.cost || '',
+            share: fund.share || '',
+            yesterdayProfit: fund.yesterdayProfit || ''
+          };
+          if (code && !addedFundCodes.has(code)) {
+            addedFundCodes.add(code);
+            allFundsData.push(itemPayload);
+          } else if (!code && name) {
+            allFundsData.push({
+              ...itemPayload,
+              fundCode: ''
+            });
+          }
+        });
+      }
+    }
+
+    if (abortScanRef.current) return;
+
+    await verifyAndFinalizeFunds(allFundsData, addedFundCodes);
   };
 
   const handleRetryOcr = async () => {
@@ -329,6 +355,75 @@ export function useScanImport({
     setIsScanning(true);
     setScanModalOpen(true);
     abortScanRef.current = false;
+
+    // === 第一级：优先尝试 AI 多模态视觉直读 (Vision 直接读图，0 噪点、0 错别字) ===
+    let visionSucceeded = false;
+    const visionFundsData: any[] = [];
+    const visionAddedCodes = new Set<string>();
+
+    try {
+      setScanProgress({ stage: 'vision', current: 0, total: files.length });
+      for (let i = 0; i < files.length; i++) {
+        if (abortScanRef.current) break;
+        const file = files[i];
+        setScanProgress((prev: any) => ({ ...prev, stage: 'vision', current: i + 1 }));
+
+        const base64 = await fileToDataUrl(file);
+        const resString = await parseFundImageWithLLM(base64);
+        if (resString) {
+          const parsed = JSON.parse(resString);
+          if (isArray(parsed) && parsed.length > 0) {
+            parsed.forEach((fund: any) => {
+              const code = fund.fundCode || '';
+              const name = (fund.fundName || '').trim();
+              const itemPayload = {
+                fundCode: code,
+                fundName: name,
+                holdAmounts: fund.holdAmounts || '',
+                holdGains: fund.holdGains || '',
+                cost: fund.cost || '',
+                share: fund.share || '',
+                yesterdayProfit: fund.yesterdayProfit || ''
+              };
+              if (code && !visionAddedCodes.has(code)) {
+                visionAddedCodes.add(code);
+                visionFundsData.push(itemPayload);
+              } else if (!code && name) {
+                visionFundsData.push({
+                  ...itemPayload,
+                  fundCode: ''
+                });
+              }
+            });
+          } else {
+            // 当前图片未返回有效基金，降级
+            visionFundsData.length = 0;
+            break;
+          }
+        } else {
+          // 当前图片视觉直读未返回结果（可能模型不支持 Vision 或未配 key），降级
+          visionFundsData.length = 0;
+          break;
+        }
+      }
+
+      if (!abortScanRef.current && visionFundsData.length > 0) {
+        visionSucceeded = true;
+        await verifyAndFinalizeFunds(visionFundsData, visionAddedCodes);
+      }
+    } catch {
+      visionSucceeded = false;
+    }
+
+    if (abortScanRef.current || visionSucceeded) {
+      setIsScanning(false);
+      setScanProgress({ stage: 'ocr', current: 0, total: 0 });
+      setScanModalOpen(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // === 第二级 & 第三级：自动静默降级为本地 Tesseract OCR -> LLM文本解析 / 本地正则兜底 ===
     setScanProgress({ stage: 'ocr', current: 0, total: files.length });
 
     try {
@@ -356,7 +451,7 @@ export function useScanImport({
         if (abortScanRef.current) break;
 
         const f = files[i];
-        setScanProgress((prev: any) => ({ ...prev, current: i + 1 }));
+        setScanProgress((prev: any) => ({ ...prev, stage: 'ocr', current: i + 1 }));
 
         let text = '';
         try {
@@ -448,7 +543,11 @@ export function useScanImport({
       const scannedFund = scannedFunds.find((f) => f.code === c);
       const holdAmounts = parseAmount(scannedFund?.holdAmounts);
       const holdGains = parseAmount(scannedFund?.holdGains);
-      const hasHoldingData = holdAmounts !== null && holdGains !== null;
+      const scannedShare = parseAmount(scannedFund?.share);
+      const scannedCost = parseAmount(scannedFund?.cost);
+      const hasHoldingData =
+        (scannedShare !== null && (scannedCost !== null || holdAmounts !== null)) ||
+        (holdAmounts !== null && holdGains !== null);
       return !exists || hasHoldingData;
     });
 
@@ -494,19 +593,43 @@ export function useScanImport({
           const scannedFund = scannedFunds.find((f) => f.code === code);
           const holdAmounts = parseAmount(scannedFund?.holdAmounts);
           const holdGains = parseAmount(scannedFund?.holdGains);
+          const scannedShare = parseAmount(scannedFund?.share);
+          const scannedCost = parseAmount(scannedFund?.cost);
           const numDwjz = Number(data?.dwjz);
           const numGsz = Number(data?.gsz);
           const effectiveNav =
             Number.isFinite(numDwjz) && numDwjz > 0 ? numDwjz : Number.isFinite(numGsz) && numGsz > 0 ? numGsz : 0;
 
-          if (holdAmounts !== null && effectiveNav > 0) {
+          let calculatedShare: number | null = null;
+          let calculatedCost: number | null = null;
+
+          if (scannedShare !== null && scannedCost !== null) {
+            // 1. 截图直接识别到份额与成本价（最精确，直接采用！）
+            calculatedShare = scannedShare;
+            calculatedCost = scannedCost;
+          } else if (scannedShare !== null && holdAmounts !== null) {
+            // 2. 识别到份额和总金额，若有收益则算成本，若无收益则以当前金额除以份额
+            calculatedShare = scannedShare;
+            const profit = holdGains !== null ? holdGains : 0;
+            const principal = holdAmounts - profit;
+            calculatedCost = calculatedShare > 0 ? principal / calculatedShare : 0;
+          } else if (scannedCost !== null && holdAmounts !== null && effectiveNav > 0) {
+            // 3. 识别到成本价和持有金额，通过净值折算份额
+            calculatedShare = holdAmounts / effectiveNav;
+            calculatedCost = scannedCost;
+          } else if (holdAmounts !== null && effectiveNav > 0) {
+            // 4. 旧推导方式：基于金额、收益与实时净值推算
             const share = holdAmounts / effectiveNav;
             const profit = holdGains !== null ? holdGains : 0;
             const principal = holdAmounts - profit;
-            const cost = share > 0 ? principal / share : 0;
+            calculatedCost = share > 0 ? principal / share : 0;
+            calculatedShare = share;
+          }
+
+          if (calculatedShare !== null && calculatedCost !== null && calculatedShare > 0) {
             newHoldings[code] = {
-              share: Number(share.toFixed(4)),
-              cost: Number(cost.toFixed(4))
+              share: Number(calculatedShare.toFixed(4)),
+              cost: Number(calculatedCost.toFixed(4))
             };
           }
 

@@ -170,7 +170,17 @@ export default function ScanImportConfirmModal({
                     : false;
                 const holdAmounts = formatAmount(item.holdAmounts);
                 const holdGains = formatAmount(item.holdGains);
-                const hasHoldingData = !isNil(holdAmounts) && !isNil(holdGains);
+                const share = formatAmount((item as any).share);
+                const cost = formatAmount((item as any).cost);
+                const yesterdayProfit = formatAmount((item as any).yesterdayProfit);
+
+                const hasHoldingData =
+                  (!isNil(share) && (!isNil(cost) || !isNil(holdAmounts))) ||
+                  (!isNil(holdAmounts) && !isNil(holdGains)) ||
+                  !isNil(share) ||
+                  !isNil(cost) ||
+                  !isNil(holdAmounts);
+
                 const isAlreadyInTarget = targetGroup === 'all' ? inAll : targetGroup === 'fav' ? inFav : inGroup;
                 const isDisabled = (isAlreadyInTarget && !hasHoldingData) || isInvalid || isScanImporting;
                 const displayName = item.name || (isInvalid ? '未找到基金' : '未知基金');
@@ -199,10 +209,10 @@ export default function ScanImportConfirmModal({
 
                         {/* 持仓与收益数据 */}
                         {hasHoldingData && !isDisabled && (
-                          <div className="flex items-center gap-3 pt-1.5 text-xs">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1.5 text-xs">
                             {!isNil(holdAmounts) && (
                               <span className="text-muted-foreground">
-                                持有金额：
+                                金额：
                                 <span className="text-foreground font-medium tabular-nums font-mono">
                                   {formatMoney(holdAmounts)}
                                 </span>
@@ -210,7 +220,7 @@ export default function ScanImportConfirmModal({
                             )}
                             {!isNil(holdGains) && (
                               <span className="text-muted-foreground">
-                                持有收益：
+                                收益：
                                 <span
                                   className={cn(
                                     'font-medium tabular-nums font-mono',
@@ -219,6 +229,36 @@ export default function ScanImportConfirmModal({
                                 >
                                   {holdGains >= 0 ? '+' : '-'}
                                   {formatMoney(Math.abs(holdGains))}
+                                </span>
+                              </span>
+                            )}
+                            {!isNil(share) && (
+                              <span className="text-muted-foreground">
+                                份额：
+                                <span className="text-foreground font-medium tabular-nums font-mono">
+                                  {formatMoney(share)}
+                                </span>
+                              </span>
+                            )}
+                            {!isNil(cost) && (
+                              <span className="text-muted-foreground">
+                                成本：
+                                <span className="text-foreground font-medium tabular-nums font-mono">
+                                  {cost.toFixed(4)}
+                                </span>
+                              </span>
+                            )}
+                            {!isNil(yesterdayProfit) && (
+                              <span className="text-muted-foreground">
+                                昨收：
+                                <span
+                                  className={cn(
+                                    'font-medium tabular-nums font-mono',
+                                    yesterdayProfit >= 0 ? 'text-[var(--danger)]' : 'text-[var(--success)]'
+                                  )}
+                                >
+                                  {yesterdayProfit >= 0 ? '+' : '-'}
+                                  {formatMoney(Math.abs(yesterdayProfit))}
                                 </span>
                               </span>
                             )}

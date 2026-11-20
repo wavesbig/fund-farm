@@ -2026,19 +2026,64 @@ export const fetchFundHistory = async (
 
 export const fetchFundValuationTrend = async (_code: string, _range = '3m'): Promise<any[]> => [];
 
+export interface ParsedFundScannedItem {
+  fundCode: string;
+  fundName: string;
+  holdAmounts: string;
+  holdGains: string;
+  cost?: string;
+  share?: string;
+  yesterdayProfit?: string;
+}
+
 /**
  * 本地纯前端启发式解析 OCR 识别出来的文本（离线/免大模型/无限制兜底）
  * @param {string} text
- * @returns {Array<{fundCode: string, fundName: string, holdAmounts: string, holdGains: string}>}
+ * @returns {Array<ParsedFundScannedItem>}
  */
-export const parseFundTextLocally = (
-  text: string
-): Array<{ fundCode: string; fundName: string; holdAmounts: string; holdGains: string }> => {
+export const parseFundTextLocally = (text: string): Array<ParsedFundScannedItem> => {
   if (!text || !isString(text)) return [];
-  const results: Array<{ fundCode: string; fundName: string; holdAmounts: string; holdGains: string }> = [];
+  const results: Array<ParsedFundScannedItem> = [];
   const seenCodes = new Set<string>();
 
-  const lines = text.split(/[\r\n]+/);
+  // 预处理 OCR 文本中的千分位噪点（如 7'756 规整为 7,756）
+  const normalizedText = text.replace(/(\d)['\u0060’‘](\d{3})/g, '$1,$2');
+
+  // 智能纠错千分位逗号被 OCR 误识别为 1 的情况（如 71756.57 -> 7756.57）
+  const correctMisreadComma = (val: string): string => {
+    if (!val) return '';
+    // 如果形如 1~3位数字 + '1' + 3位数字 + 可选小数（例如 71756.57 或 41658.04）
+    const match = val.match(/^(\d{1,3})1(\d{3}(?:\.\d+)?)$/);
+    if (match) {
+      return `${match[1]}${match[2]}`;
+    }
+    return val;
+  };
+
+  // 1. 优先尝试从全文基于特定关键词提取单只基金的资产详情
+  const extractKeywordNumber = (kwRegex: RegExp, allowSign = false, autoCorrectComma = false): string => {
+    const pattern = allowSign
+      ? new RegExp(
+          `${kwRegex.source}[^0-9+-]{0,10}([+-]?\\d{1,3}(?:[,'\\u0060’‘]\\d{3})*(?:\\.\\d+)?|[+-]?\\d+(?:\\.\\d+)?)`,
+          'i'
+        )
+      : new RegExp(`${kwRegex.source}[^0-9]{0,10}(\\d{1,3}(?:[,'\\u0060’‘]\\d{3})*(?:\\.\\d+)?|\\d+(?:\\.\\d+)?)`, 'i');
+    const match = normalizedText.match(pattern);
+    if (!match || !match[1]) return '';
+    let val = match[1].replace(/[,'\u0060’‘]/g, '');
+    if (autoCorrectComma) {
+      val = correctMisreadComma(val);
+    }
+    return val;
+  };
+
+  const costFromKeyword = extractKeywordNumber(/(?:持仓成本价|成本价|持仓成本|成本)/i);
+  const shareFromKeyword = extractKeywordNumber(/(?:持有份额|持仓份额|总份额|份额)/i, false, true);
+  const yesterdayProfitFromKeyword = extractKeywordNumber(/(?:昨日收益|昨日盈亏)/i, true);
+  const holdGainsFromKeyword = extractKeywordNumber(/(?:持有收益|累计收益|持有盈亏|累计盈亏)/i, true);
+  const holdAmountsFromKeyword = extractKeywordNumber(/(?:持有金额|资产金额|持仓金额|金额)/i, false, true);
+
+  const lines = normalizedText.split(/[\r\n]+/);
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     // 匹配 6 位数字代码
@@ -2048,25 +2093,33 @@ export const parseFundTextLocally = (
       if (!seenCodes.has(code)) {
         seenCodes.add(code);
 
-        // 尝试从当前行及接下来的 2 行中寻找金额（如 1234.56、1,234.56 或整数 15000）
-        const contextLines = [line, lines[i + 1] || '', lines[i + 2] || ''].join(' ');
-        const rawAmountMatches: string[] = contextLines.match(/\b\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?\b/g) || [];
-        const amountMatches = rawAmountMatches.filter((m: string) => m.replace(/,/g, '') !== code);
+        // 尝试从当前行及接下来的 3 行中寻找金额/收益（支持带符号浮点数）
+        const contextLines = [line, lines[i + 1] || '', lines[i + 2] || '', lines[i + 3] || ''].join(' ');
+        const rawAmountMatches: string[] =
+          contextLines.match(/[+-]?\b\d{1,3}(?:[,'\u0060’‘]\d{3})*(?:\.\d{1,4})?\b|[+-]?\b\d+(?:\.\d{1,4})\b/g) || [];
+        const amountMatches = rawAmountMatches.filter((m: string) => m.replace(/[-+,\u0060’‘']/g, '') !== code);
 
-        let holdAmounts = '';
-        let holdGains = '';
-        if (amountMatches.length >= 1) {
-          holdAmounts = amountMatches[0].replace(/,/g, '');
+        let holdAmounts = holdAmountsFromKeyword;
+        let holdGains = holdGainsFromKeyword;
+        const cost = costFromKeyword;
+        const share = shareFromKeyword;
+        const yesterdayProfit = yesterdayProfitFromKeyword;
+
+        if (!holdAmounts && amountMatches.length >= 1) {
+          holdAmounts = correctMisreadComma(amountMatches[0].replace(/[,+'\u0060’‘]/g, ''));
         }
-        if (amountMatches.length >= 2) {
-          holdGains = amountMatches[1].replace(/,/g, '');
+        if (!holdGains && amountMatches.length >= 2) {
+          holdGains = amountMatches[1].replace(/[,+'\u0060’‘]/g, '');
         }
 
         results.push({
           fundCode: code,
           fundName: '',
           holdAmounts,
-          holdGains
+          holdGains,
+          cost,
+          share,
+          yesterdayProfit
         });
       }
     }
@@ -2074,21 +2127,64 @@ export const parseFundTextLocally = (
 
   // 如果行匹配未找到，使用全局搜寻 6 位数字兜底
   if (results.length === 0) {
-    const globalMatches = text.match(/\b\d{6}\b/g) || [];
+    const globalMatches = normalizedText.match(/\b\d{6}\b/g) || [];
     for (const code of globalMatches) {
       if (!seenCodes.has(code)) {
         seenCodes.add(code);
         results.push({
           fundCode: code,
           fundName: '',
-          holdAmounts: '',
-          holdGains: ''
+          holdAmounts: holdAmountsFromKeyword,
+          holdGains: holdGainsFromKeyword,
+          cost: costFromKeyword,
+          share: shareFromKeyword,
+          yesterdayProfit: yesterdayProfitFromKeyword
         });
       }
     }
   }
 
   return results;
+};
+
+/**
+ * 优先使用多模态大模型直接对持仓截图进行 Vision 视觉直读与提取（第一级：精准直读）
+ * @param {string} imageBase64 图片 Data URL 或 Base64 字符串
+ * @returns {Promise<string | null>}
+ */
+export const parseFundImageWithLLM = async (imageBase64: string): Promise<string | null> => {
+  if (!imageBase64 || !isString(imageBase64)) return null;
+
+  try {
+    const token = getStoredToken();
+    const customSettings = (storageStore as any)?.getState?.()?.customSettings || {};
+    const aiConfig = customSettings.aiConfig || {};
+
+    const res = await fetch('/api/ai/parse', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({
+        image: imageBase64,
+        apiKey: aiConfig.apiKey,
+        baseURL: aiConfig.baseURL,
+        model: aiConfig.model
+      })
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json?.success && isArray(json.data) && json.data.length > 0) {
+        return JSON.stringify(json.data);
+      }
+    }
+  } catch {
+    // 若模型不支持 vision 或网络失败，返回 null 触发静默降级
+  }
+
+  return null;
 };
 
 export const parseFundTextWithLLM = async (text: string): Promise<string | null> => {
