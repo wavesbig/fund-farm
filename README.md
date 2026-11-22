@@ -17,6 +17,7 @@
   <img src="https://img.shields.io/badge/Node.js-%3E%3D22.0-339933?logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/UI-shadcn%2Fui-000000?logo=shadcnui&logoColor=white" alt="shadcn/ui" />
+  <a href="https://linux.do/"><img src="https://img.shields.io/badge/LINUX%20DO-Community-blue?logo=linux&logoColor=white" alt="LINUX DO" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-green.svg" alt="License" /></a>
 </p>
 
@@ -167,6 +168,7 @@ npm run release patch # 一键自动化发版（升级版本、构建多架构 D
 
 - 感谢开源项目 [real-time-fund](https://github.com/hzm0321/real-time-fund) 与原作者 [hzm0321](https://github.com/hzm0321) 的早期原型启发。
 - 感谢 [shadcn/ui](https://ui.shadcn.com/) 提供的现代化设计系统与优质组件库。
+- 感谢 [LINUX DO](https://linux.do/) 社区提供开放、友善的技术交流平台。
 
 ---
 
