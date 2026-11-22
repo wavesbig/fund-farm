@@ -614,13 +614,15 @@ const AiConfigSection = forwardRef<AiConfigSectionRef, AiConfigSectionProps>(fun
               <span className="text-destructive font-bold">*</span>
             </Label>
             {baseURL !== 'https://api.deepseek.com/v1' && (
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => setBaseURL('https://api.deepseek.com/v1')}
-                className="text-xs text-primary hover:underline cursor-pointer"
+                className="h-6 px-2 text-[11px] font-medium rounded-md border-border/80 hover:border-primary/40 hover:bg-primary/5 text-primary hover:text-primary transition-all cursor-pointer"
               >
                 恢复默认
-              </button>
+              </Button>
             )}
           </div>
           <Input

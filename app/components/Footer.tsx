@@ -40,7 +40,7 @@ export default function Footer({ isMobile, onOpenFeedback }: FooterProps) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={onOpenFeedback ? handleFeedback : undefined}
-          className="text-primary font-medium hover:underline inline-flex items-center gap-1"
+          className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border border-primary/20 transition-all duration-150 ease-out active:scale-95 shadow-2xs cursor-pointer"
         >
           <span>前往 GitHub Issues 反馈</span>
           <ExternalLink className="size-3 shrink-0" />

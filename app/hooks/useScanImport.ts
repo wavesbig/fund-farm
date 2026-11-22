@@ -1,5 +1,5 @@
 import { isArray, isFunction } from 'lodash';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { Dispatch, SetStateAction, RefObject, ChangeEvent } from 'react';
 import {
   parseFundTextWithLLM,
@@ -732,6 +732,27 @@ export function useScanImport({
       setScanConfirmModalOpen(false);
     }
   };
+
+  const processFilesRef = useRef(processFiles);
+  processFilesRef.current = processFiles;
+
+  // 全局剪贴板支持：任意页面位置按 Ctrl+V / Command+V 粘贴截图直接智能识别
+  useEffect(() => {
+    const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+    const handleGlobalPaste = (e: ClipboardEvent) => {
+      if (isScanning || scanModalOpen || scanConfirmModalOpen) return;
+      if (!e.clipboardData?.files?.length) return;
+      const files = Array.from(e.clipboardData.files).filter((f) => IMAGE_TYPES.includes(f.type));
+      if (files.length > 0) {
+        e.preventDefault();
+        showToast('已检测到剪贴板持仓截图，正在启动智能识别…', 'info');
+        processFilesRef.current(files);
+      }
+    };
+
+    window.addEventListener('paste', handleGlobalPaste);
+    return () => window.removeEventListener('paste', handleGlobalPaste);
+  }, [isScanning, scanModalOpen, scanConfirmModalOpen, showToast]);
 
   return {
     // 状态

@@ -455,7 +455,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
             href={GITHUB_ISSUES_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-1 text-primary hover:underline transition-colors"
+            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border border-primary/20 transition-all duration-150 ease-out active:scale-95 cursor-pointer"
           >
             <span>问题反馈与建议</span>
             <ExternalLink className="size-3" />

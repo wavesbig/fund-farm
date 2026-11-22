@@ -10,7 +10,7 @@ import { isNumber, isUndefined } from 'lodash';
 import { fetchFundPingzhongdata, fetchSmartFundNetValue } from '../api/fund';
 import { DatePicker, NumericInput } from './Common';
 import ConfirmModal from './ConfirmModal';
-import { AlertTriangle, ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
+import { AlertTriangle, ArrowDownLeft, ArrowUpRight, ChevronRight, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -309,11 +309,14 @@ export default function TradeModal({
         </div>
 
         {!showConfirm && currentPendingTrades.length > 0 && (
-          <Alert variant="warning" className="cursor-pointer mb-4" onClick={() => setShowPendingList(true)}>
+          <Alert variant="warning" className="cursor-pointer mb-4 group" onClick={() => setShowPendingList(true)}>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription className="flex justify-between items-center w-full">
               <span>当前有 {currentPendingTrades.length} 笔待处理交易</span>
-              <span className="underline">查看详情 &gt;</span>
+              <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 group-hover:bg-amber-500/25 transition-colors">
+                查看详情
+                <ChevronRight className="size-3" />
+              </span>
             </AlertDescription>
           </Alert>
         )}
@@ -649,16 +652,18 @@ export default function TradeModal({
                       <label className="text-xs text-muted-foreground">
                         {feeMode === 'rate' ? '卖出费率 (%)' : '卖出费用 (元)'}
                       </label>
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={() => {
                           setFeeMode((m) => (m === 'rate' ? 'amount' : 'rate'));
                           setFeeValue('0');
                         }}
-                        className="text-primary text-xs hover:underline cursor-pointer"
+                        className="h-6 px-2 text-[11px] font-medium rounded-md border-border/80 hover:border-primary/40 hover:bg-primary/5 text-primary hover:text-primary transition-all cursor-pointer"
                       >
                         切换为{feeMode === 'rate' ? '金额' : '费率'}
-                      </button>
+                      </Button>
                     </div>
                     <div className="border border-border rounded-xl">
                       <NumericInput

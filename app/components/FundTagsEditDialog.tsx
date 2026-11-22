@@ -356,15 +356,17 @@ export default function FundTagsEditDialog({
       </div>
 
       <div className="flex flex-col gap-2">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-foreground m-0">可选标签</h3>
-          <button
+          <Button
             type="button"
-            className="text-primary hover:text-primary/90 shrink-0 cursor-pointer text-sm font-medium underline-offset-4 hover:underline"
+            variant={optionalEditMode ? 'default' : 'outline'}
+            size="sm"
+            className="h-7 px-2.5 text-xs font-medium rounded-md gap-1 transition-all cursor-pointer"
             onClick={() => setOptionalEditMode((v) => !v)}
           >
             {optionalEditMode ? '完成' : '编辑'}
-          </button>
+          </Button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {(recommendedTagItems || []).map((item, itemIndex) => {
