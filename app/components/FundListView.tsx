@@ -1,7 +1,18 @@
 'use client';
 
-import React from 'react';
-import { isArray } from 'lodash';
+import React, { useState, useMemo, useEffect } from 'react';
+import { isArray, isNumber } from 'lodash';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
+} from '@/components/ui/pagination';
+import { Input } from '@/components/ui/input';
+import { storageStore } from '../stores';
 import PcFundTable from './PcFundTable';
 import MobileFundTable from './MobileFundTable';
 import FundCard from './FundCard';
@@ -137,6 +148,29 @@ const FundListView = React.memo(function FundListView({
   fundTagListsByCode,
   groupTotalHoldingAmount
 }: FundListViewProps) {
+  const [cardPageIndex, setCardPageIndex] = useState<number>(0);
+  const [cardPageSize, setCardPageSize] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = storageStore.getItem('fundCardPageSize');
+        if (stored && isNumber(stored) && stored > 0) return stored;
+      } catch {}
+    }
+    return 12; // 默认每页 12 支，在双列网格下为整整齐齐的 6 行
+  });
+
+  useEffect(() => {
+    setCardPageIndex(0);
+  }, [currentTab, sortBy, sortOrder]);
+
+  const totalCards = displayFunds.length;
+  const pageCount = Math.max(1, Math.ceil(totalCards / cardPageSize));
+  const safePageIndex = Math.min(cardPageIndex, pageCount - 1);
+  const pagedCards = useMemo(() => {
+    const start = safePageIndex * cardPageSize;
+    return displayFunds.slice(start, start + cardPageSize);
+  }, [displayFunds, safePageIndex, cardPageSize]);
+
   return (
     <div
       className={viewMode === 'card' ? 'grid' : 'table-container glass'}
@@ -226,12 +260,13 @@ const FundListView = React.memo(function FundListView({
           />
         )}
 
-        {/* 卡片视图：使用 FundCard */}
+        {/* 卡片视图：使用 FundCard，默认紧凑折叠深层冗余长图表/表格以保证极速流畅 */}
         {viewMode === 'card' &&
-          displayFunds.map((f) => (
+          pagedCards.map((f) => (
             <div key={f.code} className="col-6" style={{ position: 'relative', overflow: 'hidden' }}>
               <FundCard
                 fundCode={f.code}
+                defaultCollapsedDeepDetails={true}
                 isHoldingLinked={
                   (currentTab === 'all' || currentTab === 'fav') && linkedHoldingsForAllFav.linked?.has?.(f?.code)
                 }
@@ -274,6 +309,113 @@ const FundListView = React.memo(function FundListView({
               />
             </div>
           ))}
+
+        {/* 卡片视图底部统一样式分页栏 */}
+        {viewMode === 'card' && totalCards > 0 && (
+          <div className="col-12 mt-3" style={{ gridColumn: 'span 12' }}>
+            <div className="p-3 rounded-xl bg-card/70 border border-border/80 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground backdrop-blur-xs">
+              <div className="flex items-center gap-2">
+                <span>
+                  共 <strong className="font-semibold text-foreground">{totalCards}</strong> 支基金
+                </span>
+                <span className="text-border">|</span>
+                <div className="flex items-center gap-1.5">
+                  <span>每页</span>
+                  <Input
+                    key={cardPageSize}
+                    defaultValue={cardPageSize}
+                    type="number"
+                    min={1}
+                    className="w-14 h-7 text-[16PX] text-center px-1 font-mono text-xs rounded-md border-border/80 bg-background/50"
+                    onBlur={(e) => {
+                      let val = parseInt(e.target.value, 10);
+                      if (isNaN(val) || val < 1) val = 12;
+                      e.target.value = String(val);
+                      if (val !== cardPageSize) {
+                        setCardPageSize(val);
+                        setCardPageIndex(0);
+                        if (typeof window !== 'undefined') {
+                          storageStore.setItem('fundCardPageSize', val);
+                        }
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.currentTarget.blur();
+                      }
+                    }}
+                  />
+                  <span>条</span>
+                </div>
+              </div>
+
+              {pageCount > 1 && (
+                <div className="flex items-center justify-end">
+                  <Pagination className="mx-0 w-auto">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (safePageIndex > 0) {
+                              setCardPageIndex(safePageIndex - 1);
+                              if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                          }}
+                          className={safePageIndex <= 0 ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: pageCount }, (_, i) => {
+                        if (i === 0 || i === pageCount - 1 || (i >= safePageIndex - 1 && i <= safePageIndex + 1)) {
+                          return (
+                            <PaginationItem key={i}>
+                              <PaginationLink
+                                href="#"
+                                isActive={safePageIndex === i}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCardPageIndex(i);
+                                  if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="cursor-pointer"
+                              >
+                                {i + 1}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        }
+                        if (i === safePageIndex - 2 || i === safePageIndex + 2) {
+                          return (
+                            <PaginationItem key={i}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+                        return null;
+                      })}
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (safePageIndex < pageCount - 1) {
+                              setCardPageIndex(safePageIndex + 1);
+                              if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                          }}
+                          className={
+                            safePageIndex >= pageCount - 1 ? 'opacity-50 pointer-events-none' : 'cursor-pointer'
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

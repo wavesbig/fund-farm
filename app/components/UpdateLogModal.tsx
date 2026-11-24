@@ -525,7 +525,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-2xl sm:max-w-3xl h-[84vh] max-h-[720px] p-0 gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl z-[99] flex flex-col text-left"
+        className="glass card modal max-w-2xl sm:max-w-3xl h-[84vh] max-h-[720px] p-0 gap-0 overflow-hidden z-[100] flex flex-col text-left"
         showCloseButton={true}
         onPointerDownOutside={(e) => {
           if (Date.now() - mountTimeRef.current < 400) {
@@ -566,6 +566,17 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
         </DialogHeader>
 
         {content}
+
+        <div className="pt-3 pb-4 px-6 border-t border-border flex justify-end shrink-0">
+          <Button
+            type="button"
+            variant="default"
+            onClick={() => onOpenChange(false)}
+            className="h-9 px-5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer"
+          >
+            完成
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

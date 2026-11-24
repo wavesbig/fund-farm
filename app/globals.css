@@ -19,6 +19,16 @@ html {
   scrollbar-gutter: stable;
 }
 
+body {
+  scrollbar-gutter: stable;
+}
+
+/* 彻底消除 Radix Dialog 锁定滚动时注入的 15px 抖动与横向位移 */
+body[data-scroll-locked] {
+  padding-right: 0PX !important;
+  margin-right: 0PX !important;
+}
+
 html[data-font-size='standard'] {
   font-size: 16PX;
 }
@@ -2105,14 +2115,16 @@ html::-webkit-scrollbar-thumb:active,
   position: sticky;
   z-index: 40;
   background: var(--bg);
+  backdrop-filter: blur(16px);
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.25);
 }
 
 [data-theme='light'] .filter-bar {
   background: var(--bg);
   border-bottom: 1px solid var(--border);
-  box-shadow: none;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
 }
 
 .group-summary-sticky {
@@ -2369,7 +2381,6 @@ html::-webkit-scrollbar-thumb:active,
   align-items: center;
   justify-content: center;
   z-index: 60;
-  transition: background 0.2s ease;
 }
 
 .modal-overlay-translucent {

@@ -2,14 +2,7 @@
 
 import * as React from 'react';
 import { Trash2 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -47,9 +40,9 @@ export default function ConfirmModal({
   return (
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
-        overlayClassName="!z-[12000]"
+        overlayClassName="!z-[200]"
         showCloseButton={false}
-        className="!z-[12010] max-w-[420px] w-[92vw] p-5 sm:p-6 rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl flex flex-col gap-4 text-left"
+        className="!z-[200] max-w-[420px] w-[92vw] p-5 sm:p-6 rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl flex flex-col gap-4 text-left"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
@@ -75,12 +68,11 @@ export default function ConfirmModal({
           </div>
         </DialogDescription>
 
-        <DialogFooter className="flex flex-row items-center justify-end gap-2.5 pt-2 sm:pt-3">
+        <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
           <Button
             type="button"
-            variant="ghost"
-            size="sm"
-            className="text-xs font-medium text-muted-foreground hover:text-foreground h-9 px-4 rounded-lg cursor-pointer"
+            variant="outline"
+            className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               onCancel();
@@ -91,8 +83,7 @@ export default function ConfirmModal({
           <Button
             type="button"
             variant={buttonVariant}
-            size="sm"
-            className="text-xs font-medium h-9 px-4.5 rounded-lg shadow-xs cursor-pointer"
+            className="h-9 px-4.5 text-xs font-medium shadow-xs cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               onConfirm();
@@ -100,7 +91,7 @@ export default function ConfirmModal({
           >
             {confirmText}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -29,7 +29,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { SUMMARY_TAB_ID } from '@/app/constants';
 import type { FundGroup, SortRule } from '@/types';
@@ -314,26 +313,20 @@ export const FilterBar = memo(function FilterBar({
           gap: 12
         }}
       >
-        {/* 视图切换按钮组：shadcn ToggleGroup 标准化 */}
-        <ToggleGroup
-          type="single"
-          value={viewMode}
-          onValueChange={(val) => {
-            if (val) applyViewMode(val as 'card' | 'list');
-          }}
-          size="sm"
-          className="h-8 p-0.5 rounded-lg border border-border/60 bg-muted/30 shrink-0 gap-0.5"
-          aria-label="视图模式切换"
-        >
+        {/* 视图切换按钮组：符合项目规范的 tab-capsule 设计语言 */}
+        <div role="radiogroup" aria-label="视图模式切换" className="tab-capsule shrink-0">
           <Tooltip>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value="card"
+              <button
+                type="button"
+                role="radio"
+                aria-checked={viewMode === 'card'}
                 aria-label="卡片视图"
-                className="size-7 p-0 rounded-md data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-xs text-muted-foreground/70 hover:text-foreground cursor-pointer transition-all"
+                onClick={() => applyViewMode('card')}
+                className={cn('tab-capsule-item', viewMode === 'card' && 'active')}
               >
                 <LayoutGrid className="size-3.5" strokeWidth={1.8} />
-              </ToggleGroupItem>
+              </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={4}>
               <p>卡片视图</p>
@@ -342,19 +335,22 @@ export const FilterBar = memo(function FilterBar({
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value="list"
+              <button
+                type="button"
+                role="radio"
+                aria-checked={viewMode === 'list'}
                 aria-label="表格视图"
-                className="size-7 p-0 rounded-md data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-xs text-muted-foreground/70 hover:text-foreground cursor-pointer transition-all"
+                onClick={() => applyViewMode('list')}
+                className={cn('tab-capsule-item', viewMode === 'list' && 'active')}
               >
                 <List className="size-3.5" strokeWidth={1.8} />
-              </ToggleGroupItem>
+              </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={4}>
               <p>表格视图</p>
             </TooltipContent>
           </Tooltip>
-        </ToggleGroup>
+        </div>
 
         {/* 使用标准 shadcn/ui Separator 替代手写 divider */}
         <Separator orientation="vertical" className="h-5" />

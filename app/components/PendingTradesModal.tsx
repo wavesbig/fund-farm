@@ -24,26 +24,24 @@ export default function PendingTradesModal({ open, trades = [], onClose, onRevok
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal trade-modal max-w-[420px] w-[90vw] p-6 z-[999]"
-        overlayClassName="modal-overlay"
-        overlayStyle={{ zIndex: 998 }}
+        className="glass card modal trade-modal max-w-[420px] w-[90vw] p-5 z-[200] gap-0 flex flex-col max-h-[85vh]"
+        overlayClassName="modal-overlay z-[200]"
       >
         <DialogTitle className="sr-only">待交易队列</DialogTitle>
 
-        <div className="flex items-center justify-between mb-5 font-semibold text-base">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between mb-5 font-semibold text-base text-foreground">
+          <div className="flex items-center gap-2">
             <Inbox className="w-5 h-5 text-primary" />
             <span>待交易队列</span>
           </div>
           <Button
             type="button"
             variant="ghost"
-            size="icon-xs"
+            size="icon"
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground"
-            aria-label="关闭"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
           >
-            <X className="size-4" />
+            <X className="w-4 h-4" />
           </Button>
         </div>
 

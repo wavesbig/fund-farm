@@ -29,9 +29,9 @@ export default function ScanProgressModal({ scanProgress, onCancel }: ScanProgre
   return (
     <Dialog open onOpenChange={(open) => !open && onCancel?.()}>
       <DialogContent
-        overlayClassName="!z-[12000]"
+        overlayClassName="modal-overlay z-[200]"
         showCloseButton={false}
-        className="!z-[12010] w-[360px] max-w-[92vw] p-6 text-center rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl"
+        className="glass card modal w-[360px] max-w-[92vw] p-5 text-center z-[200]"
       >
         <div className="flex justify-center mb-4">
           <Spinner className="size-10 text-primary" />
@@ -54,14 +54,16 @@ export default function ScanProgressModal({ scanProgress, onCancel }: ScanProgre
           </div>
         )}
         <UsageTipsCarousel />
-        <Button
-          type="button"
-          variant="destructive"
-          onClick={onCancel}
-          className="w-full mt-2 rounded-xl h-9.5 text-xs font-medium cursor-pointer"
-        >
-          终止识别
-        </Button>
+        <div className="pt-3 border-t border-border mt-3 flex shrink-0">
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={onCancel}
+            className="w-full h-9 text-xs font-medium cursor-pointer"
+          >
+            终止识别
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -3,7 +3,29 @@
 import React, { useMemo } from 'react';
 import { isString } from 'lodash';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Sparkles, Settings2, Trash2, SlidersHorizontal, ListChecks } from 'lucide-react';
+import {
+  Sparkles,
+  Settings2,
+  Trash2,
+  SlidersHorizontal,
+  ListChecks,
+  Pencil,
+  MoreHorizontal,
+  ArrowDownLeft,
+  ArrowUpRight,
+  CalendarClock,
+  FileEdit,
+  ArrowLeftRight,
+  Coins,
+  History
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 import { useModalStore } from '@/app/stores';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
@@ -713,15 +735,8 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
               <div
                 role="button"
                 tabIndex={0}
-                className="muted"
-                title={holdingLocked ? holdingLinkedTitle : '编辑持仓'}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: '13px',
-                  cursor: 'pointer'
-                }}
+                title={holdingLocked ? holdingLinkedTitle : '录入并设置持仓金额与份额'}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/25 hover:bg-primary/20 hover:border-primary/40 transition-all cursor-pointer group shadow-2xs select-none"
                 onClick={(e) => {
                   e.stopPropagation?.();
                   onHoldingAmountClickRef.current?.(original, { hasHolding: false });
@@ -733,27 +748,22 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
                   }
                 }}
               >
-                未设置 <Settings2 className="size-3 inline-block ml-1 opacity-70" />
+                <span>未设置</span>
+                <Pencil className="size-2.5 opacity-80 group-hover:scale-110 transition-transform" />
               </div>
             );
           }
           const val = info.getValue() ?? '—';
           return (
             <div
-              title={holdingLocked ? holdingLinkedTitle : val !== '—' && !masked ? `${val} (点击编辑持仓)` : '编辑持仓'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'pointer',
-                width: '100%',
-                minWidth: 0
-              }}
+              title={holdingLocked ? holdingLinkedTitle : val !== '—' && !masked ? `${val} (点击修改持仓)` : '修改持仓'}
+              className="group/holding-cell inline-flex items-center justify-end gap-1.5 cursor-pointer py-1 px-1.5 -my-1 -mr-1 rounded-md transition-colors hover:bg-primary/10 select-none w-full min-w-0"
               onClick={(e) => {
                 e.stopPropagation?.();
-                onHoldingAmountClickRef.current?.(original, { hasHolding: true });
+                onHoldingAmountClickRef.current?.(original, { hasHolding: false });
               }}
             >
-              <div style={{ flex: '1 1 0', minWidth: 0 }}>
+              <div className="flex-1 min-w-0 text-right">
                 <span
                   title={val !== '—' && !masked ? String(val) : undefined}
                   style={{
@@ -765,26 +775,17 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
                   }}
+                  className="underline decoration-border/60 underline-offset-4 group-hover/holding-cell:decoration-primary transition-colors"
                 >
                   {masked ? <span className="mask-text">******</span> : val}
                 </span>
               </div>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center size-5 rounded text-muted-foreground/60 hover:text-foreground hover:bg-muted/60 transition-colors ml-1 shrink-0 cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation?.();
-                  onHoldingAmountClickRef.current?.(original, { hasHolding: true });
-                }}
-                style={{
-                  border: 'none',
-                  backgroundColor: 'transparent',
-                  color: holdingLocked ? 'var(--muted)' : undefined
-                }}
-                aria-label="编辑持仓"
+              <span
+                className="inline-flex items-center justify-center size-4 rounded bg-muted/40 border border-border/70 text-muted-foreground/80 group-hover/holding-cell:bg-primary group-hover/holding-cell:text-primary-foreground group-hover/holding-cell:border-primary transition-all shrink-0"
+                aria-label="修改持仓"
               >
-                <Settings2 className="size-3.5" />
-              </button>
+                <Pencil className="size-2.5" />
+              </span>
             </div>
           );
         },
@@ -1138,9 +1139,9 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
             </Tooltip>
           </div>
         ),
-        size: 80,
-        minSize: 80,
-        maxSize: 80,
+        size: 140,
+        minSize: 135,
+        maxSize: 155,
         enableResizing: false,
         enablePinning: true,
         meta: {
@@ -1150,22 +1151,146 @@ export function usePcTableColumns(options: UsePcTableColumnsOptions): ColumnDef<
         },
         cell: (info) => {
           const original = info.row.original || {};
+          const rawFund = original.rawFund || { code: original.code, name: original.fundName };
+          const scopedGroupId =
+            original.groupId || (currentTab !== 'all' && currentTab !== 'fav' ? currentTab : undefined);
+          const hasShare = original.holdingShareValue != null && original.holdingShareValue > 0;
+          const isHoldingLinked = (currentTab === 'all' || currentTab === 'fav') && !!original.isHoldingLinked;
 
-          const handleClick = (e: React.MouseEvent) => {
+          const handleBuy = (e: React.MouseEvent) => {
             e.stopPropagation?.();
-            onRemoveFundRef.current?.(original);
+            e.preventDefault?.();
+            if (isHoldingLinked) {
+              useModalStore.setState({ selectHoldingGroupModal: { open: true, fund: rawFund } });
+              return;
+            }
+            useModalStore.getState().handleAction('buy', rawFund, scopedGroupId);
+          };
+
+          const handleSell = (e: React.MouseEvent) => {
+            e.stopPropagation?.();
+            e.preventDefault?.();
+            if (isHoldingLinked) {
+              useModalStore.setState({ selectHoldingGroupModal: { open: true, fund: rawFund } });
+              return;
+            }
+            useModalStore.getState().handleAction('sell', rawFund, scopedGroupId);
+          };
+
+          const handleMenuAction = (action: string) => {
+            if (isHoldingLinked && action !== 'remove') {
+              useModalStore.setState({ selectHoldingGroupModal: { open: true, fund: rawFund } });
+              return;
+            }
+            if (action === 'remove') {
+              onRemoveFundRef.current?.(original);
+            } else {
+              useModalStore.getState().handleAction(action, rawFund, scopedGroupId);
+            }
           };
 
           return (
-            <div className="flex items-center justify-center w-full py-1">
+            <div className="flex items-center justify-center gap-1.5 w-full py-1">
               <button
                 type="button"
-                className="inline-flex items-center justify-center size-7 rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-all cursor-pointer"
-                title="删除"
-                onClick={handleClick}
+                onClick={handleBuy}
+                className="px-2 py-0.5 rounded text-xs font-medium text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 hover:border-emerald-500/40 border border-emerald-500/25 transition-colors cursor-pointer shrink-0"
+                title="买入加仓"
               >
-                <Trash2 className="size-3.5" strokeWidth={1.8} />
+                加仓
               </button>
+
+              <button
+                type="button"
+                disabled={!hasShare}
+                onClick={handleSell}
+                className="px-2 py-0.5 rounded text-xs font-medium text-rose-500 bg-rose-500/10 hover:bg-rose-500/20 hover:border-rose-500/40 border border-rose-500/25 transition-colors cursor-pointer shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+                title={hasShare ? '卖出减仓' : '暂无持仓份额'}
+              >
+                减仓
+              </button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="size-6 rounded flex items-center justify-center text-muted-foreground/70 hover:text-foreground hover:bg-secondary/80 border border-border/60 transition-colors cursor-pointer shrink-0"
+                    title="更多操作"
+                    onClick={(e) => {
+                      e.stopPropagation?.();
+                    }}
+                  >
+                    <MoreHorizontal className="size-3.5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  onCloseAutoFocus={(e) => e.preventDefault()}
+                  className="w-36 glass card p-1 z-[150] shadow-xl border-border/80"
+                >
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('edit')}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <FileEdit className="size-3.5 text-primary" />
+                    <span>编辑持仓</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('dca')}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <CalendarClock className="size-3.5 text-indigo-400" />
+                    <span>定投计划</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('convert')}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <ArrowLeftRight className="size-3.5 text-sky-400" />
+                    <span>基金转换</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('dividend')}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <Coins className="size-3.5 text-amber-400" />
+                    <span>分红方式</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('history')}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <History className="size-3.5 text-muted-foreground" />
+                    <span>交易记录</span>
+                  </DropdownMenuItem>
+
+                  {hasShare && (
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onSelect={() => handleMenuAction('clear')}
+                      className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                    >
+                      <Trash2 className="size-3.5" />
+                      <span>清空持仓</span>
+                    </DropdownMenuItem>
+                  )}
+
+                  <DropdownMenuSeparator className="my-1 bg-border/60" />
+
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={() => handleMenuAction('remove')}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <Trash2 className="size-3.5" />
+                    <span>移除基金</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           );
         }

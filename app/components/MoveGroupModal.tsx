@@ -3,11 +3,12 @@
 import * as React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { isArray } from 'lodash';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import ConfirmModal from './ConfirmModal';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, FolderInput, X } from 'lucide-react';
 import type { FundGroup } from '@/types';
 
 export interface MoveFundsParams {
@@ -121,7 +122,9 @@ export default function MoveGroupModal({
         }}
       >
         <DialogContent
-          className="sm:max-w-md max-h-[88vh] flex flex-col p-0 overflow-hidden"
+          showCloseButton={false}
+          className="glass card modal max-w-[420px] w-[90vw] p-5 z-[100] gap-0 flex flex-col max-h-[85vh]"
+          overlayClassName="modal-overlay"
           onPointerDownOutside={(event) => {
             if (confirmOverwriteOpen) event.preventDefault();
           }}
@@ -129,21 +132,35 @@ export default function MoveGroupModal({
             if (confirmOverwriteOpen) event.preventDefault();
           }}
         >
-          <DialogHeader className="flex-shrink-0 px-6 pb-4 pt-6 text-left border-b border-[var(--border)]">
-            <DialogTitle className="text-base font-semibold text-[var(--text)]">迁移到分组</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5 flex flex-col gap-4">
-            <DialogDescription className="text-left text-sm leading-relaxed text-[var(--muted-foreground)]">
-              已选 {selectedCount} 支基金。请选择要迁移到的分组。
+          <DialogTitle className="sr-only">迁移到分组</DialogTitle>
+          <div className="flex items-center justify-between mb-5 font-semibold text-base text-foreground">
+            <div className="flex items-center gap-2">
+              <FolderInput className="w-5 h-5 text-primary" />
+              <span>迁移到分组</span>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col gap-4">
+            <DialogDescription className="text-left text-sm leading-relaxed text-muted-foreground">
+              已选 {selectedCount} 支基金。请选择要迁移到的目标分组。
             </DialogDescription>
 
             <div className="flex flex-col gap-2">
-              <div className="text-sm font-medium text-[var(--text)]">目标分组</div>
+              <Label className="text-xs text-muted-foreground block font-normal">目标分组</Label>
               <Select value={targetId} onValueChange={setTargetId}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="请选择目标分组" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[110]">
                   {allowedTargets.length === 0 ? (
                     <SelectItem value="__disabled__" disabled>
                       暂无可迁移的分组
@@ -159,11 +176,12 @@ export default function MoveGroupModal({
               </Select>
             </div>
           </div>
-          <div className="flex-shrink-0 px-6 py-4 border-t border-[var(--border)] flex gap-3">
+
+          <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
             <Button
               type="button"
-              variant="secondary"
-              className="flex-1 rounded-xl h-11"
+              variant="outline"
+              className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
               onClick={onClose}
               disabled={submitting}
             >
@@ -172,7 +190,7 @@ export default function MoveGroupModal({
             <Button
               type="button"
               variant="default"
-              className="flex-1 rounded-xl h-11 font-medium"
+              className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
               onClick={handleSubmit}
               disabled={!canSubmit}
             >

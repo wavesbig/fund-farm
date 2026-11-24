@@ -22,6 +22,7 @@ import { fetchFundHistory } from '../api/fund';
 import * as qk from '../lib/query-keys';
 import { getChartAxisAvoidRects, getChartTooltipPosition } from '../lib/chartTooltipPosition';
 import { ChevronDown } from 'lucide-react';
+import { Segmented } from '@/components/ui/segmented';
 import FundHistoryNetValue from './FundHistoryNetValue';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
@@ -854,20 +855,14 @@ export default function FundTrendChart({
         <AnimatePresence initial={false}>{renderTrendTooltip('trend-tooltip-desktop')}</AnimatePresence>
       </div>
 
-      <div className="trend-range-bar">
-        {ranges.map((r) => (
-          <button
-            key={r.value}
-            type="button"
-            className={`trend-range-btn ${range === r.value ? 'active' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              setRange(r.value);
-            }}
-          >
-            {r.label}
-          </button>
-        ))}
+      <div className="flex justify-center mt-3 px-2">
+        <Segmented
+          options={ranges}
+          value={range}
+          onChange={(val) => setRange(val)}
+          size="sm"
+          className="w-full max-w-[420px]"
+        />
       </div>
 
       <FundHistoryNetValue code={code} range={range} theme={theme} />

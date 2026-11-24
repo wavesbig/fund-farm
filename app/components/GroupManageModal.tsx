@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useRef, useState } from 'react';
 import { AnimatePresence, Reorder, useDragControls } from 'framer-motion';
-import { Folder, GripVertical, Plus, Settings2, Trash2 } from 'lucide-react';
+import { Folder, GripVertical, Plus, Settings2, Trash2, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -194,7 +194,8 @@ export default function GroupManageModal({ groups, onClose, onSave }: GroupManag
         }}
       >
         <DialogContent
-          className="glass card modal max-w-[500px] w-[90vw] z-[99]"
+          showCloseButton={false}
+          className="glass card modal max-w-[460px] w-[90vw] p-5 gap-0 flex flex-col max-h-[85vh] z-[100]"
           overlayClassName="modal-overlay"
           onOpenAutoFocus={(event) => event.preventDefault()}
           onPointerDownOutside={(event) => {
@@ -204,16 +205,24 @@ export default function GroupManageModal({ groups, onClose, onSave }: GroupManag
             if (deleteConfirm) event.preventDefault();
           }}
         >
-          <DialogTitle asChild>
-            <div className="title flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2.5 font-semibold text-lg text-foreground">
-                <Settings2 className="w-5 h-5 text-primary" />
-                <span>管理分组</span>
-              </div>
+          <DialogTitle className="sr-only">管理分组</DialogTitle>
+          <div className="flex items-center justify-between mb-4 font-semibold text-base text-foreground shrink-0">
+            <div className="flex items-center gap-2">
+              <Settings2 className="w-5 h-5 text-primary" />
+              <span>管理分组</span>
             </div>
-          </DialogTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
 
-          <div className="group-manage-list-container scrollbar-y-styled max-h-[60vh] overflow-y-auto pr-1">
+          <div className="group-manage-list-container scrollbar-y-styled max-h-[50vh] overflow-y-auto pr-1 flex-1">
             {items.length === 0 ? (
               <div className="empty-state text-[var(--muted)] text-center py-10">
                 <Folder className="w-10 h-10 mx-auto mb-3 opacity-40 text-muted-foreground" />
@@ -250,13 +259,29 @@ export default function GroupManageModal({ groups, onClose, onSave }: GroupManag
             </Button>
           </div>
 
-          <div className="mt-6">
+          <div className="pt-3 mt-1 border-t border-border flex flex-col gap-2 shrink-0">
             {!isAllValid && (
-              <div className="text-destructive text-xs font-medium mb-3 text-center">所有分组名称均不能为空</div>
+              <div className="text-destructive text-xs font-medium text-center">所有分组名称均不能为空</div>
             )}
-            <Button className="w-full h-10 font-medium" onClick={handleConfirm} disabled={!isAllValid}>
-              完成
-            </Button>
+            <div className="flex items-center justify-end gap-2.5">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
+                onClick={onClose}
+              >
+                取消
+              </Button>
+              <Button
+                type="button"
+                variant="default"
+                className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
+                onClick={handleConfirm}
+                disabled={!isAllValid}
+              >
+                完成
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

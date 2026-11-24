@@ -9,6 +9,7 @@ import { DatePicker, NumericInput } from './Common';
 import { fetchSmartFundNetValueBackward } from '../api/fund';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { formatMoney } from '@/lib/utils';
 
 const format2 = (v: number | string) => {
@@ -160,7 +161,7 @@ export default function FundConvertModal({
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal gap-0 max-w-[420px] w-[90vw] max-h-[90vh] flex flex-col !z-[999] p-5"
+        className="glass card modal gap-0 max-w-[420px] w-[90vw] max-h-[85vh] flex flex-col z-[100] p-5"
         overlayClassName="modal-overlay"
         onPointerDownOutside={(event) => {
           if (nestedModalOpen || Date.now() < ignoreDialogCloseUntilRef.current) event.preventDefault();
@@ -199,16 +200,16 @@ export default function FundConvertModal({
           </div>
 
           <div>
-            <label className="text-xs text-muted-foreground block mb-1.5">转出基金</label>
+            <Label className="text-xs text-muted-foreground block mb-1.5 font-normal">转出基金</Label>
             <div className="w-full rounded-xl px-3 py-2 bg-white/5 border border-border text-sm text-foreground opacity-90 truncate">
               {fund?.name || '-'}
             </div>
           </div>
 
           <div>
-            <label className="text-xs text-muted-foreground block mb-1.5">
+            <Label className="text-xs text-muted-foreground block mb-1.5 font-normal">
               转出金额 <span className="text-red-500">*</span>
-            </label>
+            </Label>
             <div className={`rounded-xl ${!outAmount || !outValid ? 'border border-red-500' : 'border border-border'}`}>
               <NumericInput value={outAmount} onChange={setOutAmount} step={100} min={0} placeholder="请输入转出金额" />
             </div>
@@ -237,9 +238,9 @@ export default function FundConvertModal({
           </div>
 
           <div>
-            <label className="text-xs text-muted-foreground block mb-1.5">
+            <Label className="text-xs text-muted-foreground block mb-1.5 font-normal">
               转入基金 <span className="text-red-500">*</span>
-            </label>
+            </Label>
             <Button
               type="button"
               variant="outline"
@@ -260,16 +261,16 @@ export default function FundConvertModal({
           </div>
 
           <div>
-            <label className="text-xs text-muted-foreground block mb-1.5">
+            <Label className="text-xs text-muted-foreground block mb-1.5 font-normal">
               转入金额 <span className="text-red-500">*</span>
-            </label>
+            </Label>
             <div className={`rounded-xl ${!inAmount || !inValid ? 'border border-red-500' : 'border border-border'}`}>
               <NumericInput value={inAmount} onChange={setInAmount} step={100} min={0} placeholder="请输入转入金额" />
             </div>
           </div>
 
           <div>
-            <label className="text-xs text-muted-foreground block mb-1.5">确认转换日期</label>
+            <Label className="text-xs text-muted-foreground block mb-1.5 font-normal">确认转换日期</Label>
             <DatePicker value={confirmDate} onChange={setConfirmDate} />
             {loadingNetValue && <div className="text-xs text-muted-foreground mt-1">正在获取净值...</div>}
             {!loadingNetValue && outNetValueError && (
@@ -291,12 +292,12 @@ export default function FundConvertModal({
           </div>
         </div>
 
-        <div className="pt-3 mt-1 border-t border-border flex gap-3">
+        <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
-            className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
+            className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
           >
             取消
           </Button>
@@ -315,7 +316,7 @@ export default function FundConvertModal({
                 date: confirmDate
               });
             }}
-            className="flex-1 bg-primary text-primary-foreground font-medium"
+            className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
           >
             确认转换
           </Button>

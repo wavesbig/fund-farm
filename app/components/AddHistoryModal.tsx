@@ -8,6 +8,8 @@ import { DatePicker } from './Common';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Segmented } from '@/components/ui/segmented';
 
 export interface AddHistoryFund {
   code: string;
@@ -32,7 +34,7 @@ export interface AddHistoryModalProps {
 }
 
 export default function AddHistoryModal({ fund, onClose, onConfirm }: AddHistoryModalProps) {
-  const [type, setType] = useState<'buy' | 'sell' | ''>('');
+  const [type, setType] = useState<'buy' | 'sell'>('buy');
   const [date, setDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [amount, setAmount] = useState<string>('');
   const [share, setShare] = useState<string>('');
@@ -116,9 +118,8 @@ export default function AddHistoryModal({ fund, onClose, onConfirm }: AddHistory
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal max-w-[420px] w-[90vw] !z-[9999] p-5"
+        className="glass card modal max-w-[420px] w-[90vw] z-[100] p-5 gap-0"
         overlayClassName="modal-overlay"
-        overlayStyle={{ zIndex: 9998 }}
       >
         <DialogTitle className="sr-only">添加历史记录</DialogTitle>
 
@@ -145,43 +146,24 @@ export default function AddHistoryModal({ fund, onClose, onConfirm }: AddHistory
 
         <div className="space-y-4">
           <div>
-            <label className="text-xs text-muted-foreground block mb-1.5">
+            <Label className="text-xs text-muted-foreground block mb-1.5 font-normal">
               交易类型 <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant={type === 'buy' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setType('buy')}
-                className={`h-9 text-xs font-medium transition-[background-color,color] duration-150 ease-out ${
-                  type === 'buy'
-                    ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
-                    : 'bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:bg-muted/60'
-                }`}
-              >
-                买入
-              </Button>
-              <Button
-                type="button"
-                variant={type === 'sell' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setType('sell')}
-                className={`h-9 text-xs font-medium transition-[background-color,color] duration-150 ease-out ${
-                  type === 'sell'
-                    ? 'bg-destructive text-destructive-foreground font-semibold shadow-sm'
-                    : 'bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:bg-muted/60'
-                }`}
-              >
-                卖出
-              </Button>
-            </div>
+            </Label>
+            <Segmented<'buy' | 'sell'>
+              options={[
+                { label: '买入', value: 'buy' },
+                { label: '卖出', value: 'sell' }
+              ]}
+              value={type}
+              onChange={(val) => setType(val)}
+              className="w-full"
+            />
           </div>
 
           <div>
-            <label className="text-xs text-muted-foreground block mb-1.5">
+            <Label className="text-xs text-muted-foreground block mb-1.5 font-normal">
               交易日期 <span className="text-red-500">*</span>
-            </label>
+            </Label>
             <DatePicker value={date} onChange={setDate} />
             {loading && <div className="text-xs text-muted-foreground mt-1">正在获取净值...</div>}
             {error && <div className="text-xs text-red-500 mt-1">{error}</div>}
@@ -193,9 +175,9 @@ export default function AddHistoryModal({ fund, onClose, onConfirm }: AddHistory
           </div>
 
           <div>
-            <label className="text-xs text-muted-foreground block mb-1.5">
+            <Label className="text-xs text-muted-foreground block mb-1.5 font-normal">
               金额 <span className="text-red-500">*</span>
-            </label>
+            </Label>
             <Input
               type="number"
               inputMode="decimal"
@@ -219,12 +201,12 @@ export default function AddHistoryModal({ fund, onClose, onConfirm }: AddHistory
             * 此处补录的买入/卖出仅作记录展示，不会改变当前持仓金额与份额；实际持仓请在持仓设置中维护。
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
+              className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
             >
               取消
             </Button>
@@ -232,7 +214,7 @@ export default function AddHistoryModal({ fund, onClose, onConfirm }: AddHistory
               type="button"
               disabled={!type || !date || !netValue || !amount || !share || loading}
               onClick={handleSubmit}
-              className="flex-1 bg-primary text-primary-foreground font-medium"
+              className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
             >
               确认添加
             </Button>

@@ -39,7 +39,8 @@ import {
   Trash2,
   Link2,
   Star,
-  ArrowUpToLine
+  ArrowUpToLine,
+  Pencil
 } from 'lucide-react';
 import MobileFundCardDrawer from './MobileFundCardDrawer';
 import MobileSettingModal from './MobileSettingModal';
@@ -1658,32 +1659,10 @@ const MobileFundTable = memo(function MobileFundTable({
           </span>
           {holdingAmountDisplay ? (
             <span
-              className="muted code-text"
+              className="inline-flex items-center gap-1 py-0.5 px-1.5 -my-0.5 rounded text-xs font-mono font-medium text-foreground bg-white/5 border border-border/70 active:bg-primary/10 active:border-primary/30 transition-all cursor-pointer select-none"
               role="button"
               tabIndex={0}
-              style={{ cursor: 'pointer' }}
-              onClick={(e) => {
-                e.stopPropagation?.();
-                onHoldingAmountClickRef.current?.(original, { hasHolding: true });
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onHoldingAmountClickRef.current?.(original, { hasHolding: true });
-                }
-              }}
-            >
-              {masked ? <span className="mask-text">******</span> : holdingAmountDisplay}
-              {hasPending && <span className="pending-indicator">待</span>}
-              {hasDca && <span className="dca-indicator">定</span>}
-              {isUpdated && <span className="updated-indicator">✓</span>}
-            </span>
-          ) : code ? (
-            <span
-              className="muted code-text"
-              role="button"
-              tabIndex={0}
-              style={{ cursor: 'pointer' }}
+              title="点击修改持仓"
               onClick={(e) => {
                 e.stopPropagation?.();
                 onHoldingAmountClickRef.current?.(original, { hasHolding: false });
@@ -1695,11 +1674,38 @@ const MobileFundTable = memo(function MobileFundTable({
                 }
               }}
             >
-              {code}
+              <span className="text-muted-foreground text-[10px]">持仓</span>
+              <span>{masked ? <span className="mask-text">******</span> : holdingAmountDisplay}</span>
+              <Pencil className="size-2.5 text-muted-foreground opacity-80" />
               {hasPending && <span className="pending-indicator">待</span>}
               {hasDca && <span className="dca-indicator">定</span>}
               {isUpdated && <span className="updated-indicator">✓</span>}
             </span>
+          ) : code ? (
+            <div className="inline-flex items-center gap-1.5 flex-wrap">
+              <span className="muted code-text font-mono text-xs">{code}</span>
+              <span
+                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/25 active:bg-primary/25 cursor-pointer select-none"
+                role="button"
+                tabIndex={0}
+                title="设置持仓"
+                onClick={(e) => {
+                  e.stopPropagation?.();
+                  onHoldingAmountClickRef.current?.(original, { hasHolding: false });
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onHoldingAmountClickRef.current?.(original, { hasHolding: false });
+                  }
+                }}
+              >
+                <span>+设置持仓</span>
+              </span>
+              {hasPending && <span className="pending-indicator">待</span>}
+              {hasDca && <span className="dca-indicator">定</span>}
+              {isUpdated && <span className="updated-indicator">✓</span>}
+            </div>
           ) : null}
         </div>
       </div>

@@ -80,7 +80,7 @@ export default function AddFundToGroupModal({
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal max-w-[500px] w-[90vw] p-6 z-[99]"
+        className="glass card modal max-w-[500px] w-[90vw] p-5 z-[100] gap-0 flex flex-col max-h-[85vh]"
         overlayClassName="modal-overlay"
       >
         <DialogTitle className="sr-only">添加基金到分组</DialogTitle>
@@ -189,8 +189,13 @@ export default function AddFundToGroupModal({
           )}
         </div>
 
-        <div className="flex gap-3 mt-6">
-          <Button type="button" variant="secondary" onClick={onClose} className="flex-1 rounded-xl h-11">
+        <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
+          >
             取消
           </Button>
           <Button
@@ -198,7 +203,7 @@ export default function AddFundToGroupModal({
             variant="default"
             onClick={() => onAdd(Array.from(selected))}
             disabled={selected.size === 0}
-            className="flex-1 rounded-xl h-11 font-medium"
+            className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
           >
             确定 ({selected.size})
           </Button>

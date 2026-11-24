@@ -90,9 +90,9 @@ export default function ScanPickModal({
   return (
     <Dialog open onOpenChange={(open) => !open && !isScanning && onClose?.()}>
       <DialogContent
-        overlayClassName="!z-[12000]"
+        overlayClassName="modal-overlay z-[200]"
         showCloseButton={!isScanning}
-        className="!z-[12010] p-6 sm:p-7 max-w-[580px] w-[94vw] rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl overflow-hidden"
+        className="glass card modal p-5 max-w-[500px] w-[90vw] z-[200] overflow-hidden"
         onPointerDownOutside={(e) => {
           // 子弹窗（如 AI 配置）处于打开状态时，禁止因外部点击关闭截图选择弹窗
           if (useModalStore.getState().aiConfigModalOpen) {
@@ -249,12 +249,12 @@ export default function ScanPickModal({
             </div>
 
             {/* 底部按钮栏 */}
-            <div className="flex items-center justify-end gap-2.5 pt-1">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border mt-3">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 onClick={onClose}
-                className="rounded-xl h-9 px-3.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                className="h-9 px-4 text-xs bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
               >
                 取消
               </Button>
@@ -262,7 +262,7 @@ export default function ScanPickModal({
                 type="button"
                 variant="default"
                 onClick={onPick}
-                className="rounded-xl h-9 px-4 text-xs font-medium gap-1.5 shadow-sm cursor-pointer"
+                className="h-9 px-4 text-xs font-medium gap-1.5 shadow-sm cursor-pointer"
               >
                 <FolderOpen className="size-3.5" />
                 <span>选择图片</span>

@@ -111,8 +111,43 @@ function DialogContent({
   showCloseButton = true,
   overlayClassName,
   overlayStyle,
+  onPointerDownOutside,
+  onInteractOutside,
   ...props
 }: DialogContentProps) {
+  const mountTimeRef = React.useRef<number>(0);
+  React.useEffect(() => {
+    mountTimeRef.current = Date.now();
+  }, []);
+
+  const handlePointerDownOutside = React.useCallback(
+    (e: any) => {
+      // 刚打开弹窗 400ms 内禁止因点击外部关闭，防止打开弹窗的点击事件穿透导致弹窗“一闪而过”
+      if (mountTimeRef.current === 0 || Date.now() - mountTimeRef.current < 400) {
+        safePreventDefault(e);
+        return;
+      }
+      if (isFunction(onPointerDownOutside)) {
+        onPointerDownOutside(e);
+      }
+    },
+    [onPointerDownOutside]
+  );
+
+  const handleInteractOutside = React.useCallback(
+    (e: any) => {
+      // 刚打开弹窗 400ms 内禁止因失焦或外部交互关闭，防止 Dropdown 关闭时弹窗“一闪而过”
+      if (mountTimeRef.current === 0 || Date.now() - mountTimeRef.current < 400) {
+        safePreventDefault(e);
+        return;
+      }
+      if (isFunction(onInteractOutside)) {
+        onInteractOutside(e);
+      }
+    },
+    [onInteractOutside]
+  );
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay className={overlayClassName} style={overlayStyle} />
@@ -120,6 +155,8 @@ function DialogContent({
         data-slot="dialog-content"
         onOpenAutoFocus={safePreventDefault}
         onCloseAutoFocus={safePreventDefault}
+        onPointerDownOutside={handlePointerDownOutside}
+        onInteractOutside={handleInteractOutside}
         className={cn(
           'fixed top-[50%] left-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] p-6 dialog-content-shadow outline-none duration-200 overscroll-contain data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg',
           className

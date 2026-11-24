@@ -8,6 +8,9 @@ import { useModalStore } from '../stores';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 export type DividendMethod = 'reinvest' | 'cash';
 
@@ -91,12 +94,12 @@ export default function DividendMethodModal({ fund, groupId, onClose, showToast 
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal max-w-[380px] w-[90vw] !z-[99] p-5"
+        className="glass card modal max-w-[380px] w-[90vw] z-[100] p-5"
         overlayClassName="modal-overlay"
       >
         <DialogTitle className="sr-only">分红方式</DialogTitle>
 
-        <div className="flex items-center justify-between mb-5 font-semibold text-base text-foreground">
+        <div className="flex items-center justify-between mb-4 font-semibold text-base text-foreground shrink-0">
           <div className="flex items-center gap-2">
             <Coins className="w-5 h-5 text-amber-400" />
             <span>分红方式</span>
@@ -106,69 +109,72 @@ export default function DividendMethodModal({ fund, groupId, onClose, showToast 
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
           >
             <X className="w-4 h-4" />
           </Button>
         </div>
 
-        <div className="text-center mb-5">
-          <div className="font-semibold text-base text-foreground mb-1">{fund?.name}</div>
-          <div className="text-xs text-muted-foreground tabular-nums">#{fund?.code}</div>
+        <div className="p-3 rounded-xl bg-white/5 border border-border mb-4">
+          <div className="font-semibold text-sm text-foreground truncate">{fund?.name}</div>
+          <div className="text-xs text-muted-foreground font-mono mt-0.5">#{fund?.code}</div>
         </div>
 
-        <div className="space-y-2.5 mb-5">
+        <RadioGroup
+          value={selected}
+          onValueChange={(val) => setSelected(val as DividendMethod)}
+          className="flex flex-col gap-2.5 mb-4"
+        >
           {OPTIONS.map((opt) => {
             const isSelected = selected === opt.value;
             return (
-              <button
+              <label
                 key={opt.value}
-                type="button"
-                onClick={() => setSelected(opt.value)}
-                className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-[background-color,border-color] duration-150 ease-out cursor-pointer ${
+                htmlFor={`dividend-opt-${opt.value}`}
+                className={cn(
+                  'w-full flex items-center gap-3 p-3 rounded-xl border text-left cursor-pointer transition-all select-none',
                   isSelected
-                    ? 'border border-primary bg-primary/10'
-                    : 'border border-border bg-muted/30 hover:bg-muted/60'
-                }`}
+                    ? 'border-primary/60 bg-primary/10 shadow-xs'
+                    : 'border-border/70 bg-white/5 hover:bg-muted/30'
+                )}
               >
-                <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-[border-color] duration-150 ease-out ${
-                    isSelected ? 'border-primary' : 'border-border'
-                  }`}
-                >
-                  {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                </div>
-                <div>
-                  <div className={`font-semibold text-sm mb-0.5 ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                <RadioGroupItem id={`dividend-opt-${opt.value}`} value={opt.value} />
+                <div className="flex-1 min-w-0">
+                  <div
+                    className={cn(
+                      'text-sm font-semibold leading-tight',
+                      isSelected ? 'text-primary' : 'text-foreground'
+                    )}
+                  >
                     {opt.label}
                   </div>
-                  <div className="text-xs text-muted-foreground">{opt.desc}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{opt.desc}</div>
                 </div>
-              </button>
+              </label>
             );
           })}
+        </RadioGroup>
+
+        <div className="flex items-center gap-2 mb-4 px-1 cursor-pointer select-none">
+          <Checkbox id="sync-all-dividends" checked={syncAll} onCheckedChange={(val) => setSyncAll(Boolean(val))} />
+          <Label htmlFor="sync-all-dividends" className="text-xs text-muted-foreground cursor-pointer font-normal">
+            {groupId ? '同步到该分组所有持仓基金' : '同步到所有持仓基金'}
+          </Label>
         </div>
 
-        <label className="flex items-center gap-2.5 mb-5 px-1 cursor-pointer select-none">
-          <Checkbox checked={syncAll} onCheckedChange={(val) => setSyncAll(Boolean(val))} />
-          <span className="text-xs text-muted-foreground">
-            {groupId ? '同步到该分组所有持仓基金' : '同步到所有持仓基金'}
-          </span>
-        </label>
-
-        <div className="flex gap-3">
+        <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
-            className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
+            className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
           >
             取消
           </Button>
           <Button
             type="button"
             onClick={handleConfirm}
-            className="flex-1 bg-primary text-primary-foreground font-medium"
+            className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer"
           >
             确认
           </Button>

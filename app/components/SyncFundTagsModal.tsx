@@ -83,8 +83,8 @@ export default function SyncFundTagsModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal max-w-[460px] w-[90vw] z-[10003]"
-        overlayClassName="modal-overlay z-[10002]"
+        className="glass card modal max-w-[460px] w-[90vw] p-5 gap-0 flex flex-col max-h-[85vh] z-[200]"
+        overlayClassName="modal-overlay z-[200]"
       >
         <DialogTitle className="sr-only">同步基金标签</DialogTitle>
 
@@ -172,11 +172,22 @@ export default function SyncFundTagsModal({
           )}
         </div>
 
-        <div className="flex items-center gap-3 mt-5">
-          <Button variant="outline" className="flex-1 h-10 bg-white/5 hover:bg-white/10" onClick={onClose}>
+        <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
+            onClick={onClose}
+          >
             取消
           </Button>
-          <Button className="flex-1 h-10 font-medium" onClick={handleConfirm} disabled={selected.size === 0}>
+          <Button
+            type="button"
+            variant="default"
+            className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
+            onClick={handleConfirm}
+            disabled={selected.size === 0}
+          >
             同步 ({selected.size})
           </Button>
         </div>

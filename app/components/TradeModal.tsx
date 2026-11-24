@@ -14,6 +14,8 @@ import { AlertTriangle, ArrowDownLeft, ArrowUpRight, ChevronRight, X } from 'luc
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Segmented } from '@/components/ui/segmented';
 import PendingTradesModal from './PendingTradesModal';
 import { Spinner } from '@/components/ui/spinner';
 import { formatMoney } from '@/lib/utils';
@@ -283,9 +285,9 @@ export default function TradeModal({
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal trade-modal max-w-[420px] w-[90vw] !z-[99] p-5"
+        className="glass card modal trade-modal max-w-[420px] w-[90vw] z-[100] p-5"
         overlayClassName="modal-overlay"
-        overlayStyle={{ zIndex: 99 }}
+        overlayStyle={{ zIndex: 100 }}
       >
         <DialogTitle className="sr-only">{isBuy ? '加仓' : '减仓'}</DialogTitle>
         <div className="flex items-center justify-between mb-5 font-semibold text-base text-foreground">
@@ -401,12 +403,12 @@ export default function TradeModal({
                 </div>
               )}
 
-              <div className="flex gap-3">
+              <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowConfirm(false)}
-                  className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
+                  className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
                 >
                   返回修改
                 </Button>
@@ -414,7 +416,7 @@ export default function TradeModal({
                   type="button"
                   onClick={handleFinalConfirm}
                   disabled={loadingPrice}
-                  className="flex-1 bg-primary text-primary-foreground font-medium"
+                  className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
                 >
                   {loadingPrice ? '请稍候' : price ? '确认买入' : '加入待处理队列'}
                 </Button>
@@ -492,12 +494,12 @@ export default function TradeModal({
                 </div>
               )}
 
-              <div className="flex gap-3">
+              <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowConfirm(false)}
-                  className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
+                  className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
                 >
                   返回修改
                 </Button>
@@ -505,7 +507,7 @@ export default function TradeModal({
                   type="button"
                   onClick={handleFinalConfirm}
                   disabled={loadingPrice}
-                  className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium shadow-sm"
+                  className="h-9 px-4.5 text-xs font-medium bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-xs cursor-pointer disabled:opacity-40"
                 >
                   {loadingPrice ? '请稍候' : price ? '确认卖出' : '加入待处理队列'}
                 </Button>
@@ -550,35 +552,19 @@ export default function TradeModal({
                   </div>
 
                   <div className="mb-3">
-                    <label className="text-xs text-muted-foreground block mb-1.5">交易时段</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        type="button"
-                        variant={!isAfter3pm ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setIsAfter3pm(false)}
-                        className={`h-8 text-xs font-medium ${
-                          !isAfter3pm
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-white/5 border-border text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        15:00前
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={isAfter3pm ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setIsAfter3pm(true)}
-                        className={`h-8 text-xs font-medium ${
-                          isAfter3pm
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-white/5 border-border text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        15:00后
-                      </Button>
-                    </div>
+                    <Label className="text-xs text-muted-foreground block mb-1.5">交易时段</Label>
+                    <Segmented<'before' | 'after'>
+                      value={isAfter3pm ? 'after' : 'before'}
+                      onChange={(val) => setIsAfter3pm(val === 'after')}
+                      options={[
+                        { value: 'before', label: '15:00 前 (按今日净值)' },
+                        { value: 'after', label: '15:00 后 (按明日净值)' }
+                      ]}
+                      size="sm"
+                      layoutId="trade-buy-time-segmented"
+                      className="w-full bg-white/5 p-1 rounded-xl border border-border"
+                      itemClassName="text-xs font-medium py-1"
+                    />
                   </div>
 
                   <div className="text-xs text-muted-foreground mb-3">
@@ -684,35 +670,19 @@ export default function TradeModal({
                 </div>
 
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1.5">交易时段</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      type="button"
-                      variant={!isAfter3pm ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setIsAfter3pm(false)}
-                      className={`h-8 text-xs font-medium ${
-                        !isAfter3pm
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-white/5 border-border text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      15:00前
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={isAfter3pm ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setIsAfter3pm(true)}
-                      className={`h-8 text-xs font-medium ${
-                        isAfter3pm
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-white/5 border-border text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      15:00后
-                    </Button>
-                  </div>
+                  <Label className="text-xs text-muted-foreground block mb-1.5">交易时段</Label>
+                  <Segmented<'before' | 'after'>
+                    value={isAfter3pm ? 'after' : 'before'}
+                    onChange={(val) => setIsAfter3pm(val === 'after')}
+                    options={[
+                      { value: 'before', label: '15:00 前 (按今日净值)' },
+                      { value: 'after', label: '15:00 后 (按明日净值)' }
+                    ]}
+                    size="sm"
+                    layoutId="trade-sell-time-segmented"
+                    className="w-full bg-white/5 p-1 rounded-xl border border-border"
+                    itemClassName="text-xs font-medium py-1"
+                  />
                 </div>
 
                 <div className="text-xs text-muted-foreground mb-3">
@@ -727,19 +697,19 @@ export default function TradeModal({
               </div>
             )}
 
-            <div className="flex gap-3 pt-2">
+            <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
+                className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
               >
                 取消
               </Button>
               <Button
                 type="submit"
                 disabled={!isValid || loadingPrice || (isBuy && loadingBuyMeta)}
-                className="flex-1 bg-primary text-primary-foreground font-medium"
+                className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
               >
                 确定
               </Button>

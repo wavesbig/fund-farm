@@ -39,8 +39,8 @@ export default function AiConfigModal({ onClose }: AiConfigModalProps) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        overlayClassName="!z-[13000]"
-        className="max-w-[580px] w-[94vw] h-[82vh] max-h-[660px] p-0 gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl !z-[13010] flex flex-col text-left"
+        overlayClassName="modal-overlay z-[200]"
+        className="glass card modal max-w-[560px] w-[94vw] h-[82vh] max-h-[660px] p-0 gap-0 overflow-hidden z-[200] flex flex-col text-left"
         showCloseButton={true}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
@@ -84,11 +84,11 @@ export default function AiConfigModal({ onClose }: AiConfigModalProps) {
           <div className="flex items-center gap-2">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={onClose}
               disabled={isSaving}
-              className="h-9 px-3.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+              className="h-9 px-3.5 text-xs bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
             >
               取消
             </Button>

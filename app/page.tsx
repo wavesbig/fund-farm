@@ -296,7 +296,7 @@ export default function HomePage() {
   }, [sortRules, sortBy]);
 
   // 视图模式
-  const [viewMode, setViewMode] = useState('list'); // card, list
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('list'); // card, list
   // 全局隐藏金额状态（影响分组汇总、列表和卡片）
   const [maskAmounts, setMaskAmounts] = useState(false);
   const authUser = useAuthStore((s) => s.user);
@@ -1037,6 +1037,8 @@ export default function HomePage() {
         fundName: f.name,
         fundTags,
         isHoldingLinked: !!isHoldingLinked,
+        holding,
+        holdingShareValue: holding && isNumber(holding.share) ? holding.share : null,
         isUpdated: isNavUpdated(f.jzrq, todayStr, f.confirmDays),
         hasDca: isHoldingLinked ? allEnabledDcaCodes.has(f.code) : dcaPlansForTab[f.code]?.enabled === true,
         hasPending: pendingCodesForTab.has(f.code),
@@ -1993,13 +1995,12 @@ export default function HomePage() {
   const applyViewMode = useCallback(
     (mode) => {
       if (mode !== 'card' && mode !== 'list') return;
-      if (mode !== viewMode) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-      setViewMode(mode);
+      startTransition(() => {
+        setViewMode(mode);
+      });
       storageHelper.setItem('viewMode', mode);
     },
-    [storageHelper, viewMode]
+    [storageHelper, startTransition]
   );
 
   const toggleFavorite = useCallback(
@@ -2385,6 +2386,11 @@ export default function HomePage() {
           setCurrentTab(savedTab);
         } else if (savedTab) {
           setCurrentTab('all');
+        }
+        // 加载视图模式偏好（卡片视图 / 表格视图）
+        const savedViewMode = storageStore.getItem('viewMode');
+        if (savedViewMode === 'card' || savedViewMode === 'list') {
+          setViewMode(savedViewMode);
         }
         // 加载持仓数据
         const migratedDca = migrateDcaPlansToScoped(isPlainObject(dcaPlans) ? dcaPlans : {});

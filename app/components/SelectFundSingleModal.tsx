@@ -53,9 +53,8 @@ export default function SelectFundSingleModal({
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal max-w-[500px] w-[90vw] !z-[999] p-5"
-        overlayClassName="modal-overlay"
-        overlayStyle={{ zIndex: 999 }}
+        className="glass card modal max-w-[420px] w-[90vw] p-5 z-[200] gap-0 flex flex-col max-h-[85vh]"
+        overlayClassName="modal-overlay z-[200]"
       >
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <div className="flex items-center justify-between mb-5 font-semibold text-base text-foreground">
@@ -120,12 +119,12 @@ export default function SelectFundSingleModal({
           )}
         </div>
 
-        <div className="flex gap-3 pt-4 border-t border-border mt-4">
+        <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
-            className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
+            className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
           >
             取消
           </Button>
@@ -137,7 +136,7 @@ export default function SelectFundSingleModal({
               if (!picked) return;
               onConfirm?.(picked);
             }}
-            className="flex-1 bg-primary text-primary-foreground font-medium"
+            className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
           >
             确定
           </Button>

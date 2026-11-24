@@ -103,8 +103,8 @@ export default function ScanImportConfirmModal({
   return (
     <Dialog open onOpenChange={(open) => !open && !isScanImporting && onClose()}>
       <DialogContent
-        className="glass card modal max-w-[580px] w-[94vw] max-h-[85vh] p-5 sm:p-6 flex flex-col overflow-hidden !z-[12010]"
-        overlayClassName="!z-[12000]"
+        className="glass card modal max-w-[500px] w-[90vw] max-h-[85vh] p-5 flex flex-col gap-0 z-[200]"
+        overlayClassName="modal-overlay z-[200]"
         showCloseButton={false}
       >
         {/* 顶部标题栏 */}
@@ -370,7 +370,7 @@ export default function ScanImportConfirmModal({
             <Button
               type="button"
               variant="outline"
-              className="h-9 px-4 text-xs"
+              className="h-9 px-4 text-xs bg-muted/30 border-border hover:bg-muted/60 text-foreground"
               onClick={onClose}
               disabled={isScanImporting}
             >

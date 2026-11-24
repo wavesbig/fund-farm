@@ -10,7 +10,12 @@ export interface RadioGroupProps extends React.ComponentPropsWithoutRef<typeof R
 
 const RadioGroup = React.forwardRef<React.ElementRef<typeof RadioGroupPrimitive.Root>, RadioGroupProps>(
   ({ className, ...props }, ref) => (
-    <RadioGroupPrimitive.Root ref={ref} data-slot="radio-group" className={cn('grid gap-3', className)} {...props} />
+    <RadioGroupPrimitive.Root
+      ref={ref}
+      data-slot="radio-group"
+      className={cn('grid grid-cols-1 gap-3', className)}
+      {...props}
+    />
   )
 );
 RadioGroup.displayName = RadioGroupPrimitive.Root.displayName;

@@ -13,14 +13,37 @@ import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn, formatMoney } from '@/lib/utils';
-import { useStorageStore, storageStore } from '@/app/stores';
+import { useStorageStore, storageStore, useModalStore } from '@/app/stores';
 import { fetchFundHoldings, fetchFundData } from '@/app/api/fund';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { Stat, ConsecutiveTrendBadge } from '../Common';
 import FundTrendChart from '../FundTrendChart';
 import FundIntradayChart from '../FundIntradayChart';
 import FundDailyEarnings from '../FundDailyEarnings';
-import { ChevronDown, Settings2, Star, ArrowLeftRight, Trash2, Link2 } from 'lucide-react';
+import {
+  ChevronDown,
+  Settings2,
+  Star,
+  ArrowLeftRight,
+  Trash2,
+  Link2,
+  Pencil,
+  SlidersHorizontal,
+  MoreHorizontal,
+  ArrowDownLeft,
+  ArrowUpRight,
+  CalendarClock,
+  FileEdit,
+  Coins,
+  History
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 import { getTagThemeBadgeProps } from '../AddTagDialog';
 
 dayjs.extend(utc);
@@ -214,6 +237,7 @@ export interface FundCardProps {
   hasPending?: boolean;
   onAddFund?: (fund: { code: string; name: string }) => void;
   userId?: string;
+  defaultCollapsedDeepDetails?: boolean;
 }
 
 const FundCard = memo(function Index({
@@ -257,7 +281,8 @@ const FundCard = memo(function Index({
   hasDca = false,
   hasPending = false,
   onAddFund,
-  userId
+  userId,
+  defaultCollapsedDeepDetails = false
 }: FundCardProps) {
   const storeFund = useStorageStore(
     useCallback((s: any) => s.funds?.find((item: any) => item.code === fundCode), [fundCode])
@@ -409,8 +434,6 @@ const FundCard = memo(function Index({
     return dailyEarningsSeries;
   }, [dailyEarningsSeries, hasHoldingShare]);
 
-  if (!f) return null;
-
   const showFavoriteButton = currentTab === 'all' || currentTab === 'fav';
   const relatedSectorRaw = f?.relatedSector != null ? String(f.relatedSector).trim() : '';
   const relatedSectorQuoteName = f?.relatedSectorQuoteName != null ? String(f.relatedSectorQuoteName).trim() : '';
@@ -423,6 +446,65 @@ const FundCard = memo(function Index({
 
   const holdingLocked = (currentTab === 'all' || currentTab === 'fav') && isHoldingLinked;
   const holdingLinkedTitle = '持仓来自自定义分组汇总，点击选择分组后操作';
+
+  const scopedGroupId = currentTab !== 'all' && currentTab !== 'fav' ? currentTab : undefined;
+  const hasShare = holding?.share != null && Number(holding.share) > 0;
+
+  const handleBuy = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (holdingLocked) {
+        useModalStore.setState({ selectHoldingGroupModal: { open: true, fund: f } });
+        return;
+      }
+      useModalStore.getState().handleAction('buy', f, scopedGroupId);
+    },
+    [f, holdingLocked, scopedGroupId]
+  );
+
+  const handleSell = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (holdingLocked) {
+        useModalStore.setState({ selectHoldingGroupModal: { open: true, fund: f } });
+        return;
+      }
+      useModalStore.getState().handleAction('sell', f, scopedGroupId);
+    },
+    [f, holdingLocked, scopedGroupId]
+  );
+
+  const handleEditHolding = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (holdingLocked) {
+        useModalStore.setState({ selectHoldingGroupModal: { open: true, fund: f } });
+        return;
+      }
+      onHoldingClick?.(f);
+    },
+    [f, holdingLocked, onHoldingClick]
+  );
+
+  const handleMenuAction = useCallback(
+    (action: string) => {
+      if (holdingLocked && action !== 'remove') {
+        useModalStore.setState({ selectHoldingGroupModal: { open: true, fund: f } });
+        return;
+      }
+      if (action === 'remove') {
+        onRemoveFund?.(f);
+      } else if (action === 'edit') {
+        onHoldingClick?.(f);
+      } else {
+        useModalStore.getState().handleAction(action, f, scopedGroupId);
+      }
+    },
+    [f, holdingLocked, onHoldingClick, onRemoveFund, scopedGroupId]
+  );
 
   const style: React.CSSProperties =
     layoutMode === 'drawer'
@@ -437,6 +519,8 @@ const FundCard = memo(function Index({
 
   const isTrendExpanded = !collapsedTrends?.has(fundCode);
   const isValuationTrendExpanded = !collapsedValuationTrends?.has(fundCode);
+
+  if (!f) return null;
 
   return (
     <motion.div
@@ -605,23 +689,6 @@ const FundCard = memo(function Index({
             <span>{f.noValuation ? '净值日期' : '估值时间'}</span>
             <strong>{f.noValuation ? formatDisplayDate(f.jzrq) : formatDisplayDate(f.gztime || f.time)}</strong>
           </div>
-          <div className="row" style={{ gap: 4 }}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center size-7 rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-all cursor-pointer"
-                  onClick={() => onRemoveFund?.(f)}
-                  aria-label="删除"
-                >
-                  <Trash2 className="size-3.5" strokeWidth={1.8} />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>删除</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
         </div>
       </div>
 
@@ -751,17 +818,17 @@ const FundCard = memo(function Index({
                       gap: 4
                     }}
                     onClick={() => {
-                      onActionClick?.(f);
+                      onHoldingClick?.(f);
                     }}
                   >
                     <span className="label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      持仓金额 <Settings2 className="size-3 opacity-70" strokeWidth={1.8} />
+                      持仓金额 <Pencil className="size-3 opacity-70" strokeWidth={1.8} />
                     </span>
                     <span className="value">{masked ? '******' : `${formatMoney(profit.amount)}`}</span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{holdingLocked ? holdingLinkedTitle : '编辑持仓'}</p>
+                  <p>{holdingLocked ? holdingLinkedTitle : '点击修改持仓'}</p>
                 </TooltipContent>
               </Tooltip>
               {holding?.firstPurchaseDate &&
@@ -869,6 +936,124 @@ const FundCard = memo(function Index({
               )}
             </>
           )}
+        </div>
+      )}
+
+      {/* ── 主流专业端快捷操作栏（加仓 / 减仓 / 调仓 / 更多） ── */}
+      {isAdded && (
+        <div className="flex items-center justify-between gap-2 pt-2.5 pb-1 mb-2 border-t border-border/60">
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <button
+              type="button"
+              onClick={handleBuy}
+              className="flex-1 h-7 px-2 rounded text-xs font-medium text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 hover:border-emerald-500/40 border border-emerald-500/25 transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0"
+              title="买入加仓"
+            >
+              <ArrowDownLeft className="size-3.5" />
+              <span>加仓</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={!hasShare}
+              onClick={handleSell}
+              className="flex-1 h-7 px-2 rounded text-xs font-medium text-rose-500 bg-rose-500/10 hover:bg-rose-500/20 hover:border-rose-500/40 border border-rose-500/25 transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+              title={hasShare ? '卖出减仓' : '暂无持仓份额'}
+            >
+              <ArrowUpRight className="size-3.5" />
+              <span>减仓</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleEditHolding}
+              className="h-7 px-2.5 rounded text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 hover:border-primary/40 border border-primary/25 transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0"
+              title="修改或录入持仓"
+            >
+              <FileEdit className="size-3.5" />
+              <span>调仓</span>
+            </button>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="size-7 rounded flex items-center justify-center text-muted-foreground/70 hover:text-foreground hover:bg-secondary/80 border border-border/60 transition-colors cursor-pointer shrink-0"
+                title="更多操作"
+                onClick={(e) => e.stopPropagation?.()}
+              >
+                <MoreHorizontal className="size-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              onCloseAutoFocus={(e) => e.preventDefault()}
+              className="w-36 glass card p-1 z-[150] shadow-xl border-border/80"
+            >
+              <DropdownMenuItem
+                onSelect={() => handleMenuAction('edit')}
+                className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+              >
+                <FileEdit className="size-3.5 text-primary" />
+                <span>编辑持仓</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onSelect={() => handleMenuAction('dca')}
+                className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+              >
+                <CalendarClock className="size-3.5 text-indigo-400" />
+                <span>定投计划</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onSelect={() => handleMenuAction('convert')}
+                className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+              >
+                <ArrowLeftRight className="size-3.5 text-sky-400" />
+                <span>基金转换</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onSelect={() => handleMenuAction('dividend')}
+                className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+              >
+                <Coins className="size-3.5 text-amber-400" />
+                <span>分红方式</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onSelect={() => handleMenuAction('history')}
+                className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+              >
+                <History className="size-3.5 text-muted-foreground" />
+                <span>交易记录</span>
+              </DropdownMenuItem>
+
+              {hasShare && (
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => handleMenuAction('clear')}
+                  className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                >
+                  <Trash2 className="size-3.5" />
+                  <span>清空持仓</span>
+                </DropdownMenuItem>
+              )}
+
+              <DropdownMenuSeparator className="my-1 bg-border/60" />
+
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() => handleMenuAction('remove')}
+                className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+              >
+                <Trash2 className="size-3.5" />
+                <span>移除基金</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
 

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { Tag } from 'lucide-react';
+import { Tag, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,16 +57,25 @@ export default function EditTagDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal max-w-[420px] w-[90vw] z-[999] p-5"
-        overlayClassName="modal-overlay"
+        className="glass card modal max-w-[420px] w-[90vw] p-5 gap-0 flex flex-col max-h-[85vh] z-[200]"
+        overlayClassName="modal-overlay z-[200]"
       >
         <DialogTitle className="sr-only">编辑标签</DialogTitle>
 
-        <div className="title flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 font-semibold text-base text-foreground">
+        <div className="title flex items-center justify-between mb-4 font-semibold text-base text-foreground shrink-0">
+          <div className="flex items-center gap-2">
             <Tag className="w-5 h-5 text-primary" />
             <span>编辑标签</span>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(false)}
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
 
         <div className="flex flex-col gap-4">
@@ -146,13 +155,19 @@ export default function EditTagDialog({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mt-6">
-          <Button type="button" variant="outline" className="flex-1 h-9 bg-white/5" onClick={() => onOpenChange(false)}>
+        <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
+            onClick={() => onOpenChange(false)}
+          >
             取消
           </Button>
           <Button
             type="button"
-            className="flex-1 h-9 font-medium"
+            variant="default"
+            className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
             disabled={!canSubmit}
             onClick={() => {
               if (!canSubmit || submitGuardRef.current) return;

@@ -51,6 +51,7 @@ import ConfirmModal from './ConfirmModal';
 import AiConfigSection from './AiConfigSection';
 import { cn } from '@/lib/utils';
 import { useSettingsStore, type FontSizeLevel } from '@/app/stores/settingsStore';
+import packageJson from '@/package.json';
 
 export interface SettingsModalProps {
   onClose: () => void;
@@ -752,7 +753,7 @@ export default function SettingsModal({
 
             <div className="pt-3 border-t border-border/50 text-xs text-muted-foreground px-2 flex items-center justify-between">
               <span>养基场</span>
-              <span className="font-mono text-xs text-muted-foreground">v2.4.1</span>
+              <span className="font-mono text-xs text-muted-foreground">v{packageJson.version}</span>
             </div>
           </aside>
 
@@ -767,17 +768,18 @@ export default function SettingsModal({
           <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={onClose}
-              className="text-xs font-medium text-muted-foreground hover:text-foreground h-9 px-4 rounded-lg cursor-pointer"
+              className="text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground h-9 px-4 cursor-pointer"
             >
               取消
             </Button>
             <Button
               type="button"
+              variant="default"
               size="sm"
-              className="h-9 px-5 text-xs font-medium rounded-lg shadow-xs"
+              className="h-9 px-5 text-xs font-medium bg-primary text-primary-foreground shadow-xs"
               onClick={handleSave}
               disabled={localSeconds < 30}
             >

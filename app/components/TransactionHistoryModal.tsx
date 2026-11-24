@@ -118,9 +118,9 @@ export default function TransactionHistoryModal({
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal tx-history-modal max-w-[480px] w-[90vw] max-h-[80vh] flex flex-col !z-[999] p-5"
+        className="glass card modal tx-history-modal max-w-[480px] w-[90vw] max-h-[85vh] flex flex-col z-[100] p-5"
         overlayClassName="modal-overlay"
-        overlayStyle={{ zIndex: 998 }}
+        overlayStyle={{ zIndex: 100 }}
         onPointerDownOutside={(event) => {
           if (effectiveNestedModalOpen || Date.now() < ignoreDialogCloseUntilRef.current) event.preventDefault();
         }}
@@ -130,7 +130,7 @@ export default function TransactionHistoryModal({
       >
         <DialogTitle className="sr-only">交易记录</DialogTitle>
 
-        <div className="flex items-center justify-between mb-5 shrink-0 font-semibold text-base text-foreground">
+        <div className="flex items-center justify-between mb-4 shrink-0 font-semibold text-base text-foreground">
           <div className="flex items-center gap-2">
             <History className="w-5 h-5 text-primary" />
             <span>交易记录</span>
@@ -140,7 +140,7 @@ export default function TransactionHistoryModal({
                 variant="outline"
                 size="sm"
                 onClick={() => setMergeConfirmOpen(true)}
-                className="h-7 px-2.5 rounded-full text-xs bg-white/5 border-border text-primary hover:bg-white/10"
+                className="h-6.5 px-2 rounded-full text-xs bg-white/5 border-border text-primary hover:bg-white/10 cursor-pointer"
               >
                 从全部分组合并
               </Button>
@@ -151,7 +151,7 @@ export default function TransactionHistoryModal({
             variant="ghost"
             size="icon"
             onClick={handleCloseClick}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
           >
             <X className="w-4 h-4" />
           </Button>

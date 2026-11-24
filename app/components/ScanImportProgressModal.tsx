@@ -24,9 +24,9 @@ export default function ScanImportProgressModal({ scanImportProgress }: ScanImpo
   return (
     <Dialog open>
       <DialogContent
-        overlayClassName="!z-[12000]"
+        overlayClassName="modal-overlay z-[200]"
         showCloseButton={false}
-        className="!z-[12010] w-[340px] max-w-[92vw] p-6 text-center rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl"
+        className="glass card modal w-[340px] max-w-[92vw] p-5 text-center z-[200]"
       >
         <div className="flex justify-center mb-4">
           <Spinner className="size-10 text-primary" />

@@ -16,7 +16,7 @@ export default function UpdatePromptModal({ updateContent, open, onClose, onRefr
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
       <DialogContent
-        className="glass card max-w-[400px] p-6"
+        className="glass card modal max-w-[420px] w-[90vw] p-5 gap-0 flex flex-col z-[200]"
         showCloseButton={false}
         role="dialog"
         aria-modal="true"
@@ -29,7 +29,7 @@ export default function UpdatePromptModal({ updateContent, open, onClose, onRefr
           </DialogTitle>
         </DialogHeader>
 
-        <div className="mb-6">
+        <div className="mb-4">
           <p className="text-sm text-muted-foreground leading-relaxed mb-3">
             检测到新版本，是否刷新浏览器以更新？
             <br />
@@ -42,15 +42,20 @@ export default function UpdatePromptModal({ updateContent, open, onClose, onRefr
           )}
         </div>
 
-        <div className="flex gap-3">
-          <Button type="button" variant="secondary" onClick={onClose} className="flex-1 rounded-xl h-10">
+        <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
+          >
             取消
           </Button>
           <Button
             type="button"
             variant="default"
             onClick={onRefresh}
-            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-10"
+            className="h-9 px-4.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer"
           >
             刷新浏览器
           </Button>

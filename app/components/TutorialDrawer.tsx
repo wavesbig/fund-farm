@@ -14,6 +14,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Drawer,
@@ -150,7 +151,7 @@ export default function TutorialDrawer({ open, onOpenChange }: TutorialDrawerPro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="glass card modal max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden z-[99]"
+        className="glass card modal max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden z-[100]"
         onPointerDownOutside={(e) => {
           if (Date.now() - mountTimeRef.current < 400) {
             e.preventDefault();
@@ -162,7 +163,7 @@ export default function TutorialDrawer({ open, onOpenChange }: TutorialDrawerPro
           }
         }}
       >
-        <DialogHeader className="shrink-0 px-6 pt-5 pb-3.5 border-b border-[var(--border)]">
+        <DialogHeader className="shrink-0 px-6 pt-5 pb-3.5 border-b border-border">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
             <DialogTitle className="text-base font-semibold text-foreground">养基场 · 使用帮助指南</DialogTitle>
@@ -170,6 +171,16 @@ export default function TutorialDrawer({ open, onOpenChange }: TutorialDrawerPro
           <DialogDescription className="sr-only">养基场使用帮助指南与功能介绍</DialogDescription>
         </DialogHeader>
         {content}
+        <div className="pt-3 pb-4 px-6 border-t border-border flex justify-end shrink-0">
+          <Button
+            type="button"
+            variant="default"
+            onClick={() => onOpenChange(false)}
+            className="h-9 px-5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer"
+          >
+            我知道了
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

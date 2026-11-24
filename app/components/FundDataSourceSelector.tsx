@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { isNil, isNumber } from 'lodash';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { toast as sonnerToast } from 'sonner';
 import { fetchFundValuationBySource, fetchBestValuationSource, fetchFundBestSource, isQdiiFund } from '@/app/api/fund';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
@@ -211,10 +211,22 @@ export default function FundDataSourceSelector({ fund, onClose, onSelect }: Fund
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent showCloseButton={false} className="glass card modal max-w-[400px] w-[90vw] z-[999] p-6">
+      <DialogContent
+        showCloseButton={false}
+        className="glass card modal max-w-[420px] w-[90vw] p-5 gap-0 flex flex-col max-h-[85vh] z-[100]"
+      >
         <DialogTitle className="sr-only">切换数据源</DialogTitle>
         <div className="title flex items-center justify-between gap-4 mb-5">
-          <span className="text-lg font-semibold text-foreground shrink-0">切换数据源</span>
+          <span className="text-base font-semibold text-foreground shrink-0">切换数据源</span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
 
         <div className="mb-6">
@@ -311,13 +323,19 @@ export default function FundDataSourceSelector({ fund, onClose, onSelect }: Fund
           )}
         </div>
 
-        <div className="flex gap-3">
-          <Button type="button" variant="outline" className="flex-1 h-9 bg-white/5" onClick={onClose}>
+        <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
+            onClick={onClose}
+          >
             取消
           </Button>
           <Button
             type="button"
-            className="flex-1 h-9 font-medium"
+            variant="default"
+            className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
             onClick={handleConfirm}
             disabled={loading || autoLoading}
           >

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { isObject, isString } from 'lodash';
 
 export interface HoldingModalState {
   open: boolean;
@@ -275,7 +276,7 @@ export interface ModalStoreState {
   closeModal: (name: string) => void;
   setAiConfigModalOpen: (v: boolean | ((prev: boolean) => boolean)) => void;
   closeAllModals: () => void;
-  handleAction: (type: string, fundCode: string | null, groupId?: string) => void;
+  handleAction: (type: string, fundOrCode: any, groupId?: string) => void;
   openSelectFundSingle: (excludeCodes?: string[], initialSelectedCode?: string) => Promise<any>;
   resolveSelectFundSingle: (picked: any) => void;
 }
@@ -370,23 +371,25 @@ export const useModalStore = create<ModalStoreState>((set, get) => ({
    * Central modal router: closes actionModal, opens target modal.
    * All in one set() for atomicity.
    */
-  handleAction: (type: string, fundCode: string | null, groupId?: string) => {
+  handleAction: (type: string, fundOrCode: any, groupId?: string) => {
+    const fund = isObject(fundOrCode) ? (fundOrCode as any) : { code: fundOrCode };
+    const fundCode = fund?.code || (isString(fundOrCode) ? fundOrCode : null);
     const base = type !== 'history' ? { actionModal: { ...DEFAULTS.actionModal } } : {};
 
     if (type === 'edit') {
-      set({ ...base, holdingModal: { open: true, fundCode, groupId } });
+      set({ ...base, holdingModal: { open: true, fund, fundCode, groupId } });
     } else if (type === 'clear') {
-      set({ ...base, clearConfirm: { fundCode, groupId } });
+      set({ ...base, clearConfirm: { fund, fundCode, groupId } });
     } else if (type === 'buy' || type === 'sell') {
-      set({ ...base, tradeModal: { open: true, fundCode, type, groupId } });
+      set({ ...base, tradeModal: { open: true, fund, fundCode, type, groupId } });
     } else if (type === 'history') {
-      set({ ...base, historyModal: { open: true, fundCode, groupId } });
+      set({ ...base, historyModal: { open: true, fund, fundCode, groupId } });
     } else if (type === 'dca') {
-      set({ ...base, dcaModal: { open: true, fundCode, groupId } });
+      set({ ...base, dcaModal: { open: true, fund, fundCode, groupId } });
     } else if (type === 'convert') {
-      set({ ...base, convertModal: { open: true, fundCode, groupId } });
+      set({ ...base, convertModal: { open: true, fund, fundCode, groupId } });
     } else if (type === 'dividend') {
-      set({ ...base, dividendMethodModal: { open: true, fundCode, groupId } });
+      set({ ...base, dividendMethodModal: { open: true, fund, fundCode, groupId } });
     }
   },
 

@@ -362,6 +362,7 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
         {actionModal.open && (
           <HoldingActionModal
             fund={actionModal.fund}
+            holding={cb.current.getScopedHolding?.(actionModal.fund?.code, actionModal.groupId)}
             onClose={() => setActionModal({ open: false, fund: null })}
             onAction={(type: string) => cb.current.handleAction(type, actionModal.fund, actionModal.groupId)}
             nestedModalOpen={historyModal.open || addHistoryModal.open}

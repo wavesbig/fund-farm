@@ -10,7 +10,9 @@ import { Settings2, X, ArrowLeftRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Segmented } from '@/components/ui/segmented';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { DatePicker } from './Common';
 
@@ -208,21 +210,21 @@ export default function HoldingEditModal({ fund, holding, nav, onClose, onSave, 
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal max-w-[400px] w-[90vw] !z-[999] p-5"
+        className="glass card modal max-w-[420px] w-[90vw] z-[100] p-5"
         overlayClassName="modal-overlay"
       >
         <DialogTitle className="sr-only">设置持仓</DialogTitle>
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-4 font-semibold text-base text-foreground shrink-0">
           <div className="flex items-center gap-2">
             <Settings2 className="w-5 h-5 text-primary" />
-            <span className="font-semibold text-base text-foreground">设置持仓</span>
+            <span>设置持仓</span>
             {isFunction(onOpenTrade) && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={onOpenTrade}
-                className="h-7 px-2.5 rounded-full text-xs bg-primary/10 border-primary/20 text-primary hover:bg-primary/20"
+                className="h-6.5 px-2 rounded-full text-xs bg-primary/10 border-primary/20 text-primary hover:bg-primary/20 cursor-pointer"
               >
                 今日买入？去加仓
               </Button>
@@ -233,75 +235,65 @@ export default function HoldingEditModal({ fund, holding, nav, onClose, onSave, 
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
           >
             <X className="w-4 h-4" />
           </Button>
         </div>
 
-        <div className="mb-4">
-          <div className="font-semibold text-base text-foreground mb-1">{fund?.name}</div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-muted-foreground tabular-nums">#{fund?.code}</span>
-            <Badge variant="outline" className="bg-white/5 border-border text-muted-foreground font-normal">
-              最新净值：<span className="font-semibold text-primary ml-1 tabular-nums">{dwjz}</span>
-            </Badge>
+        <div className="mb-4 p-3 rounded-xl bg-white/5 border border-border">
+          <div className="font-semibold text-sm text-foreground truncate">{fund?.name}</div>
+          <div className="flex justify-between items-center text-xs mt-1">
+            <span className="text-muted-foreground font-mono">#{fund?.code}</span>
+            <span className="text-muted-foreground text-[11px]">
+              最新净值：<span className="font-semibold text-primary font-mono ml-0.5">{dwjz}</span>
+            </span>
           </div>
         </div>
 
-        <div className="mb-5 bg-white/5 p-1 rounded-xl flex gap-1">
-          <Button
-            type="button"
-            variant={mode === 'amount' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => handleModeChange('amount')}
-            className={`flex-1 h-8 rounded-lg text-sm font-medium ${
-              mode === 'amount'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            按金额
-          </Button>
-          <Button
-            type="button"
-            variant={mode === 'share' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => handleModeChange('share')}
-            className={`flex-1 h-8 rounded-lg text-sm font-medium ${
-              mode === 'share'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            按份额
-          </Button>
+        <div className="mb-4">
+          <Segmented<'amount' | 'share'>
+            value={mode}
+            onChange={(val) => handleModeChange(val)}
+            options={[
+              { value: 'amount', label: '按金额设置' },
+              { value: 'share', label: '按份额与成本' }
+            ]}
+            size="default"
+            layoutId="holding-edit-mode-segmented"
+            className="w-full bg-white/5 p-1 rounded-xl border border-border"
+            itemClassName="text-xs font-medium py-1.5"
+          />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'amount' ? (
             <>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1.5">
-                  持有金额 <span className="text-red-500">*</span>
-                </label>
+              <div className="space-y-1.5">
+                <Label htmlFor="holding-amount" className="text-xs text-muted-foreground block">
+                  持有金额 <span className="text-destructive">*</span>
+                </Label>
                 <Input
+                  id="holding-amount"
                   type="number"
                   inputMode="decimal"
                   step="any"
-                  className="tabular-nums text-[16PX] md:text-sm"
+                  className="tabular-nums text-[16PX] md:text-sm bg-white/5 border-border"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="请输入持有总金额"
                   required
                 />
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1.5">持有收益</label>
+              <div className="space-y-1.5">
+                <Label htmlFor="holding-profit" className="text-xs text-muted-foreground block">
+                  持有收益
+                </Label>
                 <Input
+                  id="holding-profit"
                   type="number"
                   step="any"
-                  className="tabular-nums text-[16PX] md:text-sm"
+                  className="tabular-nums text-[16PX] md:text-sm bg-white/5 border-border"
                   value={profit}
                   onChange={(e) => setProfit(e.target.value)}
                   placeholder="请输入持有总收益 (可为负)"
@@ -310,30 +302,32 @@ export default function HoldingEditModal({ fund, holding, nav, onClose, onSave, 
             </>
           ) : (
             <>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1.5">
-                  持有份额 <span className="text-red-500">*</span>
-                </label>
+              <div className="space-y-1.5">
+                <Label htmlFor="holding-share" className="text-xs text-muted-foreground block">
+                  持有份额 <span className="text-destructive">*</span>
+                </Label>
                 <Input
+                  id="holding-share"
                   type="number"
                   inputMode="decimal"
                   step="any"
-                  className="tabular-nums text-[16PX] md:text-sm"
+                  className="tabular-nums text-[16PX] md:text-sm bg-white/5 border-border"
                   value={share}
                   onChange={(e) => setShare(e.target.value)}
                   placeholder="请输入持有份额"
                   required
                 />
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1.5">
-                  持仓成本价 <span className="text-red-500">*</span>
-                </label>
+              <div className="space-y-1.5">
+                <Label htmlFor="holding-cost" className="text-xs text-muted-foreground block">
+                  持仓成本价 <span className="text-destructive">*</span>
+                </Label>
                 <Input
+                  id="holding-cost"
                   type="number"
                   inputMode="decimal"
                   step="any"
-                  className="tabular-nums text-[16PX] md:text-sm"
+                  className="tabular-nums text-[16PX] md:text-sm bg-white/5 border-border"
                   value={cost}
                   onChange={(e) => setCost(e.target.value)}
                   placeholder="请输入持仓成本价"
@@ -343,9 +337,11 @@ export default function HoldingEditModal({ fund, holding, nav, onClose, onSave, 
             </>
           )}
 
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-muted-foreground">{dateMode === 'date' ? '首次买入日期' : '持有天数'}</span>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground block">
+                {dateMode === 'date' ? '首次买入日期' : '持有天数'}
+              </Label>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -353,13 +349,13 @@ export default function HoldingEditModal({ fund, holding, nav, onClose, onSave, 
                     variant="ghost"
                     size="sm"
                     onClick={handleDateModeToggle}
-                    className="h-6 px-2 text-xs flex items-center gap-1 text-primary hover:bg-white/5"
+                    className="h-6 px-1.5 text-xs flex items-center gap-1 text-primary hover:bg-white/5 cursor-pointer"
                   >
-                    <ArrowLeftRight className="w-3 h-3" />
-                    {dateMode === 'date' ? '按天数' : '按日期'}
+                    <ArrowLeftRight className="size-3" />
+                    <span>{dateMode === 'date' ? '按天数' : '按日期'}</span>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent className="text-xs">
                   <p>{dateMode === 'date' ? '切换到持有天数' : '切换到日期'}</p>
                 </TooltipContent>
               </Tooltip>
@@ -372,7 +368,7 @@ export default function HoldingEditModal({ fund, holding, nav, onClose, onSave, 
                 inputMode="numeric"
                 min="0"
                 step="1"
-                className="tabular-nums text-[16PX] md:text-sm"
+                className="tabular-nums text-[16PX] md:text-sm bg-white/5 border-border"
                 value={holdingDaysInput}
                 onChange={(e) => handleHoldingDaysChange(e.target.value)}
                 placeholder="请输入持有天数"
@@ -380,17 +376,21 @@ export default function HoldingEditModal({ fund, holding, nav, onClose, onSave, 
             )}
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 bg-muted/30 border-border hover:bg-muted/60 text-foreground"
+              className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
             >
               取消
             </Button>
-            <Button type="submit" disabled={!isValid} className="flex-1 bg-primary text-primary-foreground font-medium">
-              保存
+            <Button
+              type="submit"
+              disabled={!isValid}
+              className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
+            >
+              保存持仓
             </Button>
           </div>
         </form>

@@ -21,33 +21,35 @@ export default function SuccessModal({ message, onClose, overlayStyle, cardStyle
   return (
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
-        overlayClassName="!z-[12000]"
+        overlayClassName="modal-overlay z-[300]"
         showCloseButton={false}
-        className="!z-[12010] max-w-[420px] w-[92vw] p-6 rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl text-left"
+        className="glass card modal max-w-[420px] w-[90vw] p-5 gap-0 flex flex-col z-[300] text-left"
         style={cardStyle}
       >
-        <div className="text-center py-2">
-          <div className="size-12 rounded-2xl flex items-center justify-center bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 mx-auto shadow-xs mb-3.5">
+        <div className="text-center py-1">
+          <div className="size-12 rounded-2xl flex items-center justify-center bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 mx-auto shadow-xs mb-3">
             <CheckCircle2 className="size-6" />
           </div>
-          <DialogTitle className="text-base sm:text-lg font-semibold tracking-tight text-foreground text-center">
+          <DialogTitle className="text-base font-semibold tracking-tight text-foreground text-center">
             {message}
           </DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-1 mb-4 leading-relaxed text-center">
+          <DialogDescription className="text-xs text-muted-foreground mt-1 mb-3 leading-relaxed text-center">
             操作已成功完成，您可以继续使用。
           </DialogDescription>
           <UsageTipsCarousel style={{ marginBottom: 0 }} />
-          <Button
-            type="button"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="w-full mt-5 h-9.5 text-xs font-medium rounded-lg shadow-xs cursor-pointer"
-          >
-            完成并关闭
-          </Button>
+          <div className="pt-3 mt-3 border-t border-border flex shrink-0">
+            <Button
+              type="button"
+              variant="default"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="w-full h-9 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer"
+            >
+              完成并关闭
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

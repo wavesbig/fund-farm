@@ -2,15 +2,8 @@
 
 import * as React from 'react';
 import { useMemo, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter
-} from '@/components/ui/dialog';
+import { RefreshCw, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
@@ -71,16 +64,14 @@ export default function SyncPersonalSettingsModal({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        showCloseButton={true}
-        className="max-w-[460px] w-[92vw] p-0 gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl z-[10003]"
+        showCloseButton={false}
+        className="glass card modal max-w-[460px] w-[90vw] p-5 gap-0 flex flex-col max-h-[85vh] z-[200]"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader className="px-6 py-4.5 border-b border-border shrink-0 text-left bg-card">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
-              <RefreshCw className="size-5" />
-            </div>
+        <div className="flex items-center justify-between mb-4 font-semibold text-base text-foreground shrink-0">
+          <div className="flex items-center gap-2.5">
+            <RefreshCw className="size-5 text-primary" />
             <div>
               <DialogTitle className="text-base font-semibold tracking-tight text-foreground">
                 同步个性化设置
@@ -90,9 +81,18 @@ export default function SyncPersonalSettingsModal({
               </DialogDescription>
             </div>
           </div>
-        </DialogHeader>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
 
-        <div className="p-5 sm:p-6 space-y-3.5 max-h-[60vh] overflow-y-auto scrollbar-y-styled">
+        <div className="space-y-3.5 max-h-[50vh] overflow-y-auto scrollbar-y-styled pr-1 flex-1">
           <div className="p-3 rounded-xl bg-secondary/40 border border-border/50 text-xs text-muted-foreground leading-relaxed">
             将「<span className="font-medium text-foreground">{sourceName}</span>」分组的个性化设置应用到：
             <span className="font-medium text-primary ml-1">{targetText}</span>
@@ -127,26 +127,25 @@ export default function SyncPersonalSettingsModal({
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-3.5 border-t border-border shrink-0 bg-card flex flex-row items-center justify-end gap-2.5">
+        <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2.5 shrink-0">
           <Button
             type="button"
-            variant="ghost"
-            size="sm"
-            className="text-xs font-medium text-muted-foreground hover:text-foreground h-9 px-4 rounded-lg cursor-pointer"
+            variant="outline"
+            className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
             onClick={onClose}
           >
             取消
           </Button>
           <Button
             type="button"
-            size="sm"
-            className="text-xs font-medium h-9 px-5 rounded-lg shadow-xs cursor-pointer"
+            variant="default"
+            className="h-9 px-4.5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer disabled:opacity-40"
             onClick={handleConfirm}
             disabled={selected.size === 0}
           >
             同步 ({selected.size})
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
