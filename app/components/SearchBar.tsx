@@ -6,6 +6,7 @@ import ScanButton from './ScanButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
 
 export interface FundSearchResult {
   CODE: string;
@@ -46,6 +47,7 @@ export default function SearchBar({
   const cleanTerm = String(searchTerm ?? '').trim();
   const hasValue = Boolean(cleanTerm);
   const isSixDigitCode = /^\d{6}$/.test(cleanTerm);
+  const isMobile = useIsMobile();
   const [isMac, setIsMac] = React.useState(false);
 
   React.useEffect(() => {
@@ -119,9 +121,9 @@ export default function SearchBar({
             ref={inputRef}
             className={cn(
               'h-[38px] w-full rounded-lg pl-9 text-[16PX] md:text-sm bg-card border-border shadow-[0_1px_2px_rgba(50,50,93,0.06),0_1px_1px_rgba(0,0,0,0.04)] text-foreground placeholder:text-muted-foreground/80 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-[border-color,box-shadow,background-color] duration-150 ease-out',
-              hasValue ? 'pr-12' : 'pr-20'
+              hasValue ? 'pr-9 sm:pr-11' : 'pr-10 lg:pr-20'
             )}
-            placeholder="搜索代码、名称..."
+            placeholder={isMobile ? '搜索基金代码/名称' : '搜索代码、名称...'}
             value={searchTerm}
             onChange={handleSearchInput}
             onFocus={() => setShowDropdown(true)}

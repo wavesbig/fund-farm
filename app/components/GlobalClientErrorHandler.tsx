@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { isString } from 'lodash';
 import { notifyClientError } from './ClientErrorBoundary';
 
 export default function GlobalClientErrorHandler() {
@@ -8,13 +9,15 @@ export default function GlobalClientErrorHandler() {
     const handleError = (event: ErrorEvent) => {
       const errorMsg = event.error?.message || event.message || '';
       if (
-        typeof errorMsg === 'string' &&
+        isString(errorMsg) &&
         (errorMsg.includes('ResizeObserver loop completed with undelivered notifications') ||
           errorMsg.includes('ResizeObserver loop limit exceeded') ||
+          errorMsg.includes('Error attempting to read image') ||
           errorMsg === 'Script error.' ||
           errorMsg === 'Script error')
       ) {
-        // 忽略良性的 ResizeObserver 警告，以及因跨域限制隐藏详细信息的 Script error
+        // 忽略良性的 ResizeObserver 警告、第三方图片解析警告及因跨域限制隐藏的 Script error
+        event.preventDefault?.();
         return;
       }
 
@@ -26,6 +29,12 @@ export default function GlobalClientErrorHandler() {
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reasonMsg = event.reason?.message || String(event.reason || '');
+      if (isString(reasonMsg) && reasonMsg.includes('Error attempting to read image')) {
+        event.preventDefault?.();
+        return;
+      }
+
       notifyClientError(event.reason || event, {
         title: '异步任务异常',
         toastId: 'window-promise-error',

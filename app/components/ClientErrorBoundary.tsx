@@ -152,7 +152,12 @@ class ClientErrorBoundaryInner extends React.Component<ClientErrorBoundaryProps,
   }
 
   render() {
-    if (this.state.error) return this.renderFallback();
+    if (this.state.error) {
+      if (shouldSilenceClientError(this.state.error)) {
+        return this.props.children;
+      }
+      return this.renderFallback();
+    }
     return this.props.children;
   }
 }

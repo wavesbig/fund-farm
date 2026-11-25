@@ -301,10 +301,10 @@ export default function GroupSummary({
           </div>
 
           {/* 右侧：当日收益、持有收益与吸顶固定按钮 */}
-          <div className="flex gap-2.5 sm:gap-4 md:gap-6 flex-[7] md:flex-[5] min-w-0 justify-end items-end">
+          <div className="flex gap-1.5 sm:gap-4 md:gap-6 flex-[7] md:flex-[5] min-w-0 justify-end items-end">
             {/* 当日收益 */}
             <div className="text-right flex-1 min-w-0">
-              <div className="text-xs md:text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1 whitespace-nowrap">
+              <div className="text-[11px] sm:text-xs md:text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-0.5 sm:gap-1 whitespace-nowrap">
                 <span className="whitespace-nowrap shrink-0">{showTodayPercent ? '当日收益率' : '当日收益'}</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -379,7 +379,7 @@ export default function GroupSummary({
 
             {/* 持有收益 */}
             <div className={`text-right ${isMobile ? 'flex-1' : ''} min-w-0`}>
-              <div className="text-xs md:text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-1 whitespace-nowrap">
+              <div className="text-[11px] sm:text-xs md:text-sm font-medium text-muted-foreground mb-1.5 flex justify-end items-center gap-0.5 sm:gap-1 whitespace-nowrap">
                 <span className="whitespace-nowrap shrink-0">{showPercent ? '持有收益率' : '持有收益'}</span>
                 <Tooltip>
                   <TooltipTrigger asChild>

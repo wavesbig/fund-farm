@@ -406,7 +406,7 @@ export default function DcaModal({ fund, plan, onClose, onConfirm, onReset }: Dc
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="请输入每次定投金额"
-                    className="pl-7 pr-9 h-9 font-semibold tabular-nums text-foreground bg-white/5 border-border"
+                    className="pl-7 pr-9 h-9 font-semibold tabular-nums text-[16PX] md:text-sm text-foreground bg-white/5 border-border"
                   />
                   {amount && (
                     <Button
@@ -464,7 +464,7 @@ export default function DcaModal({ fund, plan, onClose, onConfirm, onReset }: Dc
                       value={feeRate}
                       onChange={(e) => setFeeRate(e.target.value)}
                       placeholder="0.12"
-                      className="pr-6 h-8 text-xs font-mono tabular-nums text-right bg-white/5"
+                      className="pr-6 h-8 text-[16PX] md:text-xs font-mono tabular-nums text-right bg-white/5"
                     />
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
                       %

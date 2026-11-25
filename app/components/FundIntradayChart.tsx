@@ -105,12 +105,17 @@ export default function FundIntradayChart({
   const { data: ocrVerified = false } = useQuery({
     queryKey: ocrFundChart(fundCode, todayStr || ''),
     queryFn: async () => {
-      if (!isFundgzToday || !todayStr) return false;
+      if (!showImageChartPreference || !isFundgzToday || !todayStr) return false;
       try {
+        const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(`j4.dfcfw.com/charts/pic6/${fundCode}.png?v=${Date.now()}`)}`;
+        const imgRes = await fetch(proxyUrl);
+        if (!imgRes.ok) return false;
+        const blob = await imgRes.blob();
+        if (!blob || blob.size === 0) return false;
+
         const { getOcrWorker } = await import('@/app/lib/ocr');
         const worker = await getOcrWorker('chi_sim+eng');
-        const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(`j4.dfcfw.com/charts/pic6/${fundCode}.png?v=${Date.now()}`)}`;
-        const res = await worker.recognize(proxyUrl);
+        const res = await worker.recognize(blob);
 
         const text = res?.data?.text || '';
         const parts = todayStr.split('-');
@@ -127,7 +132,7 @@ export default function FundIntradayChart({
         return false;
       }
     },
-    enabled: Boolean(isFundgzToday && todayStr),
+    enabled: Boolean(showImageChartPreference && isFundgzToday && todayStr),
     staleTime: 5 * 60 * 1000,
     gcTime: 5 * 60 * 1000
   });

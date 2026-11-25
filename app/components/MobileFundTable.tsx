@@ -40,8 +40,23 @@ import {
   Link2,
   Star,
   ArrowUpToLine,
-  Pencil
+  Pencil,
+  MoreHorizontal,
+  ArrowDownLeft,
+  ArrowUpRight,
+  ArrowLeftRight,
+  CalendarClock,
+  FileEdit,
+  Coins,
+  History
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 import MobileFundCardDrawer from './MobileFundCardDrawer';
 import MobileSettingModal from './MobileSettingModal';
 import MoveGroupModal from './MoveGroupModal';
@@ -98,7 +113,8 @@ const MOBILE_NON_FROZEN_COLUMN_IDS = [
   'holdingRatio',
   'holdingCost',
   'costNav',
-  'estimateNav'
+  'estimateNav',
+  'actions'
 ];
 
 const MOBILE_COLUMNS_DEFAULT_HIDDEN_IF_PERSONALIZED = new Set([
@@ -131,7 +147,8 @@ const MOBILE_COLUMN_HEADERS = {
   todayProfit: '当日收益',
   yesterdayProfit: '昨日收益',
   holdingProfit: '持有收益',
-  tags: '基金标签'
+  tags: '基金标签',
+  actions: '操作'
 };
 
 const RowSortableContext = createContext({
@@ -1194,7 +1211,8 @@ const MobileFundTable = memo(function MobileFundTable({
     yesterdayProfit: 80,
     holdingProfit: 80,
     holdingCost: 80,
-    costNav: 70
+    costNav: 70,
+    actions: 110
   };
 
   const relatedSectorEnabled = mobileColumnVisibility?.relatedSector !== false;
@@ -1442,7 +1460,7 @@ const MobileFundTable = memo(function MobileFundTable({
         [EDIT_DRAG_COL]: w
       };
       MOBILE_NON_FROZEN_COLUMN_IDS.forEach((id) => {
-        map[id] = w;
+        map[id] = id === 'actions' ? Math.max(105, w) : w;
       });
       return map;
     };
@@ -1490,6 +1508,59 @@ const MobileFundTable = memo(function MobileFundTable({
   };
 
   const isCustomGroupTab = Boolean(currentTab && currentTab !== 'all' && currentTab !== 'fav');
+  const scopedGroupId = isCustomGroupTab ? currentTab : undefined;
+
+  const handleBuy = useCallback(
+    (e: React.MouseEvent | undefined, rowOriginal: any) => {
+      e?.stopPropagation?.();
+      e?.preventDefault?.();
+      const code = rowOriginal?.code;
+      const f = rowOriginal?.rawFund || { code, name: rowOriginal?.fundName };
+      const holdingLocked = (currentTab === 'all' || currentTab === 'fav') && !!rowOriginal?.isHoldingLinked;
+      if (holdingLocked) {
+        useModalStore.setState({ selectHoldingGroupModal: { open: true, fund: f } });
+        return;
+      }
+      useModalStore.getState().handleAction('buy', f, scopedGroupId);
+    },
+    [currentTab, scopedGroupId]
+  );
+
+  const handleSell = useCallback(
+    (e: React.MouseEvent | undefined, rowOriginal: any) => {
+      e?.stopPropagation?.();
+      e?.preventDefault?.();
+      const code = rowOriginal?.code;
+      const f = rowOriginal?.rawFund || { code, name: rowOriginal?.fundName };
+      const holdingLocked = (currentTab === 'all' || currentTab === 'fav') && !!rowOriginal?.isHoldingLinked;
+      if (holdingLocked) {
+        useModalStore.setState({ selectHoldingGroupModal: { open: true, fund: f } });
+        return;
+      }
+      useModalStore.getState().handleAction('sell', f, scopedGroupId);
+    },
+    [currentTab, scopedGroupId]
+  );
+
+  const handleMenuAction = useCallback(
+    (action: string, rowOriginal: any) => {
+      const code = rowOriginal?.code;
+      const f = rowOriginal?.rawFund || { code, name: rowOriginal?.fundName };
+      const holdingLocked = (currentTab === 'all' || currentTab === 'fav') && !!rowOriginal?.isHoldingLinked;
+      if (holdingLocked && action !== 'remove') {
+        useModalStore.setState({ selectHoldingGroupModal: { open: true, fund: f } });
+        return;
+      }
+      if (action === 'remove') {
+        onRemoveFundRef.current?.(rowOriginal);
+      } else if (action === 'edit') {
+        onHoldingAmountClickRef.current?.(rowOriginal, { hasHolding: false });
+      } else {
+        useModalStore.getState().handleAction(action, f, scopedGroupId);
+      }
+    },
+    [currentTab, scopedGroupId]
+  );
 
   // 移动端名称列：默认排序下长按整行进入编辑模式
   const MobileFundNameCell = ({ info, showFullFundName, onOpenCardSheet }) => {
@@ -1658,31 +1729,135 @@ const MobileFundTable = memo(function MobileFundTable({
             <ConsecutiveTrendBadge trend={fundExtraDataByCode?.[code]?.consecutiveTrend} />
           </span>
           {holdingAmountDisplay ? (
-            <span
-              className="inline-flex items-center gap-1 py-0.5 px-1.5 -my-0.5 rounded text-xs font-mono font-medium text-foreground bg-white/5 border border-border/70 active:bg-primary/10 active:border-primary/30 transition-all cursor-pointer select-none"
-              role="button"
-              tabIndex={0}
-              title="点击修改持仓"
-              onClick={(e) => {
-                e.stopPropagation?.();
-                onHoldingAmountClickRef.current?.(original, { hasHolding: false });
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onHoldingAmountClickRef.current?.(original, { hasHolding: false });
-                }
-              }}
-            >
-              <span className="text-muted-foreground text-[10px]">持仓</span>
-              <span>{masked ? <span className="mask-text">******</span> : holdingAmountDisplay}</span>
-              <Pencil className="size-2.5 text-muted-foreground opacity-80" />
-              {hasPending && <span className="pending-indicator">待</span>}
-              {hasDca && <span className="dca-indicator">定</span>}
-              {isUpdated && <span className="updated-indicator">✓</span>}
-            </span>
+            <div className="inline-flex items-center gap-1 mt-0.5 flex-wrap">
+              <span
+                className="inline-flex items-center gap-1 py-0.5 px-1.5 rounded text-xs font-mono font-medium text-foreground bg-white/5 border border-border/70 active:bg-primary/10 active:border-primary/30 transition-all cursor-pointer select-none"
+                role="button"
+                tabIndex={0}
+                title="点击进行持仓操作（加仓/减仓/定投/编辑/记录等）"
+                onClick={(e) => {
+                  e.stopPropagation?.();
+                  onHoldingAmountClickRef.current?.(original, { hasHolding: true });
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onHoldingAmountClickRef.current?.(original, { hasHolding: true });
+                  }
+                }}
+              >
+                <span className="text-muted-foreground text-[10px]">持仓</span>
+                <span>{masked ? <span className="mask-text">******</span> : holdingAmountDisplay}</span>
+                <Pencil className="size-2.5 text-muted-foreground opacity-80" />
+                {hasPending && <span className="pending-indicator">待</span>}
+                {hasDca && <span className="dca-indicator">定</span>}
+                {isUpdated && <span className="updated-indicator">✓</span>}
+              </span>
+
+              {/* 移动端名称列快捷更多操作菜单 */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="size-5.5 rounded flex items-center justify-center text-muted-foreground/70 active:text-foreground active:bg-secondary/80 border border-border/60 transition-colors cursor-pointer shrink-0"
+                    title="更多操作"
+                    onClick={(e) => {
+                      e.stopPropagation?.();
+                    }}
+                  >
+                    <MoreHorizontal className="size-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  side="bottom"
+                  onCloseAutoFocus={(e) => e.preventDefault()}
+                  className="w-36 glass card p-1 z-[150] shadow-xl border-border/80"
+                >
+                  <DropdownMenuItem
+                    onSelect={() => handleBuy(undefined, original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer text-emerald-500 font-medium"
+                  >
+                    <ArrowDownLeft className="size-3.5" />
+                    <span>买入加仓</span>
+                  </DropdownMenuItem>
+
+                  {original.holdingShareValue != null && original.holdingShareValue > 0 && (
+                    <DropdownMenuItem
+                      onSelect={() => handleSell(undefined, original)}
+                      className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer text-rose-500 font-medium"
+                    >
+                      <ArrowUpRight className="size-3.5" />
+                      <span>卖出减仓</span>
+                    </DropdownMenuItem>
+                  )}
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('edit', original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <FileEdit className="size-3.5 text-primary" />
+                    <span>编辑持仓</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('dca', original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <CalendarClock className="size-3.5 text-indigo-400" />
+                    <span>定投计划</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('convert', original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <ArrowLeftRight className="size-3.5 text-sky-400" />
+                    <span>基金转换</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('dividend', original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <Coins className="size-3.5 text-amber-400" />
+                    <span>分红方式</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('history', original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <History className="size-3.5 text-muted-foreground" />
+                    <span>交易记录</span>
+                  </DropdownMenuItem>
+
+                  {original.holdingShareValue != null && original.holdingShareValue > 0 && (
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onSelect={() => handleMenuAction('clear', original)}
+                      className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                    >
+                      <Trash2 className="size-3.5" />
+                      <span>清空持仓</span>
+                    </DropdownMenuItem>
+                  )}
+
+                  <DropdownMenuSeparator className="my-1 bg-border/60" />
+
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={() => handleMenuAction('remove', original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <Trash2 className="size-3.5" />
+                    <span>移除基金</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           ) : code ? (
-            <div className="inline-flex items-center gap-1.5 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 flex-wrap mt-0.5">
               <span className="muted code-text font-mono text-xs">{code}</span>
               <span
                 className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/25 active:bg-primary/25 cursor-pointer select-none"
@@ -1702,6 +1877,80 @@ const MobileFundTable = memo(function MobileFundTable({
               >
                 <span>+设置持仓</span>
               </span>
+
+              {/* 移动端无持仓基金快捷操作菜单 */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="size-5.5 rounded flex items-center justify-center text-muted-foreground/70 active:text-foreground active:bg-secondary/80 border border-border/60 transition-colors cursor-pointer shrink-0"
+                    title="更多操作"
+                    onClick={(e) => {
+                      e.stopPropagation?.();
+                    }}
+                  >
+                    <MoreHorizontal className="size-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  side="bottom"
+                  onCloseAutoFocus={(e) => e.preventDefault()}
+                  className="w-36 glass card p-1 z-[150] shadow-xl border-border/80"
+                >
+                  <DropdownMenuItem
+                    onSelect={() => handleBuy(undefined, original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer text-emerald-500 font-medium"
+                  >
+                    <ArrowDownLeft className="size-3.5" />
+                    <span>买入加仓</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('dca', original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <CalendarClock className="size-3.5 text-indigo-400" />
+                    <span>定投计划</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('convert', original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <ArrowLeftRight className="size-3.5 text-sky-400" />
+                    <span>基金转换</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('dividend', original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <Coins className="size-3.5 text-amber-400" />
+                    <span>分红方式</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => handleMenuAction('history', original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <History className="size-3.5 text-muted-foreground" />
+                    <span>交易记录</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator className="my-1 bg-border/60" />
+
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={() => handleMenuAction('remove', original)}
+                    className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                  >
+                    <Trash2 className="size-3.5" />
+                    <span>移除基金</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               {hasPending && <span className="pending-indicator">待</span>}
               {hasDca && <span className="dca-indicator">定</span>}
               {isUpdated && <span className="updated-indicator">✓</span>}
@@ -2620,6 +2869,118 @@ const MobileFundTable = memo(function MobileFundTable({
             );
           },
           meta: { align: 'right', cellClassName: 'holding-cell', width: columnWidthMap.holdingProfit }
+        },
+        {
+          id: 'actions',
+          header: '操作',
+          cell: (info) => {
+            const original = info.row.original || {};
+            const code = original.code;
+            const f = original.rawFund || { code, name: original.fundName };
+            const hasShare = original.holdingShareValue != null && original.holdingShareValue > 0;
+            return (
+              <div className="flex items-center justify-end gap-1 w-full pr-1" onClick={(e) => e.stopPropagation?.()}>
+                <button
+                  type="button"
+                  onClick={(e) => handleBuy(e, original)}
+                  className="px-2 py-0.5 rounded text-xs font-medium text-emerald-500 bg-emerald-500/10 active:bg-emerald-500/20 active:border-emerald-500/40 border border-emerald-500/25 transition-colors cursor-pointer shrink-0 select-none"
+                  title="买入加仓"
+                >
+                  加仓
+                </button>
+                <button
+                  type="button"
+                  disabled={!hasShare}
+                  onClick={(e) => handleSell(e, original)}
+                  className="px-2 py-0.5 rounded text-xs font-medium text-rose-500 bg-rose-500/10 active:bg-rose-500/20 active:border-rose-500/40 border border-rose-500/25 transition-colors cursor-pointer shrink-0 disabled:opacity-30 disabled:cursor-not-allowed select-none"
+                  title={hasShare ? '卖出减仓' : '暂无持仓份额'}
+                >
+                  减仓
+                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="size-6 rounded flex items-center justify-center text-muted-foreground/70 active:text-foreground active:bg-secondary/80 border border-border/60 transition-colors cursor-pointer shrink-0"
+                      title="更多操作"
+                      onClick={(e) => e.stopPropagation?.()}
+                    >
+                      <MoreHorizontal className="size-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    side="bottom"
+                    onCloseAutoFocus={(e) => e.preventDefault()}
+                    className="w-36 glass card p-1 z-[150] shadow-xl border-border/80"
+                  >
+                    <DropdownMenuItem
+                      onSelect={() => handleMenuAction('edit', original)}
+                      className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                    >
+                      <FileEdit className="size-3.5 text-primary" />
+                      <span>编辑持仓</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onSelect={() => handleMenuAction('dca', original)}
+                      className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                    >
+                      <CalendarClock className="size-3.5 text-indigo-400" />
+                      <span>定投计划</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onSelect={() => handleMenuAction('convert', original)}
+                      className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                    >
+                      <ArrowLeftRight className="size-3.5 text-sky-400" />
+                      <span>基金转换</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onSelect={() => handleMenuAction('dividend', original)}
+                      className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                    >
+                      <Coins className="size-3.5 text-amber-400" />
+                      <span>分红方式</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onSelect={() => handleMenuAction('history', original)}
+                      className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                    >
+                      <History className="size-3.5 text-muted-foreground" />
+                      <span>交易记录</span>
+                    </DropdownMenuItem>
+
+                    {hasShare && (
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onSelect={() => handleMenuAction('clear', original)}
+                        className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                      >
+                        <Trash2 className="size-3.5" />
+                        <span>清空持仓</span>
+                      </DropdownMenuItem>
+                    )}
+
+                    <DropdownMenuSeparator className="my-1 bg-border/60" />
+
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onSelect={() => handleMenuAction('remove', original)}
+                      className="flex items-center gap-2 py-1.5 px-2 text-xs cursor-pointer"
+                    >
+                      <Trash2 className="size-3.5" />
+                      <span>移除基金</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            );
+          },
+          meta: { align: 'right', cellClassName: 'actions-cell', width: columnWidthMap.actions ?? 110 }
         }
       ] as any[],
     [
@@ -2627,6 +2988,9 @@ const MobileFundTable = memo(function MobileFundTable({
       showFullFundName,
       getFundCardProps,
       handleOpenCardSheet,
+      handleBuy,
+      handleSell,
+      handleMenuAction,
       sortBy,
       relatedSectorByCode,
       sectorQuoteByLabel,

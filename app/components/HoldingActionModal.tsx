@@ -25,7 +25,16 @@ export interface HoldingActionFund {
   [key: string]: any;
 }
 
-export type HoldingActionType = 'buy' | 'sell' | 'dca' | 'convert' | 'dividend' | 'edit' | 'clear' | 'history';
+export type HoldingActionType =
+  | 'buy'
+  | 'sell'
+  | 'dca'
+  | 'convert'
+  | 'dividend'
+  | 'edit'
+  | 'clear'
+  | 'history'
+  | 'remove';
 
 export interface HoldingActionModalProps {
   fund: HoldingActionFund | null;
@@ -233,27 +242,37 @@ export default function HoldingActionModal({
         </div>
 
         {/* 标准 Dialog Footer: 危险操作居左，标准关闭居右 */}
-        <div className="pt-3 mt-1 border-t border-border flex items-center justify-between gap-2.5 shrink-0">
-          {hasShare ? (
+        <div className="pt-3 mt-1 border-t border-border flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-1">
+            {hasShare && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onAction('clear')}
+                className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <Trash2 className="size-3.5" />
+                <span>清空持仓</span>
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => onAction('clear')}
-              className="h-9 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center gap-1.5 transition-colors cursor-pointer"
+              onClick={() => onAction('remove')}
+              className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center gap-1 transition-colors cursor-pointer"
             >
               <Trash2 className="size-3.5" />
-              <span>清空持仓</span>
+              <span>移除基金</span>
             </Button>
-          ) : (
-            <div />
-          )}
+          </div>
 
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
-            className="h-9 px-4 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
+            className="h-8 px-3.5 text-xs font-medium bg-muted/30 border-border hover:bg-muted/60 text-foreground cursor-pointer"
           >
             关闭
           </Button>

@@ -390,6 +390,8 @@ export const useModalStore = create<ModalStoreState>((set, get) => ({
       set({ ...base, convertModal: { open: true, fund, fundCode, groupId } });
     } else if (type === 'dividend') {
       set({ ...base, dividendMethodModal: { open: true, fund, fundCode, groupId } });
+    } else if (type === 'remove') {
+      set({ ...base });
     }
   },
 

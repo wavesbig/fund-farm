@@ -104,7 +104,7 @@ export const Navbar = memo(function Navbar({
         </div>
 
         {/* 3. 顶部操作栏（尺寸与圆角严格归一化为 34px） */}
-        <div className="actions flex items-center gap-1.5 shrink-0">
+        <div className="actions flex items-center gap-1 sm:gap-1.5 shrink-0">
           {process.env.NEXT_PUBLIC_GITHUB_REPO_URL && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -146,7 +146,7 @@ export const Navbar = memo(function Navbar({
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-[34px] rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] [data-theme=light]:hover:bg-black/[0.04] transition-colors cursor-pointer"
+                className="size-8 sm:size-[34px] rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] [data-theme=light]:hover:bg-black/[0.04] transition-colors cursor-pointer"
                 aria-label={theme === 'dark' ? '切换到亮色主题' : '切换到暗色主题'}
                 onClick={handleThemeToggle}
               >
@@ -179,8 +179,10 @@ export const Navbar = memo(function Navbar({
             </TooltipContent>
           </Tooltip>
 
-          {/* 4. 用户中心菜单 */}
-          <UserMenu userAvatar={userAvatar} />
+          {/* 4. 用户中心菜单：移动端有固定底栏“我的”Tab，顶部隐藏冗余入口，彻底为搜索框释放宽度 */}
+          <div className="hidden sm:inline-flex">
+            <UserMenu userAvatar={userAvatar} />
+          </div>
         </div>
       </div>
     </header>

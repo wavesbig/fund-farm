@@ -38,9 +38,7 @@ export default function NavLayout({
       <div ref={containerRef} className={containerClassName} style={{ width: isMobile ? '100%' : containerWidth }}>
         {children}
 
-        {isMobile && (
-          <MobileBottomNav value={mainTab} onChange={setMainTab} hidden={mobileBottomNavHidden && mainTab === 'home'} />
-        )}
+        {isMobile && <MobileBottomNav value={mainTab} onChange={setMainTab} />}
       </div>
     </>
   );

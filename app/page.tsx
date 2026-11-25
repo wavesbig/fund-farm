@@ -410,9 +410,6 @@ export default function HomePage() {
     }
   }, [mainTab, hasVisitedMarketTab]);
 
-  const [mobileBottomNavHidden, setMobileBottomNavHidden] = useState(false);
-  const lastScrollYRef = useRef(0);
-
   useEffect(() => {
     if (!isMobile) {
       setMobileFundDrawerOpen(false);
@@ -1173,6 +1170,8 @@ export default function HomePage() {
       setConvertModal({ open: true, fund, groupId });
     } else if (type === 'dividend') {
       setDividendMethodModal({ open: true, fund, groupId });
+    } else if (type === 'remove') {
+      handleRemoveFundEntry(fund);
     }
   };
 
@@ -3626,45 +3625,6 @@ export default function HomePage() {
     }
   };
 
-  useEffect(() => {
-    if (!isMobile || mainTab !== 'home') return;
-
-    let ticking = false;
-    const handleScroll = () => {
-      // 如果 body 已经被锁定了滚动（说明有弹窗打开），直接忽略滚动事件
-      if (document.body.style.overflow === 'hidden') return;
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          const lastScrollY = lastScrollYRef.current;
-          const scrollDelta = currentScrollY - lastScrollY;
-          const threshold = 10;
-
-          if (scrollDelta > threshold && currentScrollY > 50) {
-            setMobileBottomNavHidden(true);
-          } else if (scrollDelta < -threshold) {
-            setMobileBottomNavHidden(false);
-          } else if (currentScrollY <= 0) {
-            setMobileBottomNavHidden(false);
-          }
-
-          lastScrollYRef.current = currentScrollY;
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isMobile, mainTab]);
-
-  useEffect(() => {
-    if (!isMobile || mainTab !== 'home') {
-      setMobileBottomNavHidden(false);
-    }
-  }, [isMobile, mainTab]);
-
   const settingsOpenRef = useRef(false);
   useEffect(() => {
     const unsub = useModalStore.subscribe((state) => {
@@ -4067,7 +4027,6 @@ export default function HomePage() {
       containerWidth={containerWidth}
       showThemeTransition={showThemeTransition}
       setShowThemeTransition={setShowThemeTransition}
-      mobileBottomNavHidden={mobileBottomNavHidden}
       header={
         mobileHomeTabVisible ? (
           <>
