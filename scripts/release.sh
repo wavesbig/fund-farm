@@ -46,7 +46,7 @@ release_committed=0
 
 cleanup() {
   if [[ $release_committed -eq 0 ]] && [[ -n $(git status --porcelain) ]]; then
-    git restore -- package.json package-lock.json docker-compose.prod.yml CHANGELOG.md 2>/dev/null || true
+    git restore -- package.json package-lock.json docker-compose.prod.yml CHANGELOG.md app/lib/changelogData.ts 2>/dev/null || true
   fi
 }
 trap cleanup EXIT
@@ -100,6 +100,11 @@ if ! grep -q "^## $tag" CHANGELOG.md; then
   } > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
 fi
 
+# 同步结构化版本日志至内置数据
+if [[ -f "scripts/sync-changelog.mjs" ]]; then
+  node scripts/sync-changelog.mjs
+fi
+
 # 提取当前版本段落作为 GitHub Release 说明
 release_notes=$(mktemp)
 awk -v ver="$tag" '$0 == "## " ver || index($0, "## " ver " ") == 1 {flag=1; next} /^## / {flag=0} flag' CHANGELOG.md > "$release_notes"
@@ -112,7 +117,7 @@ printf '==> 发布 %s：生产构建\n' "$tag"
 npm run build
 
 printf '==> 发布 %s：提交版本\n' "$tag"
-git add package.json package-lock.json docker-compose.prod.yml CHANGELOG.md
+git add package.json package-lock.json docker-compose.prod.yml CHANGELOG.md app/lib/changelogData.ts
 git commit -m "chore(release): bump version to $next_version"
 release_committed=1
 git tag -a "$tag" -m "Release $tag"

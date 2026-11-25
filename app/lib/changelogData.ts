@@ -88,6 +88,74 @@ export const CHANGE_TYPE_CONFIG: Record<
 
 export const BUILTIN_RELEASES: ReleaseLog[] = [
   {
+    id: 'v1.0.11',
+    tagName: 'v1.0.11',
+    version: '1.0.11',
+    title: 'v1.0.11 版本更新',
+    publishedAt: '2026-11-25',
+    htmlUrl: 'https://github.com/wavesbig/fund-farm/releases/tag/v1.0.11',
+    items: [
+      {
+        id: 'v1.0.11-0',
+        type: 'perf',
+        scope: 'ui',
+        description: '优化卡片与表格视图切换响应及离屏渲染性能',
+        raw: 'perf(ui): 优化卡片与表格视图切换响应及离屏渲染性能'
+      },
+      {
+        id: 'v1.0.11-1',
+        type: 'fix',
+        scope: 'ui',
+        description: '修复无障碍可访问性、暗色主色对比度、Safari防缩放及滚动卡顿问题',
+        raw: 'fix(ui): 修复无障碍可访问性、暗色主色对比度、Safari防缩放及滚动卡顿问题'
+      },
+      {
+        id: 'v1.0.11-2',
+        type: 'feat',
+        scope: 'ui',
+        description: '移动端操作栏与导航优化、Safari防缩放及错误处理增强',
+        raw: 'feat(ui): 移动端操作栏与导航优化、Safari防缩放及错误处理增强'
+      },
+      {
+        id: 'v1.0.11-3',
+        type: 'fix',
+        scope: 'ui',
+        description: '修复操作菜单与弹窗焦点冲突、消除滚动条跳动并重构分红方式等弹窗布局',
+        raw: 'fix(ui): 修复操作菜单与弹窗焦点冲突、消除滚动条跳动并重构分红方式等弹窗布局'
+      },
+      {
+        id: 'v1.0.11-4',
+        type: 'docs',
+        description: '增加 LINUX DO 社区致谢与认可徽标',
+        raw: 'docs: 增加 LINUX DO 社区致谢与认可徽标'
+      }
+    ]
+  },
+  {
+    id: 'v1.0.10',
+    tagName: 'v1.0.10',
+    version: '1.0.10',
+    title: 'v1.0.10 版本更新',
+    publishedAt: '2026-11-22',
+    htmlUrl: 'https://github.com/wavesbig/fund-farm/releases/tag/v1.0.10',
+    items: [
+      {
+        id: 'v1.0.10-0',
+        type: 'feat',
+        scope: 'ui',
+        description: '升级搜索栏交互与全局截图粘贴识图，重构各处引导按钮',
+        raw: 'feat(ui): 升级搜索栏交互与全局截图粘贴识图，重构各处引导按钮'
+      },
+      {
+        id: 'v1.0.10-1',
+        type: 'feat',
+        scope: 'changelog',
+        description: '全面重构更新日志弹窗并接入结构化版本历史与多维筛选',
+        raw: 'feat(changelog): 全面重构更新日志弹窗并接入结构化版本历史与多维筛选'
+      }
+    ]
+  },
+  {
     id: 'v1.0.9',
     tagName: 'v1.0.9',
     version: '1.0.9',

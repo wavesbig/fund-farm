@@ -91,10 +91,12 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<FilterCategory>('all');
-  const [expandedReleases, setExpandedReleases] = useState<Record<string, boolean>>({
-    [BUILTIN_RELEASES[0]?.tagName || 'v1.0.9']: true,
-    [BUILTIN_RELEASES[1]?.tagName || 'v1.0.8']: true,
-    [BUILTIN_RELEASES[2]?.tagName || 'v1.0.7']: true
+  const [expandedReleases, setExpandedReleases] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    BUILTIN_RELEASES.slice(0, 3).forEach((r) => {
+      if (r.tagName) init[r.tagName] = true;
+    });
+    return init;
   });
 
   const mountTimeRef = useRef(0);
@@ -566,17 +568,6 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
         </DialogHeader>
 
         {content}
-
-        <div className="pt-3 pb-4 px-6 border-t border-border flex justify-end shrink-0">
-          <Button
-            type="button"
-            variant="default"
-            onClick={() => onOpenChange(false)}
-            className="h-9 px-5 text-xs font-medium bg-primary text-primary-foreground shadow-xs cursor-pointer"
-          >
-            完成
-          </Button>
-        </div>
       </DialogContent>
     </Dialog>
   );
