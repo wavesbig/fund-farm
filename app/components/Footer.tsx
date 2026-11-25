@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { ExternalLink, Star } from 'lucide-react';
 
 export interface FooterProps {
   isMobile: boolean;
@@ -31,29 +30,26 @@ export default function Footer({ isMobile, onOpenFeedback }: FooterProps) {
       <p className="mb-1.5 text-[11px] opacity-75">
         注：估算数据与基金公司真实结算数据会有 1% 左右误差，非股票型基金误差较大
       </p>
-      <div className="flex items-center gap-2 opacity-90 mt-0.5 flex-wrap justify-center">
+      <div className="flex items-center gap-2.5 text-xs text-muted-foreground/80 mt-1 select-none">
         <span>© {new Date().getFullYear()} 养基场 (FundFarm)</span>
         <span className="opacity-40">·</span>
         <a
           href={GITHUB_REPO_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400 hover:underline font-medium"
+          className="hover:text-foreground transition-colors"
         >
-          <Star className="size-3 fill-amber-400 text-amber-500" />
-          <span>Star on GitHub</span>
+          GitHub 源码
         </a>
         <span className="opacity-40">·</span>
-        <span>遇到任何问题或需求建议？</span>
         <a
           href={GITHUB_ISSUES_URL}
           target="_blank"
           rel="noopener noreferrer"
           onClick={onOpenFeedback ? handleFeedback : undefined}
-          className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border border-primary/20 transition-colors duration-150 ease-out active:opacity-75 shadow-2xs cursor-pointer"
+          className="hover:text-foreground transition-colors cursor-pointer"
         >
-          <span>前往 GitHub Issues 反馈</span>
-          <ExternalLink className="size-3 shrink-0" />
+          问题反馈
         </a>
       </div>
     </footer>

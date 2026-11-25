@@ -13,9 +13,7 @@ import {
   ChevronUp,
   Github,
   Tag,
-  CheckCircle2,
-  SearchX,
-  Star
+  SearchX
 } from 'lucide-react';
 import { isString, isEmpty, isArray } from 'lodash';
 import { toast } from 'sonner';
@@ -100,7 +98,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
     return init;
   });
 
-  const mountTimeRef = useRef(0);
+  const mountTimeRef = useRef(Date.now());
   useEffect(() => {
     if (open) {
       mountTimeRef.current = Date.now();
@@ -449,55 +447,26 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
       </div>
 
       {/* 底部固定状态栏 */}
-      <div className="px-4 sm:px-6 py-2.5 border-t border-border bg-card/95 backdrop-blur-xs flex items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0 truncate">
-          <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
-          <span className="hidden sm:inline">AGPL-3.0 开源</span>
-          <span className="hidden sm:inline opacity-40">·</span>
-          <a
-            href={GITHUB_REPO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 hover:underline font-medium shrink-0"
-          >
-            <Star className="size-3 fill-amber-400 text-amber-500" />
-            <span>点个 Star</span>
-          </a>
-          <span className="opacity-40">·</span>
-          <a
-            href={GITHUB_ISSUES_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1 shrink-0"
-          >
-            <span>反馈建议</span>
-            <ExternalLink className="size-2.5" />
-          </a>
-        </div>
+      <div className="px-5 sm:px-6 py-2.5 border-t border-border bg-card/95 backdrop-blur-xs flex items-center justify-between gap-4 shrink-0">
+        <a
+          href={GITHUB_REPO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer group min-w-0"
+        >
+          <Github className="size-3.5 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
+          <span className="truncate">喜欢养基场？去 GitHub 点个 Star 支持一下 ⭐</span>
+        </a>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <a
-            href={GITHUB_RELEASES_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 h-8 text-xs font-medium rounded-lg border border-border bg-background hover:bg-accent text-foreground transition-colors cursor-pointer"
-          >
-            <Github className="size-3.5" />
-            <span className="hidden sm:inline">GitHub</span>
-            <span>Releases</span>
-            <ExternalLink className="size-3 text-muted-foreground" />
-          </a>
-
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            onClick={() => onOpenChange(false)}
-            className="h-8 px-4 text-xs font-medium rounded-lg cursor-pointer shadow-xs"
-          >
-            关闭
-          </Button>
-        </div>
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          onClick={() => onOpenChange(false)}
+          className="h-8 px-4 text-xs font-medium rounded-lg cursor-pointer shrink-0 shadow-xs"
+        >
+          关闭
+        </Button>
       </div>
     </div>
   );
@@ -524,20 +493,9 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
                 </DrawerDescription>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <a
-                href={GITHUB_REPO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-medium"
-              >
-                <Star className="size-3 fill-amber-400 text-amber-500" />
-                <span>Star</span>
-              </a>
-              <DrawerClose className="size-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                <X className="size-4" />
-              </DrawerClose>
-            </div>
+            <DrawerClose className="size-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+              <X className="size-4" />
+            </DrawerClose>
           </DrawerHeader>
           {content}
         </DrawerContent>
@@ -569,7 +527,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
                 <Sparkles className="size-5" />
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
                   <DialogTitle className="text-base font-semibold tracking-tight text-foreground">更新日志</DialogTitle>
                   <Badge
                     variant="outline"
@@ -586,18 +544,6 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
                 </DialogDescription>
               </div>
             </div>
-
-            <a
-              href={GITHUB_REPO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium transition-all active:scale-95 shadow-2xs group cursor-pointer shrink-0"
-              title="前往 GitHub 给养基场点个 Star 支持一下"
-            >
-              <Star className="size-3.5 fill-amber-400 text-amber-500 group-hover:scale-110 transition-transform" />
-              <span>Star 支持</span>
-              <ExternalLink className="size-3 opacity-60" />
-            </a>
           </div>
         </DialogHeader>
 

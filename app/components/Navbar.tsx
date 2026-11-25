@@ -7,11 +7,13 @@ import SearchBar from './SearchBar';
 import RefreshButton from './RefreshButton';
 import UserMenu from './UserMenu';
 import BrandLogo from './BrandLogo';
-import { Moon, Star, Sun } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTheme } from '../hooks/useTheme';
+
+const GITHUB_REPO_URL = process.env.NEXT_PUBLIC_GITHUB_REPO_URL || 'https://github.com/wavesbig/fund-farm';
 
 export interface NavbarProps {
   navbarRef?: RefObject<HTMLDivElement | null>;
@@ -105,30 +107,28 @@ export const Navbar = memo(function Navbar({
 
         {/* 3. 顶部操作栏（尺寸与圆角严格归一化为 34px） */}
         <div className="actions flex items-center gap-1 sm:gap-1.5 shrink-0">
-          {process.env.NEXT_PUBLIC_GITHUB_REPO_URL && (
+          {GITHUB_REPO_URL && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="h-[34px] px-2 sm:px-2.5 gap-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] [data-theme=light]:hover:bg-black/[0.04] transition-colors cursor-pointer hidden sm:inline-flex items-center group"
-                  onClick={() => window.open(process.env.NEXT_PUBLIC_GITHUB_REPO_URL, '_blank')}
-                  aria-label="在 GitHub 上为养基场点个 Star"
+                  size="icon"
+                  className="size-[34px] rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] [data-theme=light]:hover:bg-black/[0.04] transition-colors cursor-pointer hidden sm:inline-flex"
+                  onClick={() => window.open(GITHUB_REPO_URL, '_blank')}
+                  aria-label="访问 GitHub 开源仓库"
                 >
                   <Image
                     unoptimized
                     alt="GitHub"
                     src={githubImg}
-                    width={16}
-                    height={16}
-                    className="opacity-70 group-hover:opacity-100 transition-opacity shrink-0"
+                    width={18}
+                    height={18}
+                    className="opacity-70 hover:opacity-100 transition-opacity"
                   />
-                  <span className="text-xs font-medium hidden md:inline">Star</span>
-                  <Star className="size-3 text-amber-500 fill-amber-400 group-hover:scale-110 transition-transform shrink-0" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={6}>
-                <p>在 GitHub 为养基场点 Star 支持</p>
+                <p>GitHub 源码仓库</p>
               </TooltipContent>
             </Tooltip>
           )}

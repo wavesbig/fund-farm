@@ -17,9 +17,7 @@ import {
   LayoutGrid,
   Download,
   Upload,
-  X,
-  Star,
-  ExternalLink
+  X
 } from 'lucide-react';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import {
@@ -753,23 +751,9 @@ export default function SettingsModal({
               </nav>
             </div>
 
-            <div className="pt-3 border-t border-border/50 text-xs text-muted-foreground px-2 flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span>养基场</span>
-                <span className="font-mono text-xs text-muted-foreground">v{packageJson.version}</span>
-              </div>
-              <a
-                href={process.env.NEXT_PUBLIC_GITHUB_REPO_URL || 'https://github.com/wavesbig/fund-farm'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between text-xs text-amber-600 dark:text-amber-400 hover:underline pt-1 border-t border-border/40"
-              >
-                <div className="flex items-center gap-1.5">
-                  <Star className="size-3.5 fill-amber-400 text-amber-500" />
-                  <span>Star on GitHub</span>
-                </div>
-                <ExternalLink className="size-3 opacity-60" />
-              </a>
+            <div className="pt-3 border-t border-border/50 text-xs text-muted-foreground px-2 flex items-center justify-between">
+              <span>养基场</span>
+              <span className="font-mono text-xs text-muted-foreground">v{packageJson.version}</span>
             </div>
           </aside>
 
