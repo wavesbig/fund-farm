@@ -209,46 +209,44 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
   // 内容区域
   const content = (
     <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-      {/* 搜索与分类筛选控制栏 */}
-      <div className="px-4 sm:px-6 py-3 border-b border-border bg-card/60 backdrop-blur-xs flex flex-col gap-2.5 shrink-0">
-        <div className="flex items-center gap-2">
+      {/* 搜索与分类筛选控制栏 — 单行紧凑布局 */}
+      <div className="px-3 sm:px-4 py-2 border-b border-border bg-card/60 backdrop-blur-xs shrink-0">
+        {/* 第一行：搜索框 + 刷新图标 */}
+        <div className="flex items-center gap-2 mb-1.5">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜索更新记录（如 AI、截图识别、表格、SQLite...）"
-              className="pl-9 pr-8 h-9 text-[16PX] md:text-xs rounded-lg bg-background/80 border-border focus-visible:ring-primary/30"
+              className="pl-8 pr-7 h-8 text-[16PX] md:text-xs rounded-md bg-background/60 border-border/60 focus-visible:ring-primary/30"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
                 title="清空搜索"
               >
-                <X className="size-3.5" />
+                <X className="size-3" />
               </button>
             )}
           </div>
 
-          <Button
+          <button
             type="button"
-            variant="outline"
-            size="sm"
             onClick={() => handleFetchRemoteReleases(true)}
             disabled={loading}
-            className="h-9 px-3 gap-1.5 text-xs rounded-lg border-border hover:border-primary/40 text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
-            title="刷新/检查远端更新"
+            className="size-8 flex items-center justify-center rounded-md border border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+            title={loading ? '正在同步' : '检查更新'}
           >
             <RefreshCw className={loading ? 'size-3.5 animate-spin text-primary' : 'size-3.5'} />
-            <span className="hidden sm:inline">{loading ? '正在同步' : '检查更新'}</span>
-          </Button>
+          </button>
         </div>
 
-        {/* 类别筛选 Tab Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5 -mx-1 px-1">
+        {/* 第二行：类别 pills + 匹配数 */}
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
           {CATEGORY_TABS.map((tab) => {
             const isActive = selectedCategory === tab.key;
             return (
@@ -256,31 +254,31 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
                 key={tab.key}
                 type="button"
                 onClick={() => setSelectedCategory(tab.key)}
-                className={`h-7 px-2.5 text-xs rounded-full font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                className={`h-6 px-2 text-[11px] rounded-full font-medium transition-all shrink-0 cursor-pointer ${
                   isActive
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
-                <span>{tab.label}</span>
+                {tab.label}
               </button>
             );
           })}
 
           {(searchQuery || selectedCategory !== 'all') && (
-            <span className="ml-auto text-[11px] text-muted-foreground whitespace-nowrap pl-2">
-              匹配 {filteredReleases.length} 个版本 · {totalMatchingChanges} 项变更
+            <span className="ml-auto text-[10px] text-muted-foreground whitespace-nowrap pl-2 shrink-0">
+              {filteredReleases.length} 版本 · {totalMatchingChanges} 条
             </span>
           )}
         </div>
       </div>
 
       {/* 滚动列表 */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 scrollbar-y-styled">
+      <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-3 scrollbar-y-styled">
         {filteredReleases.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="size-12 rounded-2xl bg-muted/50 border border-border flex items-center justify-center text-muted-foreground mb-3">
-              <SearchX className="size-6" />
+            <div className="size-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center text-muted-foreground mb-3">
+              <SearchX className="size-5" />
             </div>
             <p className="text-sm font-medium text-foreground mb-1">未找到匹配的更新日志</p>
             <p className="text-xs text-muted-foreground max-w-xs mb-4">
@@ -300,7 +298,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
             </Button>
           </div>
         ) : (
-          <div className="relative pl-4 sm:pl-6 space-y-6 before:absolute before:left-[11px] sm:before:left-[19px] before:top-3 before:bottom-3 before:w-0.5 before:bg-border/80">
+          <div className="relative pl-5 space-y-3 before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-px before:bg-border/60">
             {filteredReleases.map((release, relIdx) => {
               const isCurrent = release.tagName === CURRENT_APP_VERSION;
               const isLatest = relIdx === 0 && !searchQuery && selectedCategory === 'all';
@@ -313,37 +311,35 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
 
               return (
                 <div key={release.id} className="relative group">
-                  {/* 时间轴节点标记 */}
+                  {/* 时间轴节点 */}
                   <div
-                    className={`absolute -left-[21px] sm:-left-[27px] top-3.5 size-4 rounded-full border-2 transition-transform ${
+                    className={`absolute -left-[18px] top-3 size-2.5 rounded-full border transition-all ${
                       isCurrent
-                        ? 'bg-primary border-primary ring-4 ring-primary/20 scale-110 shadow-xs'
+                        ? 'bg-primary border-primary ring-2 ring-primary/25'
                         : isLatest
-                          ? 'bg-emerald-500 border-emerald-500 ring-3 ring-emerald-500/20'
-                          : 'bg-card border-muted-foreground/40 group-hover:border-primary group-hover:scale-105'
+                          ? 'bg-emerald-500 border-emerald-500'
+                          : 'bg-card border-border group-hover:border-primary/60'
                     }`}
                   />
 
                   {/* 单版本卡片 */}
                   <div
-                    className={`rounded-xl border transition-all ${
-                      isCurrent
-                        ? 'border-primary/40 bg-card/90 shadow-md ring-1 ring-primary/20'
-                        : 'border-border/80 bg-card/50 hover:bg-card/80 hover:border-border'
+                    className={`rounded-lg border transition-colors ${
+                      isCurrent ? 'border-primary/30 bg-card/80' : 'border-border/60 bg-card/40 hover:bg-card/60'
                     } overflow-hidden`}
                   >
-                    {/* 卡片头部 */}
-                    <div className="px-4 py-3 border-b border-border/60 bg-muted/20 flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center flex-wrap gap-2">
-                        <span className="font-mono font-bold text-sm sm:text-base text-foreground tracking-tight flex items-center gap-1.5">
-                          <Tag className="size-3.5 text-primary" />
+                    {/* 卡片头部 — 无独立背景，直接 inline */}
+                    <div className="px-3 py-2 flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono font-semibold text-sm text-foreground flex items-center gap-1">
+                          <Tag className="size-3 text-primary/70" />
                           <HighlightText text={release.tagName} query={searchQuery} />
                         </span>
 
                         {isCurrent && (
                           <Badge
                             variant="default"
-                            className="h-5 px-2 text-[10px] rounded-full gap-1 font-medium bg-primary text-primary-foreground"
+                            className="h-4.5 px-1.5 text-[10px] rounded-full gap-1 font-medium bg-primary text-primary-foreground"
                           >
                             <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
                             当前运行版本
@@ -351,56 +347,51 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
                         )}
 
                         {isLatest && !isCurrent && (
-                          <Badge
-                            variant="secondary"
-                            className="h-5 px-2 text-[10px] rounded-full font-medium border border-border"
-                          >
+                          <Badge variant="secondary" className="h-4.5 px-1.5 text-[10px] rounded-full font-medium">
                             最新发布
                           </Badge>
                         )}
 
-                        <span className="text-xs text-muted-foreground flex items-center gap-1 tabular-nums">
+                        <span className="text-[11px] text-muted-foreground flex items-center gap-0.5 tabular-nums">
                           <Calendar className="size-3" />
                           {release.publishedAt}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-muted-foreground tabular-nums bg-muted/60 px-2 py-0.5 rounded-md">
-                          {items.length} 项变更
-                        </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] text-muted-foreground tabular-nums">{items.length} 项变更</span>
 
                         {release.htmlUrl && (
                           <a
                             href={release.htmlUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="size-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            className="size-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                             title="在 GitHub 查看此 Release"
                           >
-                            <ExternalLink className="size-3.5" />
+                            <ExternalLink className="size-3" />
                           </a>
                         )}
                       </div>
                     </div>
 
+                    {/* 分隔线 */}
+                    <div className="mx-3 border-t border-border/40" />
+
                     {/* 变更项目列表 */}
-                    <div className="p-3 sm:p-4 space-y-2.5">
+                    <div className="px-3 py-2 space-y-1.5">
                       {visibleItems.map((item: ChangeItem) => {
                         const typeCfg = CHANGE_TYPE_CONFIG[item.type] || CHANGE_TYPE_CONFIG.other;
                         return (
-                          <div
-                            key={item.id}
-                            className="flex items-start gap-2.5 text-xs leading-relaxed text-foreground group/item"
-                          >
+                          <div key={item.id} className="flex items-start gap-2 text-xs leading-relaxed group/item">
                             <div className="shrink-0 flex items-center gap-1 mt-0.5">
                               <span
-                                className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${typeCfg.bgClass} ${typeCfg.textClass} ${typeCfg.borderClass}`}
+                                className={`text-[10px] font-medium px-1.5 py-px rounded border ${typeCfg.bgClass} ${typeCfg.textClass} ${typeCfg.borderClass}`}
                               >
                                 {typeCfg.label}
                               </span>
                               {item.scope && (
-                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
+                                <span className="text-[10px] font-mono px-1 py-px rounded bg-muted/60 text-muted-foreground border border-border/40">
                                   {item.scope}
                                 </span>
                               )}
@@ -415,23 +406,23 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
 
                       {/* 展开/折叠长列表按钮 */}
                       {items.length > displayLimit && !searchQuery && selectedCategory === 'all' && (
-                        <div className="pt-1.5">
+                        <div className="pt-0.5">
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => toggleExpand(release.tagName)}
-                            className="h-7 px-2.5 text-[11px] text-primary hover:text-primary hover:bg-primary/10 gap-1 rounded-md cursor-pointer"
+                            className="h-6 px-2 text-[11px] text-primary hover:text-primary hover:bg-primary/10 gap-1 rounded cursor-pointer"
                           >
                             {isExpanded ? (
                               <>
                                 <ChevronUp className="size-3" />
-                                <span>收起多余项</span>
+                                <span>收起</span>
                               </>
                             ) : (
                               <>
                                 <ChevronDown className="size-3" />
-                                <span>展开其余 {items.length - displayLimit} 项变更…</span>
+                                <span>还有 {items.length - displayLimit} 项…</span>
                               </>
                             )}
                           </Button>
@@ -447,15 +438,15 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
       </div>
 
       {/* 底部固定状态栏 */}
-      <div className="px-5 sm:px-6 py-2.5 border-t border-border bg-card/95 backdrop-blur-xs flex items-center justify-between gap-4 shrink-0">
+      <div className="px-4 sm:px-5 py-2 border-t border-border bg-card/95 backdrop-blur-xs flex items-center justify-between gap-3 shrink-0">
         <a
           href={GITHUB_REPO_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer group min-w-0"
         >
-          <Github className="size-3.5 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
-          <span className="truncate">喜欢养基场？去 GitHub 点个 Star 支持一下 ⭐</span>
+          <Github className="size-3.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
+          <span className="truncate">喜欢养基场？去 GitHub 点个 Star ⭐</span>
         </a>
 
         <Button
@@ -463,7 +454,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
           variant="default"
           size="sm"
           onClick={() => onOpenChange(false)}
-          className="h-8 px-4 text-xs font-medium rounded-lg cursor-pointer shrink-0 shadow-xs"
+          className="h-7 px-3 text-xs font-medium rounded-md cursor-pointer shrink-0"
         >
           关闭
         </Button>
