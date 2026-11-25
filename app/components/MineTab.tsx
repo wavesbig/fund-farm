@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Star } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 export interface MineTabProps {
@@ -81,6 +81,20 @@ export default function MineTab({
             <span className="mine-menu-label">更新日志</span>
             <ChevronRight className="mine-menu-chevron" aria-hidden strokeWidth={2} />
           </button>
+        </li>
+        <li>
+          <a
+            href={process.env.NEXT_PUBLIC_GITHUB_REPO_URL || 'https://github.com/wavesbig/fund-farm'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mine-menu-row glass flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2">
+              <Star className="size-4 text-amber-500 fill-amber-400 shrink-0" />
+              <span className="mine-menu-label font-medium text-amber-600 dark:text-amber-400">GitHub 点个 Star</span>
+            </div>
+            <ChevronRight className="mine-menu-chevron" aria-hidden strokeWidth={2} />
+          </a>
         </li>
         <li>
           <button type="button" className="mine-menu-row glass" onClick={onFeedback}>

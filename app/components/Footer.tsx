@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Star } from 'lucide-react';
 
 export interface FooterProps {
   isMobile: boolean;
@@ -31,8 +31,18 @@ export default function Footer({ isMobile, onOpenFeedback }: FooterProps) {
       <p className="mb-1.5 text-[11px] opacity-75">
         注：估算数据与基金公司真实结算数据会有 1% 左右误差，非股票型基金误差较大
       </p>
-      <div className="flex items-center gap-2 opacity-90 mt-0.5">
+      <div className="flex items-center gap-2 opacity-90 mt-0.5 flex-wrap justify-center">
         <span>© {new Date().getFullYear()} 养基场 (FundFarm)</span>
+        <span className="opacity-40">·</span>
+        <a
+          href={GITHUB_REPO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400 hover:underline font-medium"
+        >
+          <Star className="size-3 fill-amber-400 text-amber-500" />
+          <span>Star on GitHub</span>
+        </a>
         <span className="opacity-40">·</span>
         <span>遇到任何问题或需求建议？</span>
         <a

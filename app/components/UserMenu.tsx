@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { AnimatePresence } from 'framer-motion';
-import { CircleHelp, History, LogOut, Settings2, TrendingUp, User } from 'lucide-react';
+import { CircleHelp, ExternalLink, History, LogOut, Settings2, Star, TrendingUp, User } from 'lucide-react';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import ConfirmModal from './ConfirmModal';
 import { Button } from '@/components/ui/button';
@@ -161,6 +161,20 @@ export default function UserMenu({
                 >
                   <History className="size-4" strokeWidth={1.8} />
                   <span>更新日志</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setUserMenuOpen(false);
+                    const repoUrl = process.env.NEXT_PUBLIC_GITHUB_REPO_URL || 'https://github.com/wavesbig/fund-farm';
+                    window.open(repoUrl, '_blank');
+                  }}
+                  className="cursor-pointer"
+                >
+                  <Star className="size-4 text-amber-500 fill-amber-400 shrink-0" strokeWidth={1.8} />
+                  <span className="flex-1">GitHub 点个 Star</span>
+                  <ExternalLink className="size-3 text-muted-foreground opacity-60" />
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 

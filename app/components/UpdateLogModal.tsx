@@ -14,7 +14,8 @@ import {
   Github,
   Tag,
   CheckCircle2,
-  SearchX
+  SearchX,
+  Star
 } from 'lucide-react';
 import { isString, isEmpty, isArray } from 'lodash';
 import { toast } from 'sonner';
@@ -448,28 +449,38 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
       </div>
 
       {/* 底部固定状态栏 */}
-      <div className="px-4 sm:px-6 py-3 border-t border-border bg-card/95 backdrop-blur-xs flex flex-wrap items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="px-4 sm:px-6 py-2.5 border-t border-border bg-card/95 backdrop-blur-xs flex items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0 truncate">
           <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
-          <span>基于 AGPL-3.0 协议完全开源</span>
-          <span className="hidden sm:inline">·</span>
+          <span className="hidden sm:inline">AGPL-3.0 开源</span>
+          <span className="hidden sm:inline opacity-40">·</span>
+          <a
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 hover:underline font-medium shrink-0"
+          >
+            <Star className="size-3 fill-amber-400 text-amber-500" />
+            <span>点个 Star</span>
+          </a>
+          <span className="opacity-40">·</span>
           <a
             href={GITHUB_ISSUES_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border border-primary/20 transition-all duration-150 ease-out active:scale-95 cursor-pointer"
+            className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1 shrink-0"
           >
-            <span>问题反馈与建议</span>
-            <ExternalLink className="size-3" />
+            <span>反馈建议</span>
+            <ExternalLink className="size-2.5" />
           </a>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <a
             href={GITHUB_RELEASES_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 h-8 text-xs font-medium rounded-lg border border-border bg-background hover:bg-accent text-foreground transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 h-8 text-xs font-medium rounded-lg border border-border bg-background hover:bg-accent text-foreground transition-colors cursor-pointer"
           >
             <Github className="size-3.5" />
             <span className="hidden sm:inline">GitHub</span>
@@ -497,11 +508,11 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="glass h-[88vh] max-h-[92vh] flex flex-col p-0">
           <DrawerHeader className="shrink-0 flex flex-row items-center justify-between gap-2 space-y-0 px-4 pb-3 pt-3 text-left border-b border-border bg-card">
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
               <div className="size-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0">
                 <Sparkles className="size-4" />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <DrawerTitle className="text-base font-semibold text-foreground">更新日志</DrawerTitle>
                   <Badge variant="outline" className="text-[10px] h-4.5 px-1.5 font-mono">
@@ -513,9 +524,20 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
                 </DrawerDescription>
               </div>
             </div>
-            <DrawerClose className="size-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-              <X className="size-4" />
-            </DrawerClose>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <a
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-medium"
+              >
+                <Star className="size-3 fill-amber-400 text-amber-500" />
+                <span>Star</span>
+              </a>
+              <DrawerClose className="size-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                <X className="size-4" />
+              </DrawerClose>
+            </div>
           </DrawerHeader>
           {content}
         </DrawerContent>
@@ -546,8 +568,8 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
               <div className="size-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
                 <Sparkles className="size-5" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
                   <DialogTitle className="text-base font-semibold tracking-tight text-foreground">更新日志</DialogTitle>
                   <Badge
                     variant="outline"
@@ -559,11 +581,23 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
                     累计 {releases.length} 个版本
                   </Badge>
                 </div>
-                <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                <DialogDescription className="text-xs text-muted-foreground mt-0.5 truncate">
                   查看养基场版本迭代历史、新特性发布与缺陷修复记录
                 </DialogDescription>
               </div>
             </div>
+
+            <a
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium transition-all active:scale-95 shadow-2xs group cursor-pointer shrink-0"
+              title="前往 GitHub 给养基场点个 Star 支持一下"
+            >
+              <Star className="size-3.5 fill-amber-400 text-amber-500 group-hover:scale-110 transition-transform" />
+              <span>Star 支持</span>
+              <ExternalLink className="size-3 opacity-60" />
+            </a>
           </div>
         </DialogHeader>
 

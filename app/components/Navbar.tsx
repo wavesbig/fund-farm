@@ -7,7 +7,7 @@ import SearchBar from './SearchBar';
 import RefreshButton from './RefreshButton';
 import UserMenu from './UserMenu';
 import BrandLogo from './BrandLogo';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Star, Sun } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -110,23 +110,25 @@ export const Navbar = memo(function Navbar({
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="size-[34px] rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] [data-theme=light]:hover:bg-black/[0.04] transition-colors cursor-pointer hidden sm:inline-flex"
+                  size="sm"
+                  className="h-[34px] px-2 sm:px-2.5 gap-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] [data-theme=light]:hover:bg-black/[0.04] transition-colors cursor-pointer hidden sm:inline-flex items-center group"
                   onClick={() => window.open(process.env.NEXT_PUBLIC_GITHUB_REPO_URL, '_blank')}
-                  aria-label="访问 GitHub 开源仓库"
+                  aria-label="在 GitHub 上为养基场点个 Star"
                 >
                   <Image
                     unoptimized
                     alt="GitHub"
                     src={githubImg}
-                    width={18}
-                    height={18}
-                    className="opacity-70 hover:opacity-100 transition-opacity"
+                    width={16}
+                    height={16}
+                    className="opacity-70 group-hover:opacity-100 transition-opacity shrink-0"
                   />
+                  <span className="text-xs font-medium hidden md:inline">Star</span>
+                  <Star className="size-3 text-amber-500 fill-amber-400 group-hover:scale-110 transition-transform shrink-0" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={6}>
-                <p>GitHub 源码仓库</p>
+                <p>在 GitHub 为养基场点 Star 支持</p>
               </TooltipContent>
             </Tooltip>
           )}
