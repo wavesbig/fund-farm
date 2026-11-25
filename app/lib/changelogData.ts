@@ -88,6 +88,23 @@ export const CHANGE_TYPE_CONFIG: Record<
 
 export const BUILTIN_RELEASES: ReleaseLog[] = [
   {
+    id: 'v1.0.12',
+    tagName: 'v1.0.12',
+    version: '1.0.12',
+    title: 'v1.0.12 版本更新',
+    publishedAt: '2026-11-25',
+    htmlUrl: 'https://github.com/wavesbig/fund-farm/releases/tag/v1.0.12',
+    items: [
+      {
+        id: 'v1.0.12-0',
+        type: 'fix',
+        scope: 'changelog',
+        description: '移除更新日志弹窗多余完成按钮并自动同步最新版本日志',
+        raw: 'fix(changelog): 移除更新日志弹窗多余完成按钮并自动同步最新版本日志'
+      }
+    ]
+  },
+  {
     id: 'v1.0.11',
     tagName: 'v1.0.11',
     version: '1.0.11',
