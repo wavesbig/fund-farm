@@ -49,10 +49,11 @@ export default function GroupModal({ onClose, onConfirm }: GroupModalProps) {
             type="button"
             variant="ghost"
             size="icon"
+            aria-label="关闭"
             onClick={onClose}
             className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </Button>
         </div>
 
@@ -63,7 +64,7 @@ export default function GroupModal({ onClose, onConfirm }: GroupModalProps) {
             </Label>
             <Input
               id="group-modal-name"
-              className="h-9.5 text-sm bg-white/5 border-border"
+              className="h-9.5 text-[16PX] md:text-sm bg-white/5 border-border"
               autoFocus
               placeholder="请输入分组名称..."
               value={name}

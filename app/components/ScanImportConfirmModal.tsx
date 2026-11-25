@@ -127,13 +127,15 @@ export default function ScanImportConfirmModal({
               )}
             </div>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
+              aria-label="关闭"
               className="w-8 h-8 rounded-full text-muted-foreground hover:text-foreground"
               onClick={onClose}
               disabled={isScanImporting}
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </Button>
           </div>
         </DialogTitle>

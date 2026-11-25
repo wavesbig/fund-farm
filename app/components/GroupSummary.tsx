@@ -285,9 +285,11 @@ export default function GroupSummary({
               </Tooltip>
             </div>
 
-            <div
-              className="text-2xl md:text-3xl font-bold tracking-tight min-w-0 cursor-pointer overflow-hidden tabular-nums hover:opacity-90 transition-opacity"
+            <button
+              type="button"
+              className="text-2xl md:text-3xl font-bold tracking-tight min-w-0 w-full text-left cursor-pointer overflow-hidden tabular-nums hover:opacity-90 active:opacity-75 transition-opacity focus-visible:outline-2 focus-visible:outline-ring rounded-md"
               onClick={() => setIsAssetMasked((v) => !v)}
+              aria-label={isMasked || isAssetMasked ? '点击显示资产金额' : '点击隐藏资产金额'}
               title={isMasked || isAssetMasked ? '点击显示资产金额' : '点击隐藏资产金额'}
             >
               {isMasked || isAssetMasked ? (
@@ -297,7 +299,7 @@ export default function GroupSummary({
               ) : (
                 <CountUp value={summary.totalAsset} maxFontSize={assetSize} minFontSize={16} as="div" />
               )}
-            </div>
+            </button>
           </div>
 
           {/* 右侧：当日收益、持有收益与吸顶固定按钮 */}
@@ -310,14 +312,14 @@ export default function GroupSummary({
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      className="size-4.5 md:size-5 rounded text-muted-foreground/50 hover:text-primary hover:bg-primary/10 active:scale-95 transition-all cursor-pointer inline-flex items-center justify-center shrink-0"
+                      className="size-4.5 md:size-5 rounded text-muted-foreground/50 hover:text-primary hover:bg-primary/10 active:opacity-75 transition-colors cursor-pointer inline-flex items-center justify-center shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (summary.hasAnyTodayData) setShowTodayPercent(!showTodayPercent);
                       }}
-                      aria-label="切换金额与百分比"
+                      aria-label="切换当日收益金额与百分比"
                     >
-                      <ArrowLeftRight className="size-2.5 md:size-3" strokeWidth={1.8} />
+                      <ArrowLeftRight className="size-2.5 md:size-3" strokeWidth={1.8} aria-hidden="true" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" sideOffset={4}>
@@ -325,23 +327,17 @@ export default function GroupSummary({
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <div
-                className={`${
-                  summary.hasAnyTodayData
-                    ? summary.totalProfitToday > 0
-                      ? 'up'
-                      : summary.totalProfitToday < 0
-                        ? 'down'
-                        : 'text-foreground'
-                    : 'text-muted-foreground'
-                } text-lg md:text-xl font-semibold tracking-tight tabular-nums overflow-hidden ${
-                  summary.hasAnyTodayData ? 'cursor-pointer' : 'cursor-default'
-                }`}
-                onClick={() => summary.hasAnyTodayData && setShowTodayPercent(!showTodayPercent)}
-                title={summary.hasAnyTodayData ? '点击切换金额/百分比' : undefined}
-              >
-                {summary.hasAnyTodayData ? (
-                  isMasked ? (
+              {summary.hasAnyTodayData ? (
+                <button
+                  type="button"
+                  className={`${
+                    summary.totalProfitToday > 0 ? 'up' : summary.totalProfitToday < 0 ? 'down' : 'text-foreground'
+                  } text-lg md:text-xl font-semibold tracking-tight tabular-nums overflow-hidden cursor-pointer w-full text-right active:opacity-75 transition-opacity focus-visible:outline-2 focus-visible:outline-ring rounded-md`}
+                  onClick={() => setShowTodayPercent(!showTodayPercent)}
+                  aria-label="切换当日收益金额或百分比"
+                  title="点击切换金额/百分比"
+                >
+                  {isMasked ? (
                     <span className="mask-text" style={{ fontSize: metricSize }}>
                       ******
                     </span>
@@ -368,13 +364,15 @@ export default function GroupSummary({
                         />
                       )}
                     </>
-                  )
-                ) : (
+                  )}
+                </button>
+              ) : (
+                <div className="text-muted-foreground text-lg md:text-xl font-semibold tracking-tight tabular-nums overflow-hidden cursor-default">
                   <span className="inline-block" style={{ fontSize: metricSize }}>
                     --
                   </span>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* 持有收益 */}
@@ -385,14 +383,14 @@ export default function GroupSummary({
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      className="size-4.5 md:size-5 rounded text-muted-foreground/50 hover:text-primary hover:bg-primary/10 active:scale-95 transition-all cursor-pointer inline-flex items-center justify-center shrink-0"
+                      className="size-4.5 md:size-5 rounded text-muted-foreground/50 hover:text-primary hover:bg-primary/10 active:opacity-75 transition-colors cursor-pointer inline-flex items-center justify-center shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowPercent(!showPercent);
                       }}
-                      aria-label="切换金额与百分比"
+                      aria-label="切换持有收益金额与百分比"
                     >
-                      <ArrowLeftRight className="size-2.5 md:size-3" strokeWidth={1.8} />
+                      <ArrowLeftRight className="size-2.5 md:size-3" strokeWidth={1.8} aria-hidden="true" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" sideOffset={4}>
@@ -400,11 +398,13 @@ export default function GroupSummary({
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <div
+              <button
+                type="button"
                 className={`${
                   summary.totalHoldingReturn > 0 ? 'up' : summary.totalHoldingReturn < 0 ? 'down' : 'text-foreground'
-                } text-lg md:text-xl font-semibold tracking-tight tabular-nums cursor-pointer overflow-hidden`}
+                } text-lg md:text-xl font-semibold tracking-tight tabular-nums cursor-pointer overflow-hidden w-full text-right active:opacity-75 transition-opacity focus-visible:outline-2 focus-visible:outline-ring rounded-md`}
                 onClick={() => setShowPercent(!showPercent)}
+                aria-label="切换持有收益金额或百分比"
                 title="点击切换金额/百分比"
               >
                 {isMasked ? (
@@ -434,7 +434,7 @@ export default function GroupSummary({
                     )}
                   </>
                 )}
-              </div>
+              </button>
             </div>
 
             {/* 吸顶固定按钮：独立列排列，绝不遮挡持有收益 */}

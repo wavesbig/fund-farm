@@ -326,7 +326,7 @@ const FundListView = React.memo(function FundListView({
                     defaultValue={cardPageSize}
                     type="number"
                     min={1}
-                    className="w-14 h-7 text-[16PX] text-center px-1 font-mono text-xs rounded-md border-border/80 bg-background/50"
+                    className="w-14 h-7 text-[16PX] md:text-xs text-center px-1 font-mono rounded-md border-border/80 bg-background/50"
                     onBlur={(e) => {
                       let val = parseInt(e.target.value, 10);
                       if (isNaN(val) || val < 1) val = 12;

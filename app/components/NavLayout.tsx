@@ -33,13 +33,24 @@ export default function NavLayout({
 }: NavLayoutProps) {
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:px-3 focus:py-1.5 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:text-sm focus:font-medium focus:shadow-md"
+      >
+        跳至主内容
+      </a>
       <PcSideNav value={mainTab} onChange={setMainTab} />
       {header}
-      <div ref={containerRef} className={containerClassName} style={{ width: isMobile ? '100%' : containerWidth }}>
+      <main
+        id="main-content"
+        ref={containerRef}
+        className={containerClassName}
+        style={{ width: isMobile ? '100%' : containerWidth }}
+      >
         {children}
 
         {isMobile && <MobileBottomNav value={mainTab} onChange={setMainTab} />}
-      </div>
+      </main>
     </>
   );
 }

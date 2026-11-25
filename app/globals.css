@@ -17,6 +17,7 @@
 html {
   font-size: 17.5PX;
   scrollbar-gutter: stable;
+  scroll-padding-block-start: calc(var(--navbar-height, 56px) + 56px);
 }
 
 body {
@@ -86,11 +87,11 @@ html[data-font-size='extra-large'] {
   --popover: #0f172a;
   --popover-foreground: #f8fafc;
   
-  /* High-Voltage Interactive Indigo/Blurple */
-  --primary: #6366f1;
-  --primary-rgb: 99, 102, 241;
+  /* High-Voltage Interactive Indigo/Blurple (WCAG AA >= 4.9:1 with #ffffff) */
+  --primary: #5a5df0;
+  --primary-rgb: 90, 93, 240;
   --primary-foreground: #ffffff;
-  --accent: #6366f1;
+  --accent: #5a5df0;
   --accent-foreground: #ffffff;
   
   /* Financial status colors (Crisp, luminous, WCAG AAA > 7:1 contrast on dark slate) */
@@ -111,7 +112,7 @@ html[data-font-size='extra-large'] {
   /* Borders & Inputs */
   --border: rgba(255, 255, 255, 0.1);
   --input: #1e293b;
-  --ring: #6366f1;
+  --ring: #5a5df0;
   --radius: 0.5rem;
   --header-bg: #0f172a;
   --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.25);
@@ -942,9 +943,15 @@ body::before {
     box-shadow 150ms ease;
 }
 
-.input:focus {
+.input:focus-visible {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.2);
+  box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.25);
+}
+
+@media (max-width: 640px) {
+  .input {
+    font-size: 16PX;
+  }
 }
 
 /* 美化并隐藏原生数字输入的上下按钮，使用自定义按钮 */
@@ -1959,7 +1966,7 @@ html::-webkit-scrollbar-thumb:active,
     }
   }
 
-  .mobile-fund-table .name-cell {
+  .mobile-fund-table .table-row .name-cell {
     grid-area: unset;
     align-self: stretch;
     padding-left: 12px;
@@ -2122,7 +2129,6 @@ html::-webkit-scrollbar-thumb:active,
   position: sticky;
   z-index: 40;
   background: var(--bg);
-  backdrop-filter: blur(16px);
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
   box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.25);
@@ -2928,7 +2934,7 @@ html::-webkit-scrollbar-thumb:active,
     padding-left: 16px;
     padding-right: 16px;
     padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
-    min-height: 100vh;
+    min-height: 100dvh;
     box-sizing: border-box;
     overflow-x: clip;
   }
@@ -2943,7 +2949,7 @@ html::-webkit-scrollbar-thumb:active,
   bottom: 0;
   top: auto;
   width: 100%;
-  max-width: 100vw;
+  max-width: 100%;
   margin: 0;
   z-index: 30;
   display: flex;
@@ -2962,7 +2968,7 @@ html::-webkit-scrollbar-thumb:active,
 .mobile-bottom-nav-bar {
   pointer-events: auto;
   width: fit-content;
-  max-width: min(400px, calc(100vw - 32px));
+  max-width: min(400px, calc(100% - 32px));
   margin-inline: auto;
   border-radius: 12px;
   padding: 4px;
@@ -4800,9 +4806,9 @@ html::-webkit-scrollbar-thumb:active,
   border-color: var(--primary);
 }
 
-.select:focus {
+.select:focus-visible {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
 }
 
 .select option {

@@ -1616,20 +1616,15 @@ const MobileFundTable = memo(function MobileFundTable({
             <span className={`name-text ${showFullFundName ? 'show-full' : ''}`}>
               {info.getValue() ?? '—'}
               {holdingLocked ? (
-                <span
+                <button
+                  type="button"
                   aria-label="已关联持仓"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    marginLeft: 6,
-                    color: 'var(--primary)',
-                    verticalAlign: 'middle',
-                    position: 'relative',
-                    cursor: 'default'
-                  }}
+                  title="持仓来自自定义分组汇总"
+                  onClick={(e) => e.stopPropagation?.()}
+                  className="inline-flex items-center ml-1.5 text-primary align-middle relative cursor-help"
                 >
-                  <Link2 className="size-3.5" strokeWidth={1.8} />
-                </span>
+                  <Link2 className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
+                </button>
               ) : null}
               <ConsecutiveTrendBadge trend={fundExtraDataByCode?.[code]?.consecutiveTrend} />
             </span>
@@ -1760,12 +1755,13 @@ const MobileFundTable = memo(function MobileFundTable({
                   <button
                     type="button"
                     className="size-5.5 rounded flex items-center justify-center text-muted-foreground/70 active:text-foreground active:bg-secondary/80 border border-border/60 transition-colors cursor-pointer shrink-0"
+                    aria-label="更多操作"
                     title="更多操作"
                     onClick={(e) => {
                       e.stopPropagation?.();
                     }}
                   >
-                    <MoreHorizontal className="size-3" />
+                    <MoreHorizontal className="size-3" aria-hidden="true" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -1860,7 +1856,7 @@ const MobileFundTable = memo(function MobileFundTable({
             <div className="inline-flex items-center gap-1.5 flex-wrap mt-0.5">
               <span className="muted code-text font-mono text-xs">{code}</span>
               <span
-                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/25 active:bg-primary/25 cursor-pointer select-none"
+                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary border border-primary/25 active:bg-primary/25 transition-colors cursor-pointer select-none"
                 role="button"
                 tabIndex={0}
                 title="设置持仓"
@@ -1884,12 +1880,13 @@ const MobileFundTable = memo(function MobileFundTable({
                   <button
                     type="button"
                     className="size-5.5 rounded flex items-center justify-center text-muted-foreground/70 active:text-foreground active:bg-secondary/80 border border-border/60 transition-colors cursor-pointer shrink-0"
+                    aria-label="更多操作"
                     title="更多操作"
                     onClick={(e) => {
                       e.stopPropagation?.();
                     }}
                   >
-                    <MoreHorizontal className="size-3" />
+                    <MoreHorizontal className="size-3" aria-hidden="true" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -2901,11 +2898,12 @@ const MobileFundTable = memo(function MobileFundTable({
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
-                      className="size-6 rounded flex items-center justify-center text-muted-foreground/70 active:text-foreground active:bg-secondary/80 border border-border/60 transition-colors cursor-pointer shrink-0"
+                      className="size-7 rounded flex items-center justify-center text-muted-foreground/70 active:text-foreground active:bg-secondary/80 border border-border/60 transition-colors cursor-pointer shrink-0"
+                      aria-label="更多操作"
                       title="更多操作"
                       onClick={(e) => e.stopPropagation?.()}
                     >
-                      <MoreHorizontal className="size-3.5" />
+                      <MoreHorizontal className="size-3.5" aria-hidden="true" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent

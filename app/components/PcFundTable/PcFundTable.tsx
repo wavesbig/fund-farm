@@ -1063,7 +1063,7 @@ export const PcFundTable = memo(function PcFundTable({
                     defaultValue={table.getState().pagination.pageSize}
                     type="number"
                     min={1}
-                    className="w-14 h-7 text-[16PX] text-center px-1 font-mono text-xs rounded-md border-border/80"
+                    className="w-14 h-7 text-[16PX] md:text-xs text-center px-1 font-mono rounded-md border-border/80"
                     onBlur={(e) => {
                       let val = parseInt(e.target.value, 10);
                       if (isNaN(val) || val < 1) val = 20;

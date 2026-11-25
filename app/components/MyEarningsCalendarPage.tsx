@@ -1051,14 +1051,19 @@ export default function MyEarningsCalendarPage({
 
   const detailsDrawerMobile = (
     <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="bottom">
-      <DrawerContent className="flex flex-col gap-0 p-0 bg-background/95 backdrop-blur-xl max-h-[88vh] rounded-t-[20px] pb-5">
+      <DrawerContent className="flex flex-col gap-0 p-0 bg-background/95 backdrop-blur-xl max-h-[88dvh] rounded-t-[20px] pb-5">
         <DrawerHeader className="flex-shrink-0 flex flex-row items-center justify-between gap-2 px-5 pb-3 pt-5 text-left border-b border-[var(--border)]">
           <DrawerTitle className="text-base font-semibold text-[var(--text)] flex-1 min-w-0">
             {renderDrawerTitle()}
           </DrawerTitle>
           <DrawerClose asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]">
-              <X className="h-4 w-4" />
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="关闭"
+              className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           </DrawerClose>
         </DrawerHeader>
@@ -1092,7 +1097,7 @@ export default function MyEarningsCalendarPage({
                   exit={{ x: '100%' }}
                   transition={{ type: 'spring', damping: 30, stiffness: 300 }}
                   onClick={(e) => e.stopPropagation()}
-                  style={{ width: 450, maxWidth: 'calc(100vw - 32px)' }}
+                  style={{ width: 450, maxWidth: 'calc(100% - 32px)' }}
                 >
                   <div className="pc-table-setting-header">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
@@ -1102,10 +1107,11 @@ export default function MyEarningsCalendarPage({
                       type="button"
                       variant="ghost"
                       size="icon"
+                      aria-label="关闭"
                       className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]"
                       onClick={() => setDrawerOpen(false)}
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                   {detailsContent}
@@ -1124,16 +1130,21 @@ export default function MyEarningsCalendarPage({
       <>
         <Drawer open={Boolean(open)} onOpenChange={onOpenChange}>
           <DrawerContent
-            className={cn('my-earnings-drawer-content flex max-h-[96vh] flex-col gap-0 p-0')}
-            defaultHeight="92vh"
-            maxHeight="96vh"
-            minHeight="44vh"
+            className={cn('my-earnings-drawer-content flex max-h-[96dvh] flex-col gap-0 p-0')}
+            defaultHeight="92dvh"
+            maxHeight="96dvh"
+            minHeight="44dvh"
           >
             <DrawerHeader className="flex-shrink-0 flex flex-row items-center justify-between gap-2 space-y-0 px-5 pb-3 pt-2 text-left">
               <DrawerTitle className="text-base font-semibold text-[var(--text)]">我的收益</DrawerTitle>
               <DrawerClose asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]">
-                  <X className="h-4 w-4" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="关闭"
+                  className="h-7 w-7 text-[var(--muted)] hover:text-[var(--text)]"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </DrawerClose>
             </DrawerHeader>
@@ -1151,7 +1162,7 @@ export default function MyEarningsCalendarPage({
         <DialogContent
           showCloseButton={false}
           className={cn(
-            'my-earnings-drawer-content flex max-h-[92vh] w-[min(650px,calc(100vw-24px))] flex-col gap-0 overflow-hidden p-0'
+            'my-earnings-drawer-content flex max-h-[92dvh] w-[min(650px,calc(100%-24px))] flex-col gap-0 overflow-hidden p-0'
           )}
           onPointerDownOutside={(e) => {
             if (drawerOpen || (mountTimeRef.current > 0 && Date.now() - mountTimeRef.current < 400)) {

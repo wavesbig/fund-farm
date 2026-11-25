@@ -215,10 +215,11 @@ export default function GroupManageModal({ groups, onClose, onSave }: GroupManag
               type="button"
               variant="ghost"
               size="icon"
+              aria-label="关闭"
               onClick={onClose}
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </Button>
           </div>
 

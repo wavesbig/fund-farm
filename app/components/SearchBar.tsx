@@ -152,7 +152,7 @@ export default function SearchBar({
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="size-6 rounded-md flex items-center justify-center text-muted-foreground/70 hover:text-foreground hover:bg-muted/80 active:scale-95 transition-all cursor-pointer"
+                  className="size-6 rounded-md flex items-center justify-center text-muted-foreground/70 hover:text-foreground hover:bg-muted/80 active:opacity-75 transition-colors cursor-pointer"
                   aria-label="清空输入"
                 >
                   <X className="size-3.5" strokeWidth={2} />

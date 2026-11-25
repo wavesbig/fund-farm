@@ -17,7 +17,7 @@ export default function ScanButton({ onClick, disabled }: ScanButtonProps) {
         <button
           type="button"
           className={cn(
-            'group relative size-7 rounded-md flex items-center justify-center text-muted-foreground/75 hover:text-foreground hover:bg-white/[0.08] [data-theme=light]:hover:bg-black/[0.06] active:scale-95 transition-all',
+            'group relative size-7 rounded-md flex items-center justify-center text-muted-foreground/75 hover:text-foreground hover:bg-white/[0.08] [data-theme=light]:hover:bg-black/[0.06] active:opacity-75 transition-colors',
             disabled ? 'opacity-50 cursor-wait' : 'cursor-pointer'
           )}
           onClick={onClick}

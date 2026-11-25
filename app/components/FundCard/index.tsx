@@ -595,12 +595,14 @@ const FundCard = memo(function Index({
               {isHoldingLinked ? (
                 <Tooltip delayDuration={150}>
                   <TooltipTrigger asChild>
-                    <span
+                    <button
+                      type="button"
                       aria-label="已关联持仓"
+                      onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center ml-1.5 text-primary align-middle relative -top-0.5 cursor-help"
                     >
-                      <Link2 className="size-3.5" strokeWidth={1.8} />
-                    </span>
+                      <Link2 className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent>持仓来自自定义分组汇总</TooltipContent>
                 </Tooltip>
