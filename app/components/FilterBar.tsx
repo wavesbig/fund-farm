@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, RefObject, TransitionStartFunction } from 'react';
+import React, { memo, RefObject, TransitionStartFunction, useOptimistic } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ChevronLeft,
@@ -116,6 +116,7 @@ export const FilterBar = memo(function FilterBar({
   sortRules,
   startTransition
 }: FilterBarProps) {
+  const [optimisticViewMode, setOptimisticViewMode] = useOptimistic(viewMode);
   const isDropdownSort = (isMobile ? mobileSortDisplayMode : pcSortDisplayMode) === 'dropdown';
   const activeSortRule = sortRules.find((s) => s.id === sortBy) || sortRules.find((s) => s.id === 'default');
   const activeSortLabel = activeSortRule?.alias || activeSortRule?.label || activeSortRule?.name || '默认排序';
@@ -320,12 +321,17 @@ export const FilterBar = memo(function FilterBar({
               <button
                 type="button"
                 role="radio"
-                aria-checked={viewMode === 'card'}
+                aria-checked={optimisticViewMode === 'card'}
                 aria-label="卡片视图"
-                onClick={() => applyViewMode('card')}
-                className={cn('tab-capsule-item', viewMode === 'card' && 'active')}
+                onClick={() => {
+                  startTransition(() => {
+                    setOptimisticViewMode('card');
+                    applyViewMode('card');
+                  });
+                }}
+                className={cn('tab-capsule-item', optimisticViewMode === 'card' && 'active')}
               >
-                <LayoutGrid className="size-3.5" strokeWidth={1.8} />
+                <LayoutGrid className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={4}>
@@ -338,12 +344,17 @@ export const FilterBar = memo(function FilterBar({
               <button
                 type="button"
                 role="radio"
-                aria-checked={viewMode === 'list'}
+                aria-checked={optimisticViewMode === 'list'}
                 aria-label="表格视图"
-                onClick={() => applyViewMode('list')}
-                className={cn('tab-capsule-item', viewMode === 'list' && 'active')}
+                onClick={() => {
+                  startTransition(() => {
+                    setOptimisticViewMode('list');
+                    applyViewMode('list');
+                  });
+                }}
+                className={cn('tab-capsule-item', optimisticViewMode === 'list' && 'active')}
               >
-                <List className="size-3.5" strokeWidth={1.8} />
+                <List className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={4}>
