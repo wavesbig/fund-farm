@@ -1,3 +1,17 @@
+## v1.0.13 - 2026-11-26
+
+### 变更
+
+- fix(changelog): 移除全局modal类名与宽度锁死限制，真加宽至820px并精简日志排版
+- style(changelog): 进一步加宽更新日志弹框宽度至 800px
+- style(changelog): 适度加宽更新日志弹框尺寸至 640px
+- refactor(guide): 将 Star 引导优化为右下角轻量悬浮卡片，移除全屏遮罩
+- feat(guide): 新增首页初次访问 GitHub Star 引导弹窗
+- refactor(ui): 统一更新日志弹窗规范，精简边距与头部层次
+- refactor(changelog): 精简更新日志弹窗内边距与卡片排版
+- refactor(ui): 全面精简Star入口与底栏排版，移除冗余堆砌并修复语雀失效外链
+- feat(branding): 全站合理增设 GitHub Star 入口并优化顶栏、菜单与底栏交互
+
 ## v1.0.12 - 2026-11-25
 
 ### 变更

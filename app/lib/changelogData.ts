@@ -88,6 +88,79 @@ export const CHANGE_TYPE_CONFIG: Record<
 
 export const BUILTIN_RELEASES: ReleaseLog[] = [
   {
+    id: 'v1.0.13',
+    tagName: 'v1.0.13',
+    version: '1.0.13',
+    title: 'v1.0.13 版本更新',
+    publishedAt: '2026-11-26',
+    htmlUrl: 'https://github.com/wavesbig/fund-farm/releases/tag/v1.0.13',
+    items: [
+      {
+        id: 'v1.0.13-0',
+        type: 'fix',
+        scope: 'changelog',
+        description: '移除全局modal类名与宽度锁死限制，真加宽至820px并精简日志排版',
+        raw: 'fix(changelog): 移除全局modal类名与宽度锁死限制，真加宽至820px并精简日志排版'
+      },
+      {
+        id: 'v1.0.13-1',
+        type: 'style',
+        scope: 'changelog',
+        description: '进一步加宽更新日志弹框宽度至 800px',
+        raw: 'style(changelog): 进一步加宽更新日志弹框宽度至 800px'
+      },
+      {
+        id: 'v1.0.13-2',
+        type: 'style',
+        scope: 'changelog',
+        description: '适度加宽更新日志弹框尺寸至 640px',
+        raw: 'style(changelog): 适度加宽更新日志弹框尺寸至 640px'
+      },
+      {
+        id: 'v1.0.13-3',
+        type: 'refactor',
+        scope: 'guide',
+        description: '将 Star 引导优化为右下角轻量悬浮卡片，移除全屏遮罩',
+        raw: 'refactor(guide): 将 Star 引导优化为右下角轻量悬浮卡片，移除全屏遮罩'
+      },
+      {
+        id: 'v1.0.13-4',
+        type: 'feat',
+        scope: 'guide',
+        description: '新增首页初次访问 GitHub Star 引导弹窗',
+        raw: 'feat(guide): 新增首页初次访问 GitHub Star 引导弹窗'
+      },
+      {
+        id: 'v1.0.13-5',
+        type: 'refactor',
+        scope: 'ui',
+        description: '统一更新日志弹窗规范，精简边距与头部层次',
+        raw: 'refactor(ui): 统一更新日志弹窗规范，精简边距与头部层次'
+      },
+      {
+        id: 'v1.0.13-6',
+        type: 'refactor',
+        scope: 'changelog',
+        description: '精简更新日志弹窗内边距与卡片排版',
+        raw: 'refactor(changelog): 精简更新日志弹窗内边距与卡片排版'
+      },
+      {
+        id: 'v1.0.13-7',
+        type: 'refactor',
+        scope: 'ui',
+        description: '全面精简Star入口与底栏排版，移除冗余堆砌并修复语雀失效外链',
+        raw: 'refactor(ui): 全面精简Star入口与底栏排版，移除冗余堆砌并修复语雀失效外链'
+      },
+      {
+        id: 'v1.0.13-8',
+        type: 'feat',
+        scope: 'branding',
+        description: '全站合理增设 GitHub Star 入口并优化顶栏、菜单与底栏交互',
+        raw: 'feat(branding): 全站合理增设 GitHub Star 入口并优化顶栏、菜单与底栏交互'
+      }
+    ]
+  },
+  {
     id: 'v1.0.12',
     tagName: 'v1.0.12',
     version: '1.0.12',
