@@ -177,6 +177,7 @@ const getClosedModalState = () => ({
   donateOpen: false,
   tutorialDrawerOpen: false,
   updateLogOpen: false,
+  starGuideOpen: false,
   isUpdateModalOpen: false,
   isLogoutConfirmOpen: false,
   mobileTableSettingModalOpen: false,
@@ -225,6 +226,7 @@ export interface ModalStoreState {
   donateOpen: boolean;
   tutorialDrawerOpen: boolean;
   updateLogOpen: boolean;
+  starGuideOpen: boolean;
   isUpdateModalOpen: boolean;
   isLogoutConfirmOpen: boolean;
   mobileTableSettingModalOpen: boolean;
@@ -290,6 +292,7 @@ export const useModalStore = create<ModalStoreState>((set, get) => ({
   donateOpen: false,
   tutorialDrawerOpen: false,
   updateLogOpen: false,
+  starGuideOpen: false,
   isUpdateModalOpen: false,
   isLogoutConfirmOpen: false,
   mobileTableSettingModalOpen: false,

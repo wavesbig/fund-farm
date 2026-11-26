@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { RefreshCw, FolderPlusIcon } from 'lucide-react';
 import { isFunction, isPlainObject } from 'lodash';
@@ -24,6 +24,7 @@ const AddHistoryModal = dynamic(() => import('./AddHistoryModal'), { ssr: false 
 const AllSectorsModal = dynamic(() => import('./AllSectorsModal'), { ssr: false });
 const DividendMethodModal = dynamic(() => import('./DividendMethodModal'), { ssr: false });
 const AiConfigModal = dynamic(() => import('./AiConfigModal'), { ssr: false });
+const StarGuideModal = dynamic(() => import('./StarGuideModal'), { ssr: false });
 
 // 高频组件：同步加载
 import ConfirmModal from './ConfirmModal';
@@ -43,6 +44,7 @@ import FundDataSourceSelector from './FundDataSourceSelector';
 import FundTagsEditDialog from './FundTagsEditDialog';
 import MyEarningsCalendarPage from './MyEarningsCalendarPage';
 import { DEFAULT_FUND_TAG_THEME, DCA_SCOPE_GLOBAL } from '@/app/constants';
+import { storageStore } from '@/app/stores/storageStore';
 import { migrateDcaPlansToScoped } from '../lib/fundHelpers';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import ClientErrorBoundary from './ClientErrorBoundary';
@@ -87,6 +89,7 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
   const donateOpen = useModalStore((s) => s.donateOpen);
   const tutorialDrawerOpen = useModalStore((s) => s.tutorialDrawerOpen);
   const updateLogOpen = useModalStore((s) => s.updateLogOpen);
+  const starGuideOpen = useModalStore((s) => s.starGuideOpen);
   const portfolioEarningsOpen = useModalStore((s) => s.portfolioEarningsOpen);
   const sortSettingOpen = useModalStore((s) => s.sortSettingOpen);
   const allSectorsModalOpen = useModalStore((s) => s.allSectorsModalOpen);
@@ -139,6 +142,22 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
   const setTutorialDrawerOpen = (v: any) =>
     _ms({ tutorialDrawerOpen: isFunction(v) ? v(_gs().tutorialDrawerOpen) : v });
   const setUpdateLogOpen = (v: any) => _ms({ updateLogOpen: isFunction(v) ? v(_gs().updateLogOpen) : v });
+  const setStarGuideOpen = (v: any) => _ms({ starGuideOpen: isFunction(v) ? v(_gs().starGuideOpen) : v });
+
+  // 首页初次访问检测：延迟 2.5 秒展示 Star 引导弹窗
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        const hasSeen = storageStore.getItem('hasSeenStarGuide', false);
+        if (!hasSeen) {
+          useModalStore.setState({ starGuideOpen: true });
+        }
+      } catch {
+        // ignore
+      }
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
   const setSortSettingOpen = (v: any) => _ms({ sortSettingOpen: isFunction(v) ? v(_gs().sortSettingOpen) : v });
   const setAllSectorsModalOpen = (v: any) =>
     _ms({ allSectorsModalOpen: isFunction(v) ? v(_gs().allSectorsModalOpen) : v });
@@ -304,6 +323,9 @@ function ModalsLayerContent({ callbacksRef }: ModalsLayerProps) {
 
       {/* ===== Modal: 更新日志 ===== */}
       <AnimatePresence>{updateLogOpen && <UpdateLogModal open onOpenChange={setUpdateLogOpen} />}</AnimatePresence>
+
+      {/* ===== Modal: 初次 Star 引导 ===== */}
+      <AnimatePresence>{starGuideOpen && <StarGuideModal open onOpenChange={setStarGuideOpen} />}</AnimatePresence>
 
       {/* ===== Modal: 全部板块 ===== */}
       <AnimatePresence>
