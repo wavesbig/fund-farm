@@ -185,7 +185,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal max-w-[520px] w-[92vw] p-4 sm:p-5 gap-0 flex flex-col max-h-[85vh] z-[100]"
+        className="glass card modal max-w-[620px] sm:max-w-[640px] w-[94vw] p-4 sm:p-5 gap-0 flex flex-col max-h-[85vh] z-[100]"
         overlayClassName="modal-overlay"
         onPointerDownOutside={(e) => {
           if (Date.now() - mountTimeRef.current < 400) {
