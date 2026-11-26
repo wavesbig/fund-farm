@@ -185,7 +185,8 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="glass card modal max-w-[760px] sm:max-w-[800px] w-[94vw] p-4 sm:p-5 gap-0 flex flex-col max-h-[85vh] z-[100]"
+        className="glass card !w-[94vw] sm:!w-[780px] md:!w-[820px] !max-w-[820px] p-4 sm:p-5 gap-0 flex flex-col max-h-[85vh] z-[100]"
+        style={{ width: 'min(820px, 94vw)', maxWidth: 'min(820px, 94vw)' }}
         overlayClassName="modal-overlay"
         onPointerDownOutside={(e) => {
           if (Date.now() - mountTimeRef.current < 400) {
@@ -238,9 +239,9 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
           </div>
         </div>
 
-        {/* 紧凑搜索与分类行 */}
-        <div className="mb-3 space-y-2 shrink-0">
-          <div className="relative">
+        {/* 紧凑搜索与分类行 — 宽屏下单行排布 */}
+        <div className="mb-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+          <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
@@ -261,7 +262,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
             )}
           </div>
 
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none shrink-0">
             {CATEGORY_TABS.map((tab) => {
               const isActive = selectedCategory === tab.key;
               return (
@@ -269,7 +270,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
                   key={tab.key}
                   type="button"
                   onClick={() => setSelectedCategory(tab.key)}
-                  className={`h-5.5 px-2 text-[11px] rounded-full font-medium transition-all shrink-0 cursor-pointer ${
+                  className={`h-6 px-2.5 text-[11px] rounded-full font-medium transition-all shrink-0 cursor-pointer ${
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground'
@@ -281,7 +282,7 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
             })}
 
             {(searchQuery || selectedCategory !== 'all') && (
-              <span className="ml-auto text-[10px] text-muted-foreground whitespace-nowrap pl-2 shrink-0">
+              <span className="text-[10px] text-muted-foreground whitespace-nowrap pl-1.5 shrink-0">
                 {filteredReleases.length} 版本 · {totalMatchingChanges} 条
               </span>
             )}
@@ -377,19 +378,14 @@ export default function UpdateLogModal({ open, onOpenChange }: UpdateLogModalPro
                       const typeCfg = CHANGE_TYPE_CONFIG[item.type] || CHANGE_TYPE_CONFIG.other;
                       return (
                         <div key={item.id} className="flex items-start gap-1.5 text-xs leading-relaxed group/item">
-                          <div className="shrink-0 flex items-center gap-1 mt-0.5">
+                          <div className="shrink-0 flex items-center mt-0.5">
                             <span
-                              className={`text-[9px] font-medium px-1 py-px rounded border ${typeCfg.bgClass} ${typeCfg.textClass} ${typeCfg.borderClass}`}
+                              className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${typeCfg.bgClass} ${typeCfg.textClass} ${typeCfg.borderClass}`}
                             >
                               {typeCfg.label}
                             </span>
-                            {item.scope && (
-                              <span className="text-[9px] font-mono px-1 py-px rounded bg-muted/60 text-muted-foreground border border-border/40">
-                                {item.scope}
-                              </span>
-                            )}
                           </div>
-                          <div className="flex-1 min-w-0 text-muted-foreground group-hover/item:text-foreground transition-colors break-words text-[11px]">
+                          <div className="flex-1 min-w-0 text-muted-foreground group-hover/item:text-foreground transition-colors break-words text-xs leading-relaxed">
                             <HighlightText text={item.description} query={searchQuery} />
                           </div>
                         </div>
